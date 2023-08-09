@@ -1,0 +1,5 @@
+**/node_modules/*
+out/
+dist/
+*.dgb
+package-lock.json

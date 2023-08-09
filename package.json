@@ -4,6 +4,9 @@
   "description": "A DigiByte Coin standard-compilant light wallet for desktop environment",
   "main": "src/index.js",
   "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder build --dir",
+    "dist": "electron-builder build",
     "test": "node test.js"
   },
   "repository": {
@@ -15,10 +18,57 @@
     "digiassets",
     "digiid"
   ],
-  "author": "Renzo Diaz",
+  "author": {
+    "name": "Renzo Diaz",
+    "email": "renzo.diaz@remadi.net"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/RenzoDD/digibyte-desktop/issues"
   },
-  "homepage": "https://github.com/RenzoDD/digibyte-desktop#readme"
+  "homepage": "https://github.com/RenzoDD/digibyte-desktop#readme",
+  "dependencies": {
+    "digibyte-js": "^2.0.4"
+  },
+  "devDependencies": {
+    "electron": "^25.4.0",
+    "electron-builder": "^24.6.3"
+  },
+  "build": {
+    "productName": "DigiByte Desktop",
+    "appId": "org.digibyte.desktop",
+    "nsis": {
+      "artifactName": "DigiByte Desktop Setup ${version}.${ext}",
+      "uninstallDisplayName": "DigiByte Desktop"
+    },
+    "asar": true,
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "icon": "build/icons/icon.icns"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "rpm"
+      ],
+      "category": "Utility",
+      "icon": "build/icons/icon.icns"
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "build/icons/icon.ico"
+    }
+  }
 }

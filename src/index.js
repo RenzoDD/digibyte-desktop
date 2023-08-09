@@ -1,0 +1,41 @@
+const { app, BrowserWindow } = require('electron');
+let myWindow = null;
+
+// Only one instance
+if (!app.requestSingleInstanceLock()) {
+	app.quit();
+	process.exit();
+}
+
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+	if (myWindow) {
+		if (myWindow.isMinimized()) myWindow.restore()
+		myWindow.focus()
+	}
+})
+
+app.on('window-all-closed', () => {
+	if (process.platform !== 'darwin')
+		app.quit()
+})
+
+app.whenReady().then(() => {
+	myWindow = new BrowserWindow({
+		webPreferences: {
+			devTools: false,
+			nodeIntegration: true,
+			contextIsolation: false
+		},
+		icon: __dirname + "\\app\\img\\icons\\icon.png",
+		autoHideMenuBar: true,
+		maximizable: true,
+		resizable: true,
+		show: false
+	})
+	myWindow.loadFile(__dirname + '/app/index.html');
+	myWindow.webContents.once('did-finish-load', function () {
+		myWindow.show();
+		myWindow.maximize();
+	});
+
+});

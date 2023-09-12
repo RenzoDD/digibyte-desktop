@@ -1,0 +1,79 @@
+@font-face {
+    font-family: Bahnschrift;
+    src: url('../fonts/bahnschrift.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+	--dark: 	#00204C;
+	--primary:	#002352;
+    --secondary:#003D80;
+	--tertiary: #0066CC;
+	--red:		#DC3545;
+	--clear:	#FFFFFF;
+}
+
+body {
+    font-family: Bahnschrift !important;
+    background-color: var(--dark);
+    color: var(--clear) !important;
+}
+.panel {
+	background-color: var(--primary);
+}
+.option {
+    background-color: var(--primary);
+    border-radius: 0.5em;
+    cursor: pointer;
+}
+.option:hover {
+    background-color: var(--secondary);
+}
+label.error {
+    font-weight: bold;
+    color: var(--red)
+}
+.btn-dgb {
+    color: var(--clear);
+}
+.btn-dgb:hover {
+    color: var(--primary);
+    background-color: var(--clear);
+}
+
+
+
+
+
+/*
+ *  Bootstrap Overwrite
+ */
+
+.btn-outline-light {
+    border-width: 0;
+}
+
+.modal-content {
+    color: var(--clear);
+    background-color: var(--primary);
+}
+
+th  {
+    background-color: var(--primary) !important;
+    color: var(--clear) !important;
+}
+
+td  {
+    background-color: var(--primary) !important;
+    color: var(--clear) !important;
+}
+td {
+    border-bottom-width: 0px !important;
+}
+.bi {
+    fill: var(--clear) !important;
+}
+.btn:hover .bi {
+    fill: var(--primary) !important;
+}

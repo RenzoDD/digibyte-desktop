@@ -1,3 +1,5 @@
+require('./port');
+
 const { app, BrowserWindow } = require('electron');
 let myWindow = null;
 
@@ -34,11 +36,10 @@ app.whenReady().then(() => {
 		minWidth: 1080,
 		minHeight: 720
 	})
+
 	myWindow.loadFile(__dirname + '/app/index.html');
 	myWindow.webContents.once('did-finish-load', function () {
 		myWindow.show();
 		myWindow.maximize();
 	});
-
-	console.log(app.getPath('userData'))
 });

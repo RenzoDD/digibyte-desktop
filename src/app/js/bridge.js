@@ -17,3 +17,12 @@ function ReadWallet(path) {
         });
     });
 }
+
+function CreateWallet(name, type, password) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('create-wallet', name, type, password);
+        ipcRenderer.once('create-wallet', (event, response) => {
+            resolve(response);
+        });
+    });
+}

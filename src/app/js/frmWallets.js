@@ -27,3 +27,51 @@ async function frmWallets_Load() {
 async function frmWallets_OpenWallet(path) {
 
 }
+
+async function frmWallets_Generate() {
+    generateKeys1.hidden = false;
+    generateKeys1Type.value = "null";
+    generateKeys1Name.value = "";
+    generateKeys1Error.innerHTML = "";
+
+    generateKeys2.hidden = true;
+    generateKeys2Error.innerHTML = "";
+    generateKeys2Password1.value = "";
+    generateKeys2Password2.value = "";
+
+    generateKeys3.hidden = true;
+    generateKeys3List.innerHTML = "";
+}
+async function frmWallets_Generate1() {
+    if (generateKeys1Type.value != "24-words" && generateKeys1Type.value != "12-words")
+        return generateKeys1Error.innerHTML = "Select Key's type";
+
+    if (generateKeys1Name.value == "")
+        return generateKeys1Error.innerHTML = "Enter Key's name";
+
+    generateKeys1.hidden = true;
+    generateKeys2.hidden = false;
+    generateKeys3.hidden = true;
+}
+async function frmWallets_Generate2() {
+    if (generateKeys2Password1.value !== generateKeys2Password2.value)
+        return generateKeys2Error.innerHTML = "The passwords doesn't match";
+
+
+    var list = await CreateWallet(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
+
+    if (list === false)
+        generateKeys3List.innerHTML = `Error, please try again`;
+    else {
+        generateKeys3List.innerHTML = list.join(" ");
+        delete list;
+    }
+
+    generateKeys1.hidden = true;
+    generateKeys2.hidden = true;
+    generateKeys3.hidden = false;
+}
+async function frmWallets_Generate3() {
+    generateKeys3List.innerHTML = "";
+    frmWallets_Load();
+}

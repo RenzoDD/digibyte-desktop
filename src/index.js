@@ -1,4 +1,4 @@
-require('./port');
+require('./modules/port');
 
 const { app, BrowserWindow } = require('electron');
 let myWindow = null;

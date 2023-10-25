@@ -5,17 +5,21 @@ Each DigiByte Desktop Wallet File contain four fields
 | Field     | Description                                                |
 |-----------|------------------------------------------------------------|
 | name      | Private Keys Name                                          |
-| type      | Type of private key (`xprv`, `keys`)                       |
+| type      | Type of private key (`seed`, `keys`)                       |
 | secret    | AES-256-CBC with no IV Encrypted JSON format of the keys   |
 | integrity | SHA-256 Hash of name, type & secret JSON stringlify object |
 
 ## Example
-Key: "digibyte rocks!"
+
+Key: `digibyte rocks!`
+
+Seed: `0b25fef7270b30afab0206442de37800fcf7a95e8179a2fd27a5e3aef46068dcc5ef59af69ad30564dbd685be2d186bc869f9398f8012a6e8ac6f107b0bc67ae`
+
 ```json
 {
     "name": "Renzo's Personal Wallet",
-    "type": "xprv",
-    "secret": "619ae794ec8813f856076da46ba289eb53f1d1d4b635d2e06b6fbcc14a65a4ded92c962783decb10edd8153f6f158d28988e373b55ec19610c6127d242e5c35c21fe35375876e4deef1b7c14a2bb9a85680539d2906c86c9da8040bacbe7b5c4c8948910d2fa9a96ee7d08f0c42044b2",
-    "integrity": "4de067573a8adbc5d6274eccfbce53fd265634f8e30095b0d5dfc8a290034dca"
+    "type": "seed",
+    "secret": "cae5eaab7fb51127592fc94ec2943d1fcadbf4a849316ce7a6eda67bf32e4993a15b003955124d7496552782594bda1fa4ecd9392a9b7711f0921ea6fd12e47220baccd5184161c931daf87ca89a98a9bf0c8d2de87bff81b27c8abf63578a71471ad12eb7995ad05e90002061c176697cb8ed06fca3abcb0c8607125cdbb6c36754df66ed09bb8acf973a11f91ce746",
+    "integrity": "469c9183b2433b7eacdad33007db4d3cf05f1ba86b1627515a382e5ec2e07deb"
 }
 ```

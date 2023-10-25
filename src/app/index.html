@@ -19,64 +19,64 @@
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmWallets_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#key"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#key" />
 					</svg>
 					Wallet
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmAccounts_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#collection"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#collection" />
 					</svg>
 					Accounts
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmSend_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-up-right"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-up-right" />
 					</svg>
 					Send
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmReceive_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-left"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-left" />
 					</svg>
 					Receive
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmDigiAssets_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#digiasset"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#digiasset" />
 					</svg>
 					DigiAssets
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmDigiID_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#digiid"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#digiid" />
 					</svg>
 					Digi-ID
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmEducation_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#mortarboard"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#mortarboard" />
 					</svg>
 					Education
 				</button>
 			</div>
 			<div class="d-grid gap-2 mb-3">
 				<button class="btn btn-dgb btn-lg text-start" onclick="frmSoftware_Load()">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#code"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#code" />
 					</svg>
 					Software
 				</button>
@@ -88,8 +88,8 @@
 			<!-- Top bar -->
 			<div class="text-end m-3">
 				<button class="btn btn-dgb btn-lg">
-					<svg class="bi" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#gear"/>
+					<svg class="bi bi-btn" width="18" height="18">
+						<use xlink:href="vendor/bootstrap-icons.svg#gear" />
 					</svg>
 				</button>
 			</div>
@@ -100,36 +100,39 @@
 					DigiByte Wallets
 				</h1>
 
-				<div class="row p-4">
+				<div class="row p-5">
 					<div class="col-4">
-						Name
+						<svg class="bi" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#file-earmark-binary" />
+						</svg> File
 					</div>
 					<div class="col-4">
-						File
+						<svg class="bi" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#key" />
+						</svg> Type
 					</div>
 					<div class="col-4">
-						Type
+						<svg class="bi" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
+						</svg> Integrity
 					</div>
 				</div>
+				<div class="window p-3" id="plWallets">
 
-				<div id="plWallets">
-					
 				</div>
-				
 				<hr>
-
 				<div class="row">
 					<div class="col-6">
 						<div class="option text-center p-4 me-1" data-bs-toggle="modal" data-bs-target="#generateKeys" onclick="frmWallets_Generate()">
 							<svg class="bi" width="18" height="18">
-								<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat"/>
+								<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
 							</svg> Generate
 						</div>
 					</div>
 					<div class="col-6">
 						<div class="option text-center p-4 ms-1" data-bs-toggle="modal" data-bs-target="#mdlImportKeys">
 							<svg class="bi" width="18" height="18">
-								<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-right"/>
+								<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-right" />
 							</svg> Import
 						</div>
 					</div>
@@ -143,7 +146,7 @@
 									Generate Keys
 								</h5>
 							</div>
-				
+
 							<div class="m-4" id="generateKeys1">
 								<div class="mb-3">
 									<label>Key's type:</label>
@@ -158,16 +161,20 @@
 									<input type="text" class="form-control" id="generateKeys1Name">
 								</div>
 								<div class="mb-3">
-									<label class="error" id="generateKeys1Error">
+									<label id="generateKeys1Error">
 										Mistake template
 									</label>
 								</div>
 								<div class="text-center">
 									<button class="btn btn-success btn-sm" onclick="frmWallets_Generate1()">
-										Continue
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
+										</svg> Continue
 									</button>
 									<button class="btn btn-danger btn-sm" data-bs-dismiss="modal">
-										Cancel
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Cancel
 									</button>
 								</div>
 							</div>
@@ -180,18 +187,22 @@
 									<label>Confirm password:</label>
 									<input type="password" class="form-control" id="generateKeys2Password2">
 								</div>
-				
+
 								<div class="mb-3">
-									<label class="error" id="generateKeys2Error">
+									<label id="generateKeys2Error">
 										Mistake template
 									</label>
 								</div>
 								<div class="text-center">
 									<button class="btn btn-success btn-sm" onclick="frmWallets_Generate2()">
-										<i class="bi bi-check"></i> Finish
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
+										</svg> Finish
 									</button>
 									<button class="btn btn-danger btn-sm" data-bs-dismiss="modal">
-										Cancel
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Cancel
 									</button>
 								</div>
 							</div>
@@ -199,145 +210,12 @@
 								<div id="generateKeys3List">
 
 								</div>
-								
+
 								<div class="text-center">
-									<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="frmWallets_Generate3()">
-										Close
-									</button>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="modal fade" id="mdlImportKeys" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-					<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-						<div class="modal-content">
-							<div class="mt-4">
-								<h5 class="text-center">
-									Manage Keys
-								</h5>
-								<div class="text-center">
-									<button type="button" class="btn btn-dgb btn-sm">
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="frmWallets_Generate3()">
 										<svg class="bi" width="18" height="18">
-											<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat"/>
-										</svg> Generate
-									</button>
-				
-									<button type="button" class="btn btn-dgb btn-sm">
-										<svg class="bi" width="18" height="18">
-											<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-right"/>
-										</svg> Import
-									</button>
-			
-									<button type="button" class="btn btn-dgb btn-sm" data-bs-dismiss="modal">
-										<svg class="bi" width="18" height="18">
-											<use xlink:href="vendor/bootstrap-icons.svg#x"/>
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 										</svg> Close
-									</button>
-								</div>
-							</div>
-				
-							<div class="m-4" hidden>
-								<div class="mb-3">
-									<label>Key's type:</label>
-									<select class="form-select">
-										<option selected>Select key type</option>
-										<option>24-word Mnemonic</option>
-										<option>12-word Mnemonic</option>
-									</select>
-								</div>
-								<div class="mb-3">
-									<label>Name:</label>
-									<input type="text" class="form-control">
-								</div>
-								<div class="mb-3">
-									<label class="error">
-										Mistake template
-									</label>
-								</div>
-								<div class="text-center">
-									<button class="btn btn-success btn-sm">
-										<i class="bi bi-check"></i> Create
-									</button>
-								</div>
-							</div>
-							<div class="m-4">
-								<div class="mb-3">
-									<label>Key's type:</label>
-									<select class="form-select">
-										<option selected>Select key type</option>
-										<option>Keys File (.dgb)</option>
-										<option>Mnemonic Phrase</option>
-										<option>Private Keys</option>
-									</select>
-								</div>
-				
-								<div class="mb-3">
-									<label>Select file:</label>
-									<input type="file" class="form-control">
-								</div>
-								<div class="mb-3" hidden>
-									<label>Insert mnemonic:</label>
-									<textarea class="form-control" rows="3"></textarea>
-								</div>
-								<div class="mb-3" hidden>
-									<label>Insert private keys (spaced):</label>
-									<textarea class="form-control" rows="3"></textarea>
-								</div>
-				
-								<div class="mb-3">
-									<label class="error">
-										Mistake template
-									</label>
-								</div>
-								<div class="text-center">
-									<button class="btn btn-success btn-sm">
-										<i class="bi bi-check"></i> Import
-									</button>
-								</div>
-							</div>
-							<div class="m-4" hidden>
-								<div class="mb-3">
-									<label>Select keys:</label>
-									<select class="form-select">
-										<option selected>Select keys</option>
-										<option>renzo</option>
-										<option>sergio</option>
-										<option>digiassetX</option>
-										<option>friends</option>
-									</select>
-								</div>
-				
-								<div class="mb-3">
-									<label class="error">
-										Mistake template
-									</label>
-								</div>
-								<div class="text-center">
-									<button class="btn btn-danger btn-sm">
-										<i class="bi bi-check"></i> Export
-									</button>
-								</div>
-							</div>
-				
-							<div class="m-4" hidden>
-								<div class="mb-3">
-									<label>Password:</label>
-									<input type="password" class="form-control">
-								</div>
-								<div class="mb-3">
-									<label>Confirm password:</label>
-									<input type="password" class="form-control">
-								</div>
-				
-								<div class="mb-3">
-									<label class="error">
-										Mistake template
-									</label>
-								</div>
-								<div class="text-center">
-									<button class="btn btn-success btn-sm">
-										<i class="bi bi-check"></i> Finish
 									</button>
 								</div>
 							</div>

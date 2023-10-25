@@ -37,7 +37,6 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     var mnemonic = DigiByte.GenerateMnemonic(words);
 
     var keys = {};
-    keys.name = name;
     keys.type = "seed";
     keys.secret = EncryptAES256(mnemonic.seed, password);
 

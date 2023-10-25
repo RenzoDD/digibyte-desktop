@@ -30,10 +30,6 @@ body {
 .option:hover {
     background-color: var(--secondary);
 }
-label.error {
-    font-weight: bold;
-    color: var(--red)
-}
 .btn-dgb {
     color: var(--clear);
 }
@@ -41,7 +37,11 @@ label.error {
     color: var(--primary);
     background-color: var(--clear);
 }
-
+.window {
+    max-height: 40vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
 
 
 
@@ -74,6 +74,31 @@ td {
 .bi {
     fill: var(--clear) !important;
 }
-.btn:hover .bi {
+.btn:hover .bi-btn {
     fill: var(--primary) !important;
+}
+
+
+/*
+ *  Scroll Overwrite
+ */
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

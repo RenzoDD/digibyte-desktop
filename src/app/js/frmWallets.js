@@ -9,13 +9,13 @@ async function frmWallets_Load() {
             plWallets.innerHTML += `
             <div class="option row p-4 mb-3" onclick="frmWallets_OpenWallet('${file}')">
                 <div class="col-4">
-                    ${wallet.name}
-                </div>
-                <div class="col-4">
                     ${wallet.file}
                 </div>
                 <div class="col-4">
                     ${wallet.type}
+                </div>
+                <div class="col-4">
+                    ${wallet.integrity ? "Correct" : "Failed"}
                 </div>
             </div>`;
         } catch (e) { console.log(e) }
@@ -44,10 +44,10 @@ async function frmWallets_Generate() {
 }
 async function frmWallets_Generate1() {
     if (generateKeys1Type.value != "24-words" && generateKeys1Type.value != "12-words")
-        return generateKeys1Error.innerHTML = "Select Key's type";
+        return generateKeys1Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Select Key's type`;
 
     if (generateKeys1Name.value == "")
-        return generateKeys1Error.innerHTML = "Enter Key's name";
+        return generateKeys1Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Enter Key's name`;
 
     generateKeys1.hidden = true;
     generateKeys2.hidden = false;
@@ -55,13 +55,13 @@ async function frmWallets_Generate1() {
 }
 async function frmWallets_Generate2() {
     if (generateKeys2Password1.value !== generateKeys2Password2.value)
-        return generateKeys2Error.innerHTML = "The passwords doesn't match";
+        return generateKeys2Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> The passwords doesn't match`;
 
 
     var list = await CreateWallet(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
 
     if (list === false)
-        generateKeys3List.innerHTML = `Error, please try again`;
+        generateKeys3List.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Error, please try again`;
     else {
         generateKeys3List.innerHTML = list.join(" ");
         delete list;

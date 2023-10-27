@@ -6,6 +6,10 @@ const { ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
+/*
+ * WALLET MANAGEMENT
+ */
+
 ipcMain.on('get-wallets', async function (event) {
     var files = fs.readdirSync(paths.keys);
     var wallets = files.filter(file => path.extname(file) === '.dgb').map(file => path.join(paths.keys, file).replaceAll('\\', '/'));
@@ -50,4 +54,41 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     delete mnemonic;
 
     return event.reply('create-wallet', list);
+});
+
+/*
+ * MNEMONIC IMPORT
+ */
+
+ipcMain.on('guess-word', async function (event, guess) {
+    var word = DigiByte.GetMnemonicWord(guess.toLowerCase());
+
+    return event.reply('guess-word', word || "");
+});
+
+ipcMain.on('check-mnemonic', async function (event, mnemonic) {
+    var valid = DigiByte.CheckMnemonic(mnemonic);
+
+    return event.reply('check-mnemonic', valid);
+});
+
+ipcMain.on('import-wallet', async function (event, name, password, mnemonic, passphrase) {
+
+    if (!DigiByte.CheckMnemonic(mnemonic))
+        return event.reply('import-wallet', false);
+
+    var mnemonic = DigiByte.GenerateMnemonic(mnemonic, passphrase);
+
+    var keys = {};
+    keys.type = "seed";
+    keys.secret = EncryptAES256(mnemonic.seed, password);
+
+    var integrity = SHA256(JSON.stringify(keys));
+    keys.integrity = integrity;
+
+    fs.writeFileSync(paths.keys + "/" + name + ".dgb", JSON.stringify(keys, null, 2));
+    delete keys;
+    delete mnemonic;
+    
+    return event.reply('import-wallet', true);
 });

@@ -42,8 +42,14 @@ body {
     overflow-x: hidden;
     overflow-y: auto;
 }
-
-
+.btn-bg {
+    background: #1D3C66;
+    color: white !important;
+}
+.btn-bg:hover {
+    background-color: #00326F;
+    cursor: pointer;
+}
 
 
 /*

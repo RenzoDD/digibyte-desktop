@@ -89,6 +89,11 @@ async function frmWallets_Import() {
     importKeys2MnemonicError.innerHTML = "";
     importKeys2MnemonicBIP39Passphrase.innerHTML = "";
 
+    importKeys2Keys.hidden = true;
+    importKeys2KeysKey.value = "";
+    importKeys2KeysList.innerHTML = "";
+    importKeys2KeysError.innerHTML = "";
+
     importKeys3.hidden = true;
     importKeys3Password1.value = "";
     importKeys3Password2.value = "";
@@ -96,7 +101,6 @@ async function frmWallets_Import() {
 
     importKeys4.hidden = true;
     importKeys4Message.innerHTML = "";
-
 }
 async function frmWallets_Import1() {
     if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys")
@@ -126,23 +130,41 @@ async function frmWallets_Import2Mnemonic() {
     importKeys3.hidden = false;
     importKeys4.hidden = true;
 }
+async function frmWallets_Import2Keys() {
+    if (importKeys2KeysList.children.length == 0)
+        return importKeys2KeysError.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Missing private key`;
+
+    importKeys1.hidden = true;
+    importKeys2Mnemonic.hidden = true;
+    importKeys2Keys.hidden = true;
+    importKeys3.hidden = false;
+    importKeys4.hidden = true;
+}
 async function frmWallets_Import3() {
     if (importKeys3Password1.value !== importKeys3Password2.value)
         return importKeys3Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> The passwords doesn't match`;
 
-    var done = await ImportWallet(importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
+    if (importKeys1Type.value == "mnemonic")
+        var done = await ImportWallet(importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
+    if (importKeys1Type.value == "keys") {
+        var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML).join("-");
+        var done = await ImportWallet(importKeys1Name.value, importKeys3Password1.value, keys, false);
+    }
 
     if (done)
-        importKeys4Message.innerHTML = "Keys saved";
+        importKeys4Message.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#check-circle"/></svg> Keys saved`;
     else
         importKeys4Message.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Error, please try again`;
 
-        
     importKeys2MnemonicPhrase.innerHTML = "";
     importKeys2MnemonicWord.value = "";
     importKeys2MnemonicGuess.innerHTML = "";
     importKeys2MnemonicError.innerHTML = "";
     importKeys2MnemonicBIP39Passphrase.innerHTML = "";
+
+    importKeys2KeysKey.value = "";
+    importKeys2KeysList.innerHTML = "";
+    importKeys2KeysError.innerHTML = "";
 
     importKeys1.hidden = true;
     importKeys2Mnemonic.hidden = true;
@@ -168,4 +190,14 @@ async function keyboardDelete() {
 async function keyboardClick(btn) {
     importKeys2MnemonicGuess.innerHTML += btn.innerHTML;
     importKeys2MnemonicWord.value = await GuessMnemonicWord(importKeys2MnemonicGuess.innerHTML);
+}
+
+async function addPrivateKey() {
+    importKeys2KeysError.innerHTML = "";
+    if (await CheckWIF(importKeys2KeysKey.value)) {
+        importKeys2KeysList.innerHTML += `<li>${importKeys2KeysKey.value}</li>`;
+        importKeys2KeysKey.value = "";
+    } else {
+        return importKeys2KeysError.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Invalid WIF`;
+    }
 }

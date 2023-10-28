@@ -72,23 +72,36 @@ ipcMain.on('check-mnemonic', async function (event, mnemonic) {
     return event.reply('check-mnemonic', valid);
 });
 
-ipcMain.on('import-wallet', async function (event, name, password, mnemonic, passphrase) {
-
-    if (!DigiByte.CheckMnemonic(mnemonic))
-        return event.reply('import-wallet', false);
-
-    var mnemonic = DigiByte.GenerateMnemonic(mnemonic, passphrase);
-
+ipcMain.on('import-wallet', async function (event, name, password, secret, passphrase) {
     var keys = {};
-    keys.type = "seed";
-    keys.secret = EncryptAES256(mnemonic.seed, password);
+
+    if (passphrase !== false) {
+        var mnemonic = DigiByte.GenerateSeed(secret, passphrase);
+        keys.type = "seed";
+        keys.secret = EncryptAES256(mnemonic.seed, password);
+        delete secret;
+        delete mnemonic;
+    } else {
+        keys.type = "keys";
+        keys.secret = EncryptAES256(secret, password);
+        delete secret;
+    }
 
     var integrity = SHA256(JSON.stringify(keys));
     keys.integrity = integrity;
 
     fs.writeFileSync(paths.keys + "/" + name + ".dgb", JSON.stringify(keys, null, 2));
     delete keys;
-    delete mnemonic;
-    
+
     return event.reply('import-wallet', true);
+});
+
+/*
+ * WIF IMPORT
+ */
+
+ipcMain.on('check-wif', async function (event, WIF) {
+    var valid = DigiByte.CheckWIF(WIF);
+
+    return event.reply('check-wif', valid);
 });

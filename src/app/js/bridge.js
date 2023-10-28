@@ -60,3 +60,16 @@ function ImportWallet(name, password, mnemonic, passphrase) {
         });
     });
 }
+
+/*
+ * WIF IMPORT
+ */
+
+function CheckWIF(WIF) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('check-wif', WIF);
+        ipcRenderer.once('check-wif', (event, response) => {
+            resolve(response);
+        });
+    });
+}

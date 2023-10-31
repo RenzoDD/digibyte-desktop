@@ -31,6 +31,15 @@ function CreateWallet(name, type, password) {
     });
 }
 
+function DeleteWallet(file) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('delete-wallet', file);
+        ipcRenderer.once('delete-wallet', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+
 /*
  * MNEMONIC IMPORT
  */

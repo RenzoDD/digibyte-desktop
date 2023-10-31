@@ -12,13 +12,13 @@ const path = require('path');
 
 ipcMain.on('get-wallets', async function (event) {
     var files = fs.readdirSync(paths.keys);
-    var wallets = files.filter(file => path.extname(file) === '.dgb').map(file => path.join(paths.keys, file).replaceAll('\\', '/'));
+    var wallets = files.filter(file => path.extname(file) === '.dgb');
 
     return event.reply('get-wallets', wallets);
 });
 
 ipcMain.on('read-wallet', async function (event, file) {
-    var data = fs.readFileSync(file);
+    var data = fs.readFileSync(path.join(paths.keys, file).replaceAll('\\', '/'));
     var wallet = JSON.parse(data);
 
     var { integrity } = wallet;
@@ -38,7 +38,7 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     if (words == 0)
         return event.reply('create-wallet', false);
 
-    var mnemonic = DigiByte.GenerateMnemonic(words);
+    var mnemonic = DigiByte.GenerateSeed(words);
 
     var keys = {};
     keys.type = "seed";
@@ -47,13 +47,24 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     var integrity = SHA256(JSON.stringify(keys));
     keys.integrity = integrity;
 
-    fs.writeFileSync(paths.keys + "/" + name + ".dgb", JSON.stringify(keys, null, 2));
+    var fullPath = path.join(paths.keys, name + ".dgb").replaceAll('\\', '/');
+    fs.writeFileSync(fullPath, JSON.stringify(keys, null, 2));
     delete keys;
 
-    var { list } = mnemonic;
+    if (fs.existsSync(fullPath))
+        var { list } = mnemonic;
+    else
+        var list = null;
+
     delete mnemonic;
 
     return event.reply('create-wallet', list);
+});
+
+ipcMain.on('delete-wallet', async function (event, file) {
+    var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
+    fs.unlinkSync(fullPath);
+    return event.reply('create-wallet', fs.existsSync(fullPath) === false);
 });
 
 /*
@@ -90,10 +101,11 @@ ipcMain.on('import-wallet', async function (event, name, password, secret, passp
     var integrity = SHA256(JSON.stringify(keys));
     keys.integrity = integrity;
 
-    fs.writeFileSync(paths.keys + "/" + name + ".dgb", JSON.stringify(keys, null, 2));
+    var fullPath = path.join(paths.keys, name + ".dgb").replaceAll('\\', '/');
+    fs.writeFileSync(fullPath, JSON.stringify(keys, null, 2));
     delete keys;
 
-    return event.reply('import-wallet', true);
+    return event.reply('import-wallet', fs.existsSync(fullPath));
 });
 
 /*

@@ -7,7 +7,7 @@ async function frmWallets_Load() {
         try {
             var wallet = await ReadWallet(file);
             plWallets.innerHTML += `
-            <div class="option row p-4 mb-3" onclick="frmWallets_OpenWallet('${file}')">
+            <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmWallets_Manage('${file}')">
                 <div class="col-4">
                     ${wallet.file}
                 </div>
@@ -24,8 +24,26 @@ async function frmWallets_Load() {
     frmOpen(frmWallets);
 }
 
-async function frmWallets_OpenWallet(path) {
+async function frmWallets_Manage(file) {
+    manageKeys1.hidden = false;  
+    manageKeys2.hidden = true;  
 
+    manageKeys1Wallet.value = file;
+}
+async function frmWallets_Manage1Export() {
+    
+}
+async function frmWallets_Manage1Delete() {
+    manageKeys1.hidden = true;  
+    manageKeys2.hidden = false;  
+}
+async function frmWallets_Manage1Close() {
+    manageKeys1Wallet.value = "";
+}
+async function frmWallets_Manage1DeleteConfirm() {
+    DeleteWallet(manageKeys1Wallet.value);
+    manageKeys1Wallet.value = "";
+    frmWallets_Load();
 }
 
 async function frmWallets_Generate() {
@@ -175,7 +193,6 @@ async function frmWallets_Import3() {
 async function frmWallets_Import4() {
     frmWallets_Load();
 }
-
 
 async function keyboardAccept() {
     if (importKeys2MnemonicWord.value != "")

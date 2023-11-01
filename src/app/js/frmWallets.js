@@ -25,17 +25,27 @@ async function frmWallets_Load() {
 }
 
 async function frmWallets_Manage(file) {
-    manageKeys1.hidden = false;  
-    manageKeys2.hidden = true;  
+    manageKeys1.hidden = false;
+    manageKeys2.hidden = true;
+    manageKeys3.hidden = true;
 
     manageKeys1Wallet.value = file;
 }
 async function frmWallets_Manage1Export() {
-    
+    var save = await ExportWallet(manageKeys1Wallet.value);
+    if (save)
+        manageKeys3Status.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#check-circle"/></svg> Key file exported!`;
+    else
+        manageKeys3Status.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> There was an error!`;
+
+    manageKeys1.hidden = true;
+    manageKeys2.hidden = true;
+    manageKeys3.hidden = false;
 }
 async function frmWallets_Manage1Delete() {
-    manageKeys1.hidden = true;  
-    manageKeys2.hidden = false;  
+    manageKeys1.hidden = true;
+    manageKeys2.hidden = false;
+    manageKeys3.hidden = true;
 }
 async function frmWallets_Manage1Close() {
     manageKeys1Wallet.value = "";
@@ -44,6 +54,10 @@ async function frmWallets_Manage1DeleteConfirm() {
     DeleteWallet(manageKeys1Wallet.value);
     manageKeys1Wallet.value = "";
     frmWallets_Load();
+    
+    manageKeys1.hidden = true;
+    manageKeys2.hidden = true;
+    manageKeys3.hidden = false;
 }
 
 async function frmWallets_Generate() {

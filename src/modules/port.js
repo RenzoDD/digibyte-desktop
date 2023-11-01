@@ -3,6 +3,7 @@ const { SHA256, EncryptAES256 } = require('./crypto');
 const paths = require('./paths');
 
 const { ipcMain } = require('electron');
+const { dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -59,6 +60,25 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     delete mnemonic;
 
     return event.reply('create-wallet', list);
+});
+
+ipcMain.on('export-wallet', async function (event, file) {
+    var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
+
+    var save = await dialog.showSaveDialog({
+        title: 'Export Key File',
+        defaultPath: file,
+        buttonLabel: 'Export'
+    });
+
+    if (save.canceled == true)
+        return event.reply('export-wallet', false);
+
+    if (fs.existsSync(save.filePath) == true)
+        fs.unlinkSync(save.filePath);
+    
+    fs.copyFileSync(fullPath, save.filePath);
+    return event.reply('export-wallet', fs.existsSync(fullPath) === true);
 });
 
 ipcMain.on('delete-wallet', async function (event, file) {

@@ -31,6 +31,15 @@ function CreateWallet(name, type, password) {
     });
 }
 
+function ExportWallet(file) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('export-wallet', file);
+        ipcRenderer.once('export-wallet', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+
 function DeleteWallet(file) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('delete-wallet', file);

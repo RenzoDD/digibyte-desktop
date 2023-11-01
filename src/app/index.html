@@ -97,7 +97,7 @@
 			<!-- Forms -->
 			<div class="m-3" id="frmWallets" hidden>
 				<h1 class="p-4 text-center">
-					DigiByte Wallets
+					DigiByte Key Files
 				</h1>
 
 				<div class="row p-5">
@@ -439,7 +439,7 @@
 									</div>
 								</div>
 								<div class="text-center mb-3">
-									<button type="button" class="btn btn-primary btn-sm">
+									<button type="button" class="btn btn-primary btn-sm" onclick="frmWallets_Manage1Export()">
 										<svg class="bi" width="15" height="15">
 											<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-up-right" />
 										</svg> Export
@@ -467,6 +467,18 @@
 											<use xlink:href="vendor/bootstrap-icons.svg#trash" />
 										</svg> Delete
 									</button>
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="frmWallets_Manage1Close()">
+										<svg class="bi" width="15" height="15">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Close
+									</button>
+								</div>
+							</div>
+							<div class="m-4" id="manageKeys3">
+								<div class="text-center mb-3" id="manageKeys3Status">
+
+								</div>
+								<div class="text-center mb-3">
 									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="frmWallets_Manage1Close()">
 										<svg class="bi" width="15" height="15">
 											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />

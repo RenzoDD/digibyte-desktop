@@ -40,6 +40,15 @@ function ExportWallet(file) {
     });
 }
 
+function ImportFile(file) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('import-file', file);
+        ipcRenderer.once('import-file', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+
 function DeleteWallet(file) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('delete-wallet', file);

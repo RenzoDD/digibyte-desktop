@@ -31,7 +31,7 @@ async function frmWallets_Manage(file) {
 
     manageKeys1Wallet.value = file;
 }
-async function frmWallets_Manage1Export() {
+async function manageKeys1_Export() {
     var save = await ExportWallet(manageKeys1Wallet.value);
     if (save)
         manageKeys3Status.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#check-circle"/></svg> Key file exported!`;
@@ -42,19 +42,20 @@ async function frmWallets_Manage1Export() {
     manageKeys2.hidden = true;
     manageKeys3.hidden = false;
 }
-async function frmWallets_Manage1Delete() {
+async function manageKeys1_Delete() {
     manageKeys1.hidden = true;
     manageKeys2.hidden = false;
     manageKeys3.hidden = true;
 }
-async function frmWallets_Manage1Close() {
+async function manageKeys1_Close() {
     manageKeys1Wallet.value = "";
 }
-async function frmWallets_Manage1DeleteConfirm() {
+
+async function manageKeys2_Delete() {
     DeleteWallet(manageKeys1Wallet.value);
     manageKeys1Wallet.value = "";
     frmWallets_Load();
-    
+
     manageKeys1.hidden = true;
     manageKeys2.hidden = true;
     manageKeys3.hidden = false;
@@ -74,7 +75,7 @@ async function frmWallets_Generate() {
     generateKeys3.hidden = true;
     generateKeys3List.innerHTML = "";
 }
-async function frmWallets_Generate1() {
+async function generateKeys1_Continue() {
     if (generateKeys1Type.value != "24-words" && generateKeys1Type.value != "12-words")
         return generateKeys1Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Select Key's type`;
 
@@ -85,7 +86,7 @@ async function frmWallets_Generate1() {
     generateKeys2.hidden = false;
     generateKeys3.hidden = true;
 }
-async function frmWallets_Generate2() {
+async function generateKeys2_Generate() {
     if (generateKeys2Password1.value !== generateKeys2Password2.value)
         return generateKeys2Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> The passwords doesn't match`;
 
@@ -103,7 +104,7 @@ async function frmWallets_Generate2() {
     generateKeys2.hidden = true;
     generateKeys3.hidden = false;
 }
-async function frmWallets_Generate3() {
+async function generateKeys3_Close() {
     generateKeys3List.innerHTML = "";
     frmWallets_Load();
 }
@@ -134,12 +135,19 @@ async function frmWallets_Import() {
     importKeys4.hidden = true;
     importKeys4Message.innerHTML = "";
 }
-async function frmWallets_Import1() {
-    if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys")
+async function importKeys1_Continue() {
+    if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys" && importKeys1Type.value != "file")
         return importKeys1Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Select Key's type`;
 
-    if (importKeys1Name.value == "")
+    if (importKeys1Name.value == "" && importKeys1Type.value != "file")
         return importKeys1Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Enter Key's name`;
+
+    if (importKeys1Type.value == "file") {
+        if (await ImportFile())
+            importKeys4Message.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#check-circle"/></svg> Key imported!`;
+        else
+            importKeys4Message.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> There was an error`;
+    }
 
     importKeys1.hidden = true;
     importKeys2Mnemonic.hidden = true;
@@ -151,8 +159,10 @@ async function frmWallets_Import1() {
         importKeys2Mnemonic.hidden = false;
     if (importKeys1Type.value == "keys")
         importKeys2Keys.hidden = false;
+    if (importKeys1Type.value == "file")
+        importKeys4.hidden = false;
 }
-async function frmWallets_Import2Mnemonic() {
+async function importKeys2Mnemonic_Continue() {
     if (!(await CheckMnemonic(importKeys2MnemonicPhrase.innerHTML.trim())))
         return importKeys2MnemonicError.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Invalid mnemonic phrase`;
 
@@ -162,7 +172,21 @@ async function frmWallets_Import2Mnemonic() {
     importKeys3.hidden = false;
     importKeys4.hidden = true;
 }
-async function frmWallets_Import2Keys() {
+async function importKeys2Mnemonic_keyboardAccept() {
+    if (importKeys2MnemonicWord.value != "")
+        importKeys2MnemonicPhrase.innerHTML += importKeys2MnemonicWord.value + " ";
+    importKeys2MnemonicGuess.innerHTML = "";
+    importKeys2MnemonicWord.value = "";
+}
+async function importKeys2Mnemonic_keyboardDelete() {
+    importKeys2MnemonicGuess.innerHTML = importKeys2MnemonicGuess.innerHTML.substr(0, importKeys2MnemonicGuess.innerHTML.length - 1);
+    importKeys2MnemonicWord.value = await GuessMnemonicWord(importKeys2MnemonicGuess.innerHTML);
+}
+async function importKeys2Mnemonic_keyboardClick(btn) {
+    importKeys2MnemonicGuess.innerHTML += btn.innerHTML;
+    importKeys2MnemonicWord.value = await GuessMnemonicWord(importKeys2MnemonicGuess.innerHTML);
+}
+async function importKeys2Keys_Continue() {
     if (importKeys2KeysList.children.length == 0)
         return importKeys2KeysError.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Missing private key`;
 
@@ -172,7 +196,16 @@ async function frmWallets_Import2Keys() {
     importKeys3.hidden = false;
     importKeys4.hidden = true;
 }
-async function frmWallets_Import3() {
+async function importKeys2Keys_AddPrivateKey() {
+    importKeys2KeysError.innerHTML = "";
+    if (await CheckWIF(importKeys2KeysKey.value)) {
+        importKeys2KeysList.innerHTML += `<li>${importKeys2KeysKey.value}</li>`;
+        importKeys2KeysKey.value = "";
+    } else {
+        return importKeys2KeysError.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Invalid WIF`;
+    }
+}
+async function importKeys3_Save() {
     if (importKeys3Password1.value !== importKeys3Password2.value)
         return importKeys3Error.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> The passwords doesn't match`;
 
@@ -203,32 +236,9 @@ async function frmWallets_Import3() {
     importKeys2Keys.hidden = true;
     importKeys3.hidden = true;
     importKeys4.hidden = false;
-}
-async function frmWallets_Import4() {
+
     frmWallets_Load();
 }
-
-async function keyboardAccept() {
-    if (importKeys2MnemonicWord.value != "")
-        importKeys2MnemonicPhrase.innerHTML += importKeys2MnemonicWord.value + " ";
-    importKeys2MnemonicGuess.innerHTML = "";
-    importKeys2MnemonicWord.value = "";
-}
-async function keyboardDelete() {
-    importKeys2MnemonicGuess.innerHTML = importKeys2MnemonicGuess.innerHTML.substr(0, importKeys2MnemonicGuess.innerHTML.length - 1);
-    importKeys2MnemonicWord.value = await GuessMnemonicWord(importKeys2MnemonicGuess.innerHTML);
-}
-async function keyboardClick(btn) {
-    importKeys2MnemonicGuess.innerHTML += btn.innerHTML;
-    importKeys2MnemonicWord.value = await GuessMnemonicWord(importKeys2MnemonicGuess.innerHTML);
-}
-
-async function addPrivateKey() {
-    importKeys2KeysError.innerHTML = "";
-    if (await CheckWIF(importKeys2KeysKey.value)) {
-        importKeys2KeysList.innerHTML += `<li>${importKeys2KeysKey.value}</li>`;
-        importKeys2KeysKey.value = "";
-    } else {
-        return importKeys2KeysError.innerHTML = `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#exclamation-circle"/></svg> Invalid WIF`;
-    }
+async function importKeys4_Close() {
+    frmWallets_Load();
 }

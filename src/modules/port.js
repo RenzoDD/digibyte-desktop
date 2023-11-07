@@ -76,9 +76,30 @@ ipcMain.on('export-wallet', async function (event, file) {
 
     if (fs.existsSync(save.filePath) == true)
         fs.unlinkSync(save.filePath);
-    
+
     fs.copyFileSync(fullPath, save.filePath);
     return event.reply('export-wallet', fs.existsSync(fullPath) === true);
+});
+
+ipcMain.on('import-file', async function (event, file) {
+    var selected = await dialog.showOpenDialog({
+        title: 'Import Key File',
+        buttonLabel: 'Import',
+        filters: [{ name: 'DigiByte Keys', extensions: ['dgb'] }],
+        properties: ['openFile']
+    });
+
+    if (selected.canceled == true || selected.filePaths.length != 1)
+        return event.reply('import-file', false);
+
+    var name = path.basename(selected.filePaths[0]);
+    var finalPath = path.join(paths.keys, name).replaceAll('\\', '/');
+
+    if (fs.existsSync(finalPath) == true)
+        return event.reply('import-file', false);
+
+    fs.copyFileSync(selected.filePaths[0], finalPath);
+    return event.reply('import-file', fs.existsSync(finalPath) === true);
 });
 
 ipcMain.on('delete-wallet', async function (event, file) {

@@ -14,6 +14,14 @@
 	--clear:	#FFFFFF;
 }
 
+* {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: auto;
+}
+
 body {
     font-family: Bahnschrift !important;
     background-color: var(--dark);
@@ -82,6 +90,9 @@ td {
 }
 .btn:hover .bi-btn {
     fill: var(--primary) !important;
+}
+.btn:active .bi-btn {
+    fill: var(--clear) !important;
 }
 
 

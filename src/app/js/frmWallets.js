@@ -7,8 +7,8 @@ async function frmWallets_Load() {
         plWallets.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
 
     for (var file of files) {
-        try {
-            var wallet = await ReadWallet(file);
+        var wallet = await ReadWallet(file);
+        if (file !== false)
             plWallets.innerHTML += `
             <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmWallets_Manage('${file}')">
                 <div class="col-4">
@@ -21,7 +21,6 @@ async function frmWallets_Load() {
                     ${wallet.integrity ? "Correct" : "Failed"}
                 </div>
             </div>`;
-        } catch (e) { console.log(e) }
     }
 
     frmOpen(frmWallets);
@@ -44,10 +43,10 @@ async function manageKey_Clear() {
 }
 async function manageKeys1_Export() {
     var save = await ExportWallet(manageKeys1Wallet.value);
-    if (save)
-        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported!`;
+    if (save === true)
+        manageKeys3Status.innerHTML = `${icon('check-circle')} key file exported successfully`;
     else
-        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} There was an error!`;
+        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${save}`;
 
     manageKey_Show(manageKeys3);
 }
@@ -55,10 +54,14 @@ async function manageKeys1_Delete() {
     manageKey_Show(manageKeys2);
 }
 async function manageKeys2_Delete() {
-    DeleteWallet(manageKeys1Wallet.value);
-    manageKeys1Wallet.value = "";
-    frmWallets_Load();
+    var deleted = await DeleteWallet(manageKeys1Wallet.value);
+    if (deleted === true)
+        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
+    else
+        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
+    console.log("taaaaaaaaa")
     manageKey_Show(manageKeys3);
+    //frmWallets_Load();
 }
 
 async function frmWallets_Generate() {
@@ -99,8 +102,8 @@ async function generateKeys2_Generate() {
 
     var list = await CreateWallet(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
 
-    if (list === false)
-        generateKeys3List.innerHTML = `${icon('exclamation-circle')} Error, please try again`;
+    if (typeof list == 'string')
+        generateKeys3List.innerHTML = `${icon('exclamation-circle')} ${list}`;
     else {
         var data = ""
         for (var n in list)
@@ -162,7 +165,8 @@ async function importKeys1_Continue() {
         return importKeys1Error.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     if (importKeys1Type.value == "file") {
-        if (await ImportFile())
+        var save = await ImportFile();
+        if (save === true)
             importKeys4Message.innerHTML = `${icon('check-circle')} Key imported!`;
         else
             importKeys4Message.innerHTML = `${icon('exclamation-circle')} There was an error`;
@@ -217,18 +221,18 @@ async function importKeys3_Save() {
         return importKeys3Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
     if (importKeys1Type.value == "mnemonic") {
-        var done = await ImportWallet(importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
+        var done = await ImportWallet("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
         importKeys2MnemonicPhrase.innerHTML = "";
     } else if (importKeys1Type.value == "keys") {
         var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML).join("-");
-        var done = await ImportWallet(importKeys1Name.value, importKeys3Password1.value, keys, false);
+        var done = await ImportWallet("keys", importKeys1Name.value, importKeys3Password1.value, keys, false);
         importKeys2KeysList.innerHTML = "";
     }
 
     if (done)
         importKeys4Message.innerHTML = `${icon('check-circle')} Keys saved`;
     else
-        importKeys4Message.innerHTML = `${icon('exclamation-circle')} Error, please try again`;
+        importKeys4Message.innerHTML = `${icon('exclamation-circle')} There was an error, please try again`;
 
     importKeys_Show(importKeys4);
     frmWallets_Load();

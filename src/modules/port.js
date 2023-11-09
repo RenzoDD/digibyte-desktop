@@ -19,8 +19,23 @@ ipcMain.on('get-wallets', async function (event) {
 });
 
 ipcMain.on('read-wallet', async function (event, file) {
-    var data = fs.readFileSync(path.join(paths.keys, file).replaceAll('\\', '/'));
-    var wallet = JSON.parse(data);
+    var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
+    if (!fs.existsSync(fullPath))
+        return event.reply('read-wallet', false);
+
+    try {
+        var data = fs.readFileSync(fullPath);
+        var wallet = JSON.parse(data);
+    } catch (e) {
+        return event.reply('read-wallet', false);
+    }
+
+    if (!wallet.type)
+        return event.reply('read-wallet', false);
+    if (!wallet.secret)
+        return event.reply('read-wallet', false);
+    if (!wallet.integrity)
+        return event.reply('read-wallet', false);
 
     var { integrity } = wallet;
     delete wallet.integrity;
@@ -28,7 +43,7 @@ ipcMain.on('read-wallet', async function (event, file) {
     var check = SHA256(JSON.stringify(wallet));
     wallet.integrity = integrity === check;
 
-    wallet.file = path.basename(file);
+    wallet.file = file;
 
     return event.reply('read-wallet', wallet);
 });
@@ -37,7 +52,11 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     var words = type == "24-words" ? 24 : type == "12-words" ? 12 : 0;
 
     if (words == 0)
-        return event.reply('create-wallet', false);
+        return event.reply('create-wallet', "Invalid word type");
+
+    var fullPath = path.join(paths.keys, name + ".dgb").replaceAll('\\', '/');
+    if (fs.existsSync(fullPath))
+        return event.reply('create-wallet', "The wallet alrady exist. Please use a diferent name");
 
     var mnemonic = DigiByte.GenerateSeed(words);
 
@@ -48,18 +67,16 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     var integrity = SHA256(JSON.stringify(keys));
     keys.integrity = integrity;
 
-    var fullPath = path.join(paths.keys, name + ".dgb").replaceAll('\\', '/');
     fs.writeFileSync(fullPath, JSON.stringify(keys, null, 2));
     delete keys;
 
-    if (fs.existsSync(fullPath))
+    if (fs.existsSync(fullPath)) {
         var { list } = mnemonic;
-    else
-        var list = null;
+        delete mnemonic;
+        return event.reply('create-wallet', list);
+    }
 
-    delete mnemonic;
-
-    return event.reply('create-wallet', list);
+    return event.reply('create-wallet', "There was an error, please try again");
 });
 
 ipcMain.on('export-wallet', async function (event, file) {
@@ -72,13 +89,16 @@ ipcMain.on('export-wallet', async function (event, file) {
     });
 
     if (save.canceled == true)
-        return event.reply('export-wallet', false);
+        return event.reply('export-wallet', "Operation canceled");
 
     if (fs.existsSync(save.filePath) == true)
-        fs.unlinkSync(save.filePath);
+        return event.reply('export-wallet', "This file already exist");
 
     fs.copyFileSync(fullPath, save.filePath);
-    return event.reply('export-wallet', fs.existsSync(fullPath) === true);
+    if (!fs.existsSync(fullPath))
+        return event.reply('export-wallet', "There was an error, please try again");
+
+    return event.reply('export-wallet', true);
 });
 
 ipcMain.on('import-file', async function (event, file) {
@@ -90,22 +110,28 @@ ipcMain.on('import-file', async function (event, file) {
     });
 
     if (selected.canceled == true || selected.filePaths.length != 1)
-        return event.reply('import-file', false);
+        return event.reply('import-file', "Operation canceled");
 
     var name = path.basename(selected.filePaths[0]);
     var finalPath = path.join(paths.keys, name).replaceAll('\\', '/');
 
     if (fs.existsSync(finalPath) == true)
-        return event.reply('import-file', false);
+        return event.reply('import-file', "This file already exist. Please use a diferent name");
 
     fs.copyFileSync(selected.filePaths[0], finalPath);
-    return event.reply('import-file', fs.existsSync(finalPath) === true);
+    if (fs.existsSync(finalPath))
+        return event.reply('import-file', "There was an error, please try again");
+
+    return event.reply('import-file', true);
 });
 
 ipcMain.on('delete-wallet', async function (event, file) {
     var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
     fs.unlinkSync(fullPath);
-    return event.reply('create-wallet', fs.existsSync(fullPath) === false);
+    if (fs.existsSync(fullPath))
+        return event.reply('delete-wallet', "There was an error, please try again");
+
+    return event.reply('delete-wallet', true);
 });
 
 /*
@@ -124,18 +150,20 @@ ipcMain.on('check-mnemonic', async function (event, mnemonic) {
     return event.reply('check-mnemonic', valid);
 });
 
-ipcMain.on('import-wallet', async function (event, name, password, secret, passphrase) {
+ipcMain.on('import-wallet', async function (event, type, name, password, secret, passphrase) {
     var keys = {};
 
-    if (passphrase !== false) {
+    if (type === "mnemonic") {
         var mnemonic = DigiByte.GenerateSeed(secret, passphrase);
         keys.type = "seed";
         keys.secret = EncryptAES256(mnemonic.seed, password);
+
         delete secret;
         delete mnemonic;
-    } else {
+    } else if (type === "keys") {
         keys.type = "keys";
         keys.secret = EncryptAES256(secret, password);
+        
         delete secret;
     }
 

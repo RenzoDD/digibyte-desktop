@@ -79,9 +79,9 @@ function CheckMnemonic(mnemonic) {
     });
 }
 
-function ImportWallet(name, password, mnemonic, passphrase) {
+function ImportWallet(type, name, password, mnemonic, passphrase) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('import-wallet', name, password, mnemonic, passphrase);
+        ipcRenderer.send('import-wallet', type, name, password, mnemonic, passphrase);
         ipcRenderer.once('import-wallet', (event, response) => {
             resolve(response);
         });

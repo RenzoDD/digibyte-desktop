@@ -116,10 +116,10 @@ ipcMain.on('import-file', async function (event, file) {
     var finalPath = path.join(paths.keys, name).replaceAll('\\', '/');
 
     if (fs.existsSync(finalPath) == true)
-        return event.reply('import-file', "This file already exist. Please use a diferent name");
+        return event.reply('import-file', "This file already exist, please choose a diferent file");
 
     fs.copyFileSync(selected.filePaths[0], finalPath);
-    if (fs.existsSync(finalPath))
+    if (!fs.existsSync(finalPath))
         return event.reply('import-file', "There was an error, please try again");
 
     return event.reply('import-file', true);

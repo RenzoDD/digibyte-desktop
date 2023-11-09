@@ -44,7 +44,7 @@ async function manageKey_Clear() {
 async function manageKeys1_Export() {
     var save = await ExportWallet(manageKeys1Wallet.value);
     if (save === true)
-        manageKeys3Status.innerHTML = `${icon('check-circle')} key file exported successfully`;
+        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
     else
         manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${save}`;
 
@@ -59,9 +59,9 @@ async function manageKeys2_Delete() {
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
     else
         manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
-    console.log("taaaaaaaaa")
+
+    frmWallets_Load();
     manageKey_Show(manageKeys3);
-    //frmWallets_Load();
 }
 
 async function frmWallets_Generate() {
@@ -167,9 +167,9 @@ async function importKeys1_Continue() {
     if (importKeys1Type.value == "file") {
         var save = await ImportFile();
         if (save === true)
-            importKeys4Message.innerHTML = `${icon('check-circle')} Key imported!`;
+            importKeys4Message.innerHTML = `${icon('check-circle')} Key imported successfully`;
         else
-            importKeys4Message.innerHTML = `${icon('exclamation-circle')} There was an error`;
+            importKeys4Message.innerHTML = `${icon('exclamation-circle')} ${save}`;
 
         frmWallets_Load();
     }

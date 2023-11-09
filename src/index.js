@@ -1,3 +1,5 @@
+require('./modules/port');
+
 const { app, BrowserWindow } = require('electron');
 let myWindow = null;
 
@@ -22,7 +24,7 @@ app.on('window-all-closed', () => {
 app.whenReady().then(() => {
 	myWindow = new BrowserWindow({
 		webPreferences: {
-			devTools: false,
+			devTools: true,
 			nodeIntegration: true,
 			contextIsolation: false
 		},
@@ -30,12 +32,14 @@ app.whenReady().then(() => {
 		autoHideMenuBar: true,
 		maximizable: true,
 		resizable: true,
-		show: false
+		show: false,
+		minWidth: 1080,
+		minHeight: 720
 	})
+
 	myWindow.loadFile(__dirname + '/app/index.html');
 	myWindow.webContents.once('did-finish-load', function () {
 		myWindow.show();
 		myWindow.maximize();
 	});
-
 });

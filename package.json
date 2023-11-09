@@ -1,6 +1,6 @@
 {
   "name": "digibyte-desktop",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A DigiByte Coin standard-compilant light wallet for desktop environment",
   "main": "src/index.js",
   "scripts": {

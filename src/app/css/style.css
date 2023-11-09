@@ -1,0 +1,121 @@
+@font-face {
+    font-family: Bahnschrift;
+    src: url('../fonts/bahnschrift.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+	--dark: 	#00204C;
+	--primary:	#002352;
+    --secondary:#003D80;
+	--tertiary: #0066CC;
+	--red:		#DC3545;
+	--clear:	#FFFFFF;
+}
+
+* {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    pointer-events: auto;
+}
+
+body {
+    font-family: Bahnschrift !important;
+    background-color: var(--dark);
+    color: var(--clear) !important;
+}
+.panel {
+	background-color: var(--primary);
+}
+.option {
+    background-color: var(--primary);
+    border-radius: 0.5em;
+    cursor: pointer;
+}
+.option:hover {
+    background-color: var(--secondary);
+}
+.btn-dgb {
+    color: var(--clear);
+}
+.btn-dgb:hover {
+    color: var(--primary);
+    background-color: var(--clear);
+}
+.window {
+    max-height: 35vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.btn-bg {
+    background: #1D3C66;
+    color: white !important;
+}
+.btn-bg:hover {
+    background-color: #00326F;
+    cursor: pointer;
+}
+
+
+/*
+ *  Bootstrap Overwrite
+ */
+
+.btn-outline-light {
+    border-width: 0;
+}
+
+.modal-content {
+    color: var(--clear);
+    background-color: var(--primary);
+}
+
+th  {
+    background-color: var(--primary) !important;
+    color: var(--clear) !important;
+}
+
+td  {
+    background-color: var(--primary) !important;
+    color: var(--clear) !important;
+}
+td {
+    border-bottom-width: 0px !important;
+}
+.bi {
+    fill: var(--clear) !important;
+}
+.btn:hover .bi-btn {
+    fill: var(--primary) !important;
+}
+.btn:active .bi-btn {
+    fill: var(--clear) !important;
+}
+
+
+/*
+ *  Scroll Overwrite
+ */
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

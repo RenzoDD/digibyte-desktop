@@ -1,58 +1,58 @@
 const { ipcRenderer } = require('electron');
 
 /*
- * WALLET MANAGEMENT
+ * KEY FILE MANAGEMENT
  */
 
-function GetWallets() {
+function GetKeyFiles() {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('get-wallets');
-        ipcRenderer.once('get-wallets', (event, response) => {
+        ipcRenderer.send('get-key-files');
+        ipcRenderer.once('get-key-files', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function ReadWallet(path) {
+function ReadKeyFile(path) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('read-wallet', path);
-        ipcRenderer.once('read-wallet', (event, response) => {
+        ipcRenderer.send('read-key-file', path);
+        ipcRenderer.once('read-key-file', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function CreateWallet(name, type, password) {
+function GenerateKeyFile(name, type, password) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('create-wallet', name, type, password);
-        ipcRenderer.once('create-wallet', (event, response) => {
+        ipcRenderer.send('generate-key-file', name, type, password);
+        ipcRenderer.once('generate-key-file', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function ExportWallet(file) {
+function ExportKeyFile(file) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('export-wallet', file);
-        ipcRenderer.once('export-wallet', (event, response) => {
+        ipcRenderer.send('export-key-file', file);
+        ipcRenderer.once('export-key-file', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function ImportFile(file) {
+function ImportKeyFile(file) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('import-file', file);
-        ipcRenderer.once('import-file', (event, response) => {
+        ipcRenderer.send('import-key-file', file);
+        ipcRenderer.once('import-key-file', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function DeleteWallet(file) {
+function DeleteKeyFile(file) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('delete-wallet', file);
-        ipcRenderer.once('delete-wallet', (event, response) => {
+        ipcRenderer.send('delete-key-file', file);
+        ipcRenderer.once('delete-key-file', (event, response) => {
             resolve(response);
         });
     });
@@ -79,10 +79,10 @@ function CheckMnemonic(mnemonic) {
     });
 }
 
-function ImportWallet(type, name, password, mnemonic, passphrase) {
+function ImportKeys(type, name, password, mnemonic, passphrase) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('import-wallet', type, name, password, mnemonic, passphrase);
-        ipcRenderer.once('import-wallet', (event, response) => {
+        ipcRenderer.send('import-keys', type, name, password, mnemonic, passphrase);
+        ipcRenderer.once('import-keys', (event, response) => {
             resolve(response);
         });
     });

@@ -18,7 +18,7 @@ async function frmWallets_Load() {
                     ${wallet.type}
                 </div>
                 <div class="col-4">
-                    ${wallet.integrity ? "Correct" : "Failed"}
+                    ${wallet.integrity ? (wallet.compatibility ? "Verified" : "Keys for v" + wallet.version ) : "Failed"}
                 </div>
             </div>`;
     }

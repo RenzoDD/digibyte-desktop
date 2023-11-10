@@ -2,7 +2,7 @@ const DigiByte = require('./digibyte');
 const { SHA256, EncryptAES256 } = require('./crypto');
 const paths = require('./paths');
 
-const { ipcMain } = require('electron');
+const { app, ipcMain } = require('electron');
 const { dialog } = require('electron');
 const fs = require('fs');
 const path = require('path');
@@ -42,7 +42,7 @@ ipcMain.on('read-wallet', async function (event, file) {
 
     var check = SHA256(JSON.stringify(wallet));
     wallet.integrity = integrity === check;
-
+    wallet.compatibility = wallet.version == app.getVersion();   
     wallet.file = file;
 
     return event.reply('read-wallet', wallet);
@@ -61,6 +61,7 @@ ipcMain.on('create-wallet', async function (event, name, type, password) {
     var mnemonic = DigiByte.GenerateSeed(words);
 
     var keys = {};
+    keys.version = app.getVersion();
     keys.type = "seed";
     keys.secret = EncryptAES256(mnemonic.seed, password);
 
@@ -152,6 +153,7 @@ ipcMain.on('check-mnemonic', async function (event, mnemonic) {
 
 ipcMain.on('import-wallet', async function (event, type, name, password, secret, passphrase) {
     var keys = {};
+    keys.version = app.getVersion();
 
     if (type === "mnemonic") {
         var mnemonic = DigiByte.GenerateSeed(secret, passphrase);

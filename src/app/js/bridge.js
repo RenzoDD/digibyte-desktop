@@ -4,28 +4,28 @@ const { ipcRenderer } = require('electron');
  * KEY FILE MANAGEMENT
  */
 
-function GetKeyFiles() {
+function GetKeys() {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('get-key-files');
-        ipcRenderer.once('get-key-files', (event, response) => {
+        ipcRenderer.send('get-keys');
+        ipcRenderer.once('get-keys', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function ReadKeyFile(path) {
+function ReadKey(name) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('read-key-file', path);
-        ipcRenderer.once('read-key-file', (event, response) => {
+        ipcRenderer.send('read-key', name);
+        ipcRenderer.once('read-key', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function GenerateKeyFile(name, type, password) {
+function GenerateKey(name, type, password) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('generate-key-file', name, type, password);
-        ipcRenderer.once('generate-key-file', (event, response) => {
+        ipcRenderer.send('generate-key', name, type, password);
+        ipcRenderer.once('generate-key', (event, response) => {
             resolve(response);
         });
     });
@@ -40,19 +40,19 @@ function ExportKeyFile(file) {
     });
 }
 
-function ImportKeyFile(file) {
+function ImportKeyFile() {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('import-key-file', file);
+        ipcRenderer.send('import-key-file');
         ipcRenderer.once('import-key-file', (event, response) => {
             resolve(response);
         });
     });
 }
 
-function DeleteKeyFile(file) {
+function DeleteKey(name) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('delete-key-file', file);
-        ipcRenderer.once('delete-key-file', (event, response) => {
+        ipcRenderer.send('delete-key', name);
+        ipcRenderer.once('delete-key', (event, response) => {
             resolve(response);
         });
     });

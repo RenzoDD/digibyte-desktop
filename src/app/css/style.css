@@ -46,7 +46,7 @@ body {
     background-color: var(--clear);
 }
 .window {
-    max-height: 35vh;
+    max-height: 40vh;
     overflow-x: hidden;
     overflow-y: auto;
 }

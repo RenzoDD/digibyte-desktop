@@ -1,34 +1,30 @@
 async function frmKeys_Load() {
-    var files = await GetKeyFiles();
+    var keys = await GetKeys();
 
     keysList.innerHTML = "";
 
-    if (files.length == 0)
+    if (keys.length == 0)
         keysList.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
 
-    for (var file of files) {
-        var keys = await ReadKeyFile(file);
-        if (file !== false)
+    for (var key of keys) {
+        var data = await ReadKey(key);
+        if (data !== null) {
+            var id = Math.random().toString().split('.')[1];
             keysList.innerHTML += `
-            <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${file}')">
-                <div class="col-4">
-                    ${keys.file}
-                </div>
-                <div class="col-4">
-                    ${keys.type}
-                </div>
-                <div class="col-4">
-                    ${keys.integrity ? (keys.compatibility ? "Verified" : "Keys for v" + keys.version) : "Failed"}
-                </div>
+            <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${id}')">
+                <div class="col-4" id="${id}">${key}</div>
+                <div class="col-4">${data.type}</div>
+                <div class="col-4">${data.type == 'seed' ? data.words + " words phrase" : data.secret.length + " key(s)" }</div>
             </div>`;
+        }
     }
 
     frmOpen(frmKeys);
 }
 
-async function frmKeys_Manage(file) {
+async function frmKeys_Manage(id) {
     manageKey_Show(manageKeys1);
-    manageKeys1File.value = file;
+    manageKeys1Name.value = document.getElementById(id).innerHTML;
 }
 async function manageKey_Show(screen) {
     manageKeys1.hidden = true;
@@ -38,11 +34,11 @@ async function manageKey_Show(screen) {
     screen.hidden = false;
 }
 async function manageKey_Clear() {
-    manageKeys1File.value = "";
+    manageKeys1Name.value = "";
     manageKeys3Status.innerHTML = "";
 }
 async function manageKeys1_Export() {
-    var save = await ExportKeyFile(manageKeys1File.value);
+    var save = await ExportKeyFile(manageKeys1Name.value);
     if (save === true)
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
     else
@@ -54,7 +50,7 @@ async function manageKeys1_Delete() {
     manageKey_Show(manageKeys2);
 }
 async function manageKeys2_Delete() {
-    var deleted = await DeleteKeyFile(manageKeys1File.value);
+    var deleted = await DeleteKey(manageKeys1Name.value);
     if (deleted === true)
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
     else
@@ -100,7 +96,7 @@ async function generateKeys2_Generate() {
         return generateKeys2Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
 
-    var list = await GenerateKeyFile(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
+    var list = await GenerateKey(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
 
     if (typeof list == 'string')
         generateKeys3List.innerHTML = `${icon('exclamation-circle')} ${list}`;
@@ -224,15 +220,15 @@ async function importKeys3_Save() {
         var done = await ImportKeys("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
         importKeys2MnemonicPhrase.innerHTML = "";
     } else if (importKeys1Type.value == "keys") {
-        var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML).join("-");
+        var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML);
         var done = await ImportKeys("keys", importKeys1Name.value, importKeys3Password1.value, keys, false);
         importKeys2KeysList.innerHTML = "";
     }
 
-    if (done)
+    if (done === true)
         importKeys4Message.innerHTML = `${icon('check-circle')} Keys saved`;
     else
-        importKeys4Message.innerHTML = `${icon('exclamation-circle')} There was an error, please try again`;
+        importKeys4Message.innerHTML = `${icon('exclamation-circle')} ${done}`;
 
     importKeys_Show(importKeys4);
     frmKeys_Load();

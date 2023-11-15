@@ -13,9 +13,9 @@ function GetKeys() {
     });
 }
 
-function ReadKey(name) {
+function ReadKey(id) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('read-key', name);
+        ipcRenderer.send('read-key', id);
         ipcRenderer.once('read-key', (event, response) => {
             resolve(response);
         });
@@ -31,9 +31,9 @@ function GenerateKey(name, type, password) {
     });
 }
 
-function ExportKeyFile(file) {
+function ExportKeyFile(id) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('export-key-file', file);
+        ipcRenderer.send('export-key-file', id);
         ipcRenderer.once('export-key-file', (event, response) => {
             resolve(response);
         });
@@ -49,9 +49,9 @@ function ImportKeyFile() {
     });
 }
 
-function DeleteKey(name) {
+function DeleteKey(id) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('delete-key', name);
+        ipcRenderer.send('delete-key', id);
         ipcRenderer.once('delete-key', (event, response) => {
             resolve(response);
         });

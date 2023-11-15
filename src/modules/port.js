@@ -18,8 +18,8 @@ ipcMain.on('get-keys', async function (event) {
     return event.reply('get-keys', keys);
 });
 
-ipcMain.on('read-key', async function (event, name) {
-    var key = await storage.GetKey(name);
+ipcMain.on('read-key', async function (event, id) {
+    var key = await storage.GetKey(id);
     return event.reply('read-key', key);
 });
 
@@ -32,11 +32,13 @@ ipcMain.on('generate-key', async function (event, name, type, password) {
     var mnemonic = DigiByte.GenerateSeed(words);
 
     var keys = {};
+    keys.id = SHA256(Math.random().toString());
+    keys.name = name;
     keys.type = "seed";
     keys.words = words;
     keys.secret = EncryptAES256(mnemonic.seed, password);
 
-    var result = await storage.AddKey(name, keys);
+    var result = await storage.AddKey(keys.id, keys);
 
     if (result === true) {
         var { list } = mnemonic;
@@ -47,10 +49,14 @@ ipcMain.on('generate-key', async function (event, name, type, password) {
     return event.reply('generate-key', result);
 });
 
-ipcMain.on('export-key-file', async function (event, name) {
+ipcMain.on('export-key-file', async function (event, id) {
+    var keys = await storage.GetKey(id);
+    if (keys === null)
+        return event.reply('export-key-file', "This keys doesn't exist");
+
     var save = await dialog.showSaveDialog({
         title: 'Export Key File',
-        defaultPath: name,
+        defaultPath: keys.name,
         buttonLabel: 'Export'
     });
 
@@ -60,10 +66,6 @@ ipcMain.on('export-key-file', async function (event, name) {
     if (fs.existsSync(save.filePath) == true)
         return event.reply('export-key-file', "This file already exist");
 
-    var keys = await storage.GetKey(name);
-
-    if (keys === null)
-        return event.reply('export-key-file', "This keys doesn't exist");
 
     if (!save.filePath.endsWith('.dgb'))
         save.filePath += ".dgb";
@@ -86,28 +88,18 @@ ipcMain.on('import-key-file', async function (event) {
     if (selected.canceled == true || selected.filePaths.length != 1)
         return event.reply('import-key-file', "Operation canceled");
 
-    var file = path.basename(selected.filePaths[0]);
-    var name = file.substring(0, file.length - 4);
-
     try {
         var object = JSON.parse(fs.readFileSync(selected.filePaths[0]));
     } catch (e) {
         return event.reply('import-key-file', "The file is corrupted");
     }
 
-    if (!object.type)
-        return event.reply('import-key-file', "The file is corrupted");
-    if (object.type == "seed" && (!object.words))
-        return event.reply('import-key-file', "The file is corrupted");
-    if (!object.secret)
-        return event.reply('import-key-file', "The file is corrupted");
-
-    var result = await storage.AddKey(name, object)
+    var result = await storage.AddKey(object.id, object)
     return event.reply('import-key-file', result);
 });
 
-ipcMain.on('delete-key', async function (event, name) {
-    var result = await storage.DeleteKey(name);
+ipcMain.on('delete-key', async function (event, id) {
+    var result = await storage.DeleteKey(id);
     return event.reply('delete-key', result);
 });
 
@@ -129,6 +121,8 @@ ipcMain.on('check-mnemonic', async function (event, mnemonic) {
 
 ipcMain.on('import-keys', async function (event, type, name, password, secret, passphrase) {
     var keys = {};
+    keys.id = SHA256(Math.random().toString());
+    keys.name = name;
 
     if (type === "mnemonic") {
         var mnemonic = DigiByte.GenerateSeed(secret, passphrase);
@@ -145,7 +139,7 @@ ipcMain.on('import-keys', async function (event, type, name, password, secret, p
         delete secret;
     }
 
-    var result = await storage.AddKey(name, keys);
+    var result = await storage.AddKey(keys.id, keys);
     delete keys;
 
     return event.reply('import-keys', result);

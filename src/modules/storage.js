@@ -31,32 +31,32 @@ const storage = {};
 storage.GetKeys = async function () {
     return await Get("keys");
 }
-storage.GetKey = async function (name) {
-    return await Get(name + "@keys");
+storage.GetKey = async function (id) {
+    return await Get(id + "@keys");
 }
-storage.AddKey = async function (name, object) {
+storage.AddKey = async function (id, object) {
     var keys = await Get("keys");
-    if (keys.find(x => x == name))
+    if (keys.find(x => x == id))
         return "The key already exist";
 
-    await Set(name + "@keys", object);
-    if (await Get(name + "@keys") === null)
+    await Set(id + "@keys", object);
+    if (await Get(id + "@keys") === null)
         return "There was a storage error";
 
-    keys.push(name);
+    keys.push(id);
     await Set("keys", keys);
     return true;
 }
-storage.DeleteKey = async function (name) {
-    if (await Get(name + "@keys") === null)
+storage.DeleteKey = async function (id) {
+    if (await Get(id + "@keys") === null)
         return "They key doesn't exist";
 
-    await Del(name + "@keys");
-    if (await Get(name + "@keys") !== null)
+    await Del(id + "@keys");
+    if (await Get(id + "@keys") !== null)
         return "There was a storage error";
 
     var keys = await Get("keys");
-    keys = keys.filter(x => x !== name);
+    keys = keys.filter(x => x !== id);
     await Set("keys", keys);
 
     return true;

@@ -4,6 +4,8 @@ Each DigiByte Desktop Key File contain four fields
 
 | Field     | Description                                                   |
 |-----------|---------------------------------------------------------------|
+| id        | Unique random hex string                                      |
+| name      | Key's name                                                    |
 | type      | Type of private key (`seed`, `keys`)                          |
 | words?    | If required, represents the mnemonic phrase length            |
 | secret    | AES-256-CBC with no IV Encrypted `mnemonic` or `private keys` |
@@ -22,6 +24,8 @@ Password: `"digibyte-rocks!"`
 
 ```json
 {
+  "id": "869e2ca73bf4d671a524e46ebb7a9745e0e2c5bbbdeea43351431342526b7e4e",
+  "name": "Test Wallet",
   "type": "seed",
   "words": 3,
   "secret": "a63038af37e862350fad65cf082dbeeabfc622dd1cc595fb35a70ae8b738dcfa2c3c248ec64d15500ea2abff5360bad5748ab11a43163186d219ec8387bc8c4badb53b3b177bb1860365ba2dbd1db7d0"
@@ -30,12 +34,17 @@ Password: `"digibyte-rocks!"`
 
 ## Private Keys
 
-WIFs: `"KzJ9mPDPk2YLi6bCABEBF6JaiELxAUWLTXcWjDkh1rhMxbdq31ow"`, `"L47LQjBh97jnJ993qQUNndY2zPpR5pqEz199tExEKQDwsxurUx1S"`, `"L4e63u1bP72e99bGtabBxzVu6WvAeHnAbu6iCPejbwex1RLC1kJE"`
+WIFs: 
+- `"KzJ9mPDPk2YLi6bCABEBF6JaiELxAUWLTXcWjDkh1rhMxbdq31ow"`
+- `"L47LQjBh97jnJ993qQUNndY2zPpR5pqEz199tExEKQDwsxurUx1S"`
+- `"L4e63u1bP72e99bGtabBxzVu6WvAeHnAbu6iCPejbwex1RLC1kJE"`
 
 Password: `"Ka$i2k6"`
 
 ```json
 {
+  "id": "5f8c45fad666e4bae81e99db7d0a58961863cc375791e6cff468543eade65478",
+  "name": "digiassetX",
   "type": "keys",
   "secret": [
     "478c14d84db4655e46a190215c94e9a12bc33911184b8e7acff09bdbb2f17f393e7d3fe0f6f14c0a187ac517cd7aab6867797739d8065d71b5c70ebfae9164f7",

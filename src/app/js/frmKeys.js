@@ -6,15 +6,14 @@ async function frmKeys_Load() {
     if (keys.length == 0)
         keysList.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
 
-    for (var key of keys) {
-        var data = await ReadKey(key);
-        if (data !== null) {
-            var id = Math.random().toString().split('.')[1];
+    for (var id of keys) {
+        var key = await ReadKey(id);
+        if (key !== null) {
             keysList.innerHTML += `
             <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${id}')">
-                <div class="col-4" id="${id}">${key}</div>
-                <div class="col-4">${data.type}</div>
-                <div class="col-4">${data.type == 'seed' ? data.words + " words phrase" : data.secret.length + " key(s)" }</div>
+                <div class="col-4">${key.name}</div>
+                <div class="col-4">${key.type}</div>
+                <div class="col-4">${key.type == 'seed' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
             </div>`;
         }
     }
@@ -23,8 +22,10 @@ async function frmKeys_Load() {
 }
 
 async function frmKeys_Manage(id) {
+    var key = await ReadKey(id);
+    manageKeys1ID.value = key.id;
+    manageKeys1Name.value = key.name;
     manageKey_Show(manageKeys1);
-    manageKeys1Name.value = document.getElementById(id).innerHTML;
 }
 async function manageKey_Show(screen) {
     manageKeys1.hidden = true;
@@ -34,11 +35,12 @@ async function manageKey_Show(screen) {
     screen.hidden = false;
 }
 async function manageKey_Clear() {
+    manageKeys1ID.value = "";
     manageKeys1Name.value = "";
     manageKeys3Status.innerHTML = "";
 }
 async function manageKeys1_Export() {
-    var save = await ExportKeyFile(manageKeys1Name.value);
+    var save = await ExportKeyFile(manageKeys1ID.value);
     if (save === true)
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
     else
@@ -50,7 +52,7 @@ async function manageKeys1_Delete() {
     manageKey_Show(manageKeys2);
 }
 async function manageKeys2_Delete() {
-    var deleted = await DeleteKey(manageKeys1Name.value);
+    var deleted = await DeleteKey(manageKeys1ID.value);
     if (deleted === true)
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
     else

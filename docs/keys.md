@@ -2,13 +2,13 @@
 
 Each DigiByte Desktop Key File contain four fields 
 
-| Field     | Description                                                   |
-|-----------|---------------------------------------------------------------|
-| id        | Unique random hex string                                      |
-| name      | Key's name                                                    |
-| type      | Type of private key (`seed`, `keys`)                          |
-| words?    | If required, represents the mnemonic phrase length            |
-| secret    | AES-256-CBC with no IV Encrypted `mnemonic` or `private keys` |
+| Field     | Description                                           |
+|-----------|-------------------------------------------------------|
+| id        | Key's unique random hex string                        |
+| name      | Key's name                                            |
+| type      | Private Key's type (`seed`, `keys`)                   |
+| words?    | If required, represents the mnemonic phrase length    |
+| secret    | AES-256-CBC with no IV Encrypted `mnemonic` or `WIFs` |
 
 # Examples
 
@@ -16,19 +16,37 @@ Examples of types of private keys objects.
 
 ## Mnemonic Phrase
 
-Mnemonic: `"ask ask ask"`
+### Without BIP39 Passphrase
 
-Seed: `"6fa134086db67fe0a06c9779ab3815bda09280dacf7b5ee64bc7850b29af565e680788bdc4e6810277a38a2c4e57cb95b54c4d5d928a1a6f3772002b6d163efe"`
+Mnemonic: `"knee brass dumb snow design shaft they wood friend animal fashion treat"`
 
-Password: `"digibyte-rocks!"`
+Seed: `"8257c1bd9c4e2a1924a3d1e8946a73acdbb7508e1f4aa70291358ca91104aed5701f06969811e0cceb4672e97c8d3df8575fa96c59bdfe30dcbe58b0cf42a8b6"`
 
 ```json
 {
-  "id": "869e2ca73bf4d671a524e46ebb7a9745e0e2c5bbbdeea43351431342526b7e4e",
-  "name": "Test Wallet",
+  "id": "e1f2cd9f46ef0a309ea6841a6ce5db7b9c65bb8cb5e9e112e5dd85653ccc4cc0",
+  "name": "DigiByte Mobile",
+  "type": "seed",
+  "words": 12,
+  "secret": "718c7e7942fcacd08c9b4af6a6468551ec34723a189ea87d088129898849c072d6fd2dbefb580bee3e5db0f4f02ebd4eff905f0a3d49ffbd861a62c033fea3f3fab9a64ae9505a00d54a3be3cb29b6b8"
+}
+```
+
+### With BIP39 Passphrase
+
+Mnemonic: `"ask ask ask"`
+
+BIP39 Passphrase: `"digibyte-rocks!"`
+
+Seed: `"a0bab8eb5a9d794714bada94db385d3f0960dc48a0b0730179e63dc139b553976da0fa9135a8dd8c47451caaafa3476118f08a2067123c58d739b362852c0ce4"`
+
+```json
+{
+  "id": "1502e0797e56c58a7adf2a493e639f3c4a8da453f3267ead2f5fdcffbef9c849",
+  "name": "Test Account",
   "type": "seed",
   "words": 3,
-  "secret": "a63038af37e862350fad65cf082dbeeabfc622dd1cc595fb35a70ae8b738dcfa2c3c248ec64d15500ea2abff5360bad5748ab11a43163186d219ec8387bc8c4badb53b3b177bb1860365ba2dbd1db7d0"
+  "secret": "16d0068de8405f11731323fde1a2d7949fdfd77b288596fb09b7775b5b334990fc4f43d1fbc4886a92e53143db91165f23b29e8121d1cd86547a9b16573c80bdd21300e332b5c52071a9e4b181da67a9"
 }
 ```
 
@@ -43,7 +61,7 @@ Password: `"Ka$i2k6"`
 
 ```json
 {
-  "id": "5f8c45fad666e4bae81e99db7d0a58961863cc375791e6cff468543eade65478",
+  "id": "519526c6d1253cfae0011216d9426b7327e597673646d0d4519ba162b2c117c4",
   "name": "digiassetX",
   "type": "keys",
   "secret": [

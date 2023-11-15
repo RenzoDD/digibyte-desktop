@@ -24,6 +24,8 @@ async function Del(key) {
 (async function () {
     if (await Get("keys") === null)
         await Set("keys", []);
+    if (await Get("accounts") === null)
+        await Set("accounts", []);
 })()
 
 const storage = {};
@@ -58,6 +60,40 @@ storage.DeleteKey = async function (id) {
     var keys = await Get("keys");
     keys = keys.filter(x => x !== id);
     await Set("keys", keys);
+
+    return true;
+}
+
+storage.GetAccounts = async function () {
+    return await Get("accounts");
+}
+storage.GetAccount = async function (id) {
+    return await Get(id + "@accounts");
+}
+storage.AddAccount = async function (id, object) {
+    var accounts = await Get("accounts");
+    if (accounts.find(x => x == id))
+        return "The accounts already exist";
+
+    await Set(id + "@accounts", object);
+    if (await Get(id + "@accounts") === null)
+        return "There was a storage error";
+
+    accounts.push(id);
+    await Set("accounts", accounts);
+    return true;
+}
+storage.DeleteAccount = async function (id) {
+    if (await Get(id + "@accounts") === null)
+        return "They account doesn't exist";
+
+    await Del(id + "@accounts");
+    if (await Get(id + "@accounts") !== null)
+        return "There was a storage error";
+
+    var accounts = await Get("accounts");
+    accounts = accounts.filter(x => x !== id);
+    await Set("accounts", accounts);
 
     return true;
 }

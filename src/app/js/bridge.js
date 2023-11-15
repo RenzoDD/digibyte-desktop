@@ -1,7 +1,7 @@
 const { ipcRenderer } = require('electron');
 
 /*
- * KEY FILE MANAGEMENT
+ * KEY MANAGEMENT
  */
 
 function GetKeys() {
@@ -12,7 +12,6 @@ function GetKeys() {
         });
     });
 }
-
 function ReadKey(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('read-key', id);
@@ -21,7 +20,6 @@ function ReadKey(id) {
         });
     });
 }
-
 function GenerateKey(name, type, password) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('generate-key', name, type, password);
@@ -30,7 +28,6 @@ function GenerateKey(name, type, password) {
         });
     });
 }
-
 function ExportKeyFile(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('export-key-file', id);
@@ -39,7 +36,6 @@ function ExportKeyFile(id) {
         });
     });
 }
-
 function ImportKeyFile() {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('import-key-file');
@@ -48,7 +44,6 @@ function ImportKeyFile() {
         });
     });
 }
-
 function DeleteKey(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('delete-key', id);
@@ -57,11 +52,6 @@ function DeleteKey(id) {
         });
     });
 }
-
-/*
- * MNEMONIC IMPORT
- */
-
 function GuessMnemonicWord(guess) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('guess-word', guess);
@@ -78,7 +68,6 @@ function CheckMnemonic(mnemonic) {
         });
     });
 }
-
 function ImportKeys(type, name, password, mnemonic, passphrase) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('import-keys', type, name, password, mnemonic, passphrase);
@@ -87,11 +76,6 @@ function ImportKeys(type, name, password, mnemonic, passphrase) {
         });
     });
 }
-
-/*
- * WIF IMPORT
- */
-
 function CheckWIF(WIF) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('check-wif', WIF);

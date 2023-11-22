@@ -6,7 +6,7 @@ Each DigiByte Desktop Key File contain four fields
 |-----------|-------------------------------------------------------|
 | id        | Key's unique random hex string                        |
 | name      | Key's name                                            |
-| type      | Private Key's type (`seed`, `keys`)                   |
+| type      | Private Key's type (`mnemonic`, `keys`)               |
 | words?    | If required, represents the mnemonic phrase length    |
 | secret    | AES-256-CBC with no IV Encrypted `mnemonic` or `WIFs` |
 
@@ -22,13 +22,16 @@ Mnemonic: `"knee brass dumb snow design shaft they wood friend animal fashion tr
 
 Seed: `"8257c1bd9c4e2a1924a3d1e8946a73acdbb7508e1f4aa70291358ca91104aed5701f06969811e0cceb4672e97c8d3df8575fa96c59bdfe30dcbe58b0cf42a8b6"`
 
+Password: `""`
+
 ```json
 {
-  "id": "e1f2cd9f46ef0a309ea6841a6ce5db7b9c65bb8cb5e9e112e5dd85653ccc4cc0",
+  "id": "d7ae4ba909ae85d67f367f0050e19d031501a09084fe4aa8be3626a6e28d7c7f",
   "name": "DigiByte Mobile",
-  "type": "seed",
+  "type": "mnemonic",
   "words": 12,
-  "secret": "718c7e7942fcacd08c9b4af6a6468551ec34723a189ea87d088129898849c072d6fd2dbefb580bee3e5db0f4f02ebd4eff905f0a3d49ffbd861a62c033fea3f3fab9a64ae9505a00d54a3be3cb29b6b8"
+  "passphrase": false,
+  "secret": "2ecdc57fdf1c3812531c550af796aa07f7e33ef5a0e5dec6b4664c5fa1fec1b2ee38fe932362f9ca2918d0113a0cb62f64eed248df9c4d1f22f0f8fac67733f6c96e937ffbe6e7613c21c5ee926fbef5fb50fcc0f932f3d765482839ce4ac429c27c00a6e577a776dd6aff37649b284246ac4df18709616c5eb08185cb6188aac6c02b4a48f4c8582e2153fa716c74de"
 }
 ```
 
@@ -40,13 +43,16 @@ BIP39 Passphrase: `"digibyte-rocks!"`
 
 Seed: `"a0bab8eb5a9d794714bada94db385d3f0960dc48a0b0730179e63dc139b553976da0fa9135a8dd8c47451caaafa3476118f08a2067123c58d739b362852c0ce4"`
 
+Password: `"Ka9wj%"`
+
 ```json
 {
-  "id": "1502e0797e56c58a7adf2a493e639f3c4a8da453f3267ead2f5fdcffbef9c849",
-  "name": "Test Account",
-  "type": "seed",
+  "id": "3d583842dc567ae27ad5e2c1ba58b9d8e6723d8d79b27187e0d5cb5b9e5c76f2",
+  "name": "Test Key",
+  "type": "mnemonic",
   "words": 3,
-  "secret": "16d0068de8405f11731323fde1a2d7949fdfd77b288596fb09b7775b5b334990fc4f43d1fbc4886a92e53143db91165f23b29e8121d1cd86547a9b16573c80bdd21300e332b5c52071a9e4b181da67a9"
+  "passphrase": true,
+  "secret": "0ca658b24ac7bd24e751641fa2df99b68e5d15621aa3e11dfc89d163f2d62dbe3ad1ef1d54237f67302ef96b15720e47570af6e1553748b1006e1fb0d8dad2b1c1d0f20922da2206d1e30569822672338f925f219e0523febe5deac30415632e30e2776079f31fab11d286470f64397512dbae8ab9e80850f33c8a3be32b40e049e886444eaa530e2f5352d5b247d725"
 }
 ```
 
@@ -61,7 +67,7 @@ Password: `"Ka$i2k6"`
 
 ```json
 {
-  "id": "519526c6d1253cfae0011216d9426b7327e597673646d0d4519ba162b2c117c4",
+  "id": "c1281f1392bb0a19302ee82493b762a0754db64e5e7ce8f24388cc5cf89fc9f3",
   "name": "digiassetX",
   "type": "keys",
   "secret": [

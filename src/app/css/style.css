@@ -70,7 +70,7 @@ body {
 
 .modal-content {
     color: var(--clear);
-    background-color: var(--primary);
+    background-color: var(--dark);
 }
 
 th  {

@@ -6,16 +6,17 @@ Each DigiByte Desktop Account File contain four fields
 |---------|---------------------------------------------------------------|
 | id      | Account's unique random hex string                            |
 | name    | Account's name                                                |
-| type    | Account's type (`derivated`, `single`, `mobile`)              |
+| type    | Account's type (`derived`, `single`, `mobile`)              |
 | secret? | Key's unique random hex string, absent for view-only accounts |
 
 # Examples
 
-## Derivated Account
+## Derived Account
 
 | Field    | Description                              |
 |----------|------------------------------------------|
 | xpub     | Master public key to generate addresses  |
+| chain    | Networ (`main`, `test`)                  |
 | purpose  | Type of address type (`44`, `49`, `84`)  |
 | account  | Index of the account acording BIP32      |
 | change   | Next index to generate a change key-pair |
@@ -25,9 +26,10 @@ Each DigiByte Desktop Account File contain four fields
 {
   "id": "",
   "name": "",
-  "type": "derivated",
+  "type": "derived",
   "secret":"1502e0797e56c58a7adf2a493e639f3c4a8da453f3267ead2f5fdcffbef9c849",
   "xpub":"xpub...",
+  "chain": "main",
   "purpose": 44,
   "account": 0,
   "change": 0,

@@ -1,5 +1,5 @@
 const DigiByte = require('./digibyte');
-const { SHA256, EncryptAES256 } = require('./crypto');
+const { SHA256, EncryptAES256, DecryptAES256 } = require('./crypto');
 
 const storage = require('./storage');
 
@@ -10,7 +10,7 @@ const fs = require('fs');
 const path = require('path');
 
 /*
- * KEY FILE MANAGEMENT
+ * KEY MANAGEMENT
  */
 
 ipcMain.on('get-keys', async function (event) {
@@ -32,8 +32,9 @@ ipcMain.on('generate-key', async function (event, name, type, password) {
     var keys = {};
     keys.id = SHA256(Math.random().toString());
     keys.name = name;
-    keys.type = "seed";
+    keys.type = "mnemonic";
     keys.words = words;
+    keys.passphrase = false;
     keys.secret = EncryptAES256(mnemonic.seed, password);
 
     var result = await storage.AddKey(keys.id, keys);
@@ -114,8 +115,11 @@ ipcMain.on('import-keys', async function (event, type, name, password, secret, p
 
     if (type === "mnemonic") {
         var mnemonic = DigiByte.GenerateSeed(secret, passphrase);
-        keys.type = "seed";
+        keys.type = "mnemonic";
         keys.words = secret.split(" ").length;
+        keys.passphrase = passphrase != "";
+        console.log(passphrase)
+        console.log(passphrase != "")
         keys.secret = EncryptAES256(mnemonic.seed, password);
 
         delete secret;
@@ -136,4 +140,60 @@ ipcMain.on('check-wif', async function (event, WIF) {
     var valid = DigiByte.CheckWIF(WIF);
 
     return event.reply('check-wif', valid);
+});
+
+/*
+ * ACCOUNT MANAGEMENT
+ */
+
+ipcMain.on('generate-xpub', async function (event, key, password, type) {
+    var key = await storage.GetKey(key);
+    try { var seed = DecryptAES256(key.secret, password); }
+    catch { return event.reply('generate-xpub', "Wrong password"); }
+
+    var xpubs = DigiByte.GetXPUBs(seed, type);
+    seed = "";
+
+    return event.reply('generate-xpub', xpubs);
+});
+ipcMain.on('new-xpub', async function (event, xpub, type) {
+    var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
+    if (data == null)
+        var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
+    if (data == null)
+        var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
+
+    if (data == null)
+        var result = null;
+    else if (data.txs > 0)
+        var result = data.balance;
+    else if (data.txs == 0)
+        var result = true;
+    
+    return event.reply('new-xpub', result);
+});
+ipcMain.on('generate-account', async function (event, name, type, secret, public, purpose, nAccount) {
+    var account = {};
+    account.id = SHA256(Math.random().toString());
+    account.name = name;
+    account.type = type;
+    account.secret = secret;
+
+    if (type == "derived") {
+        account.xpub = public;
+        account.chain = "main";
+        account.purpose = { "legacy": 44, "compatibility": 49, "segwit": 84 }[purpose];
+        account.account = nAccount;
+        account.change = 0;
+        account.external = 0;
+    } else if (type == "mobile") {
+        account.xpub = public;
+        account.change = 0;
+        account.external = 0;
+    }
+
+    console.log(account);
+    var result = await storage.AddAccount(account.id, account);
+
+    return event.reply('generate-account', result);
 });

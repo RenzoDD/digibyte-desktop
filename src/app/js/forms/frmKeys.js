@@ -13,7 +13,7 @@ async function frmKeys_Load() {
             <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${id}')">
                 <div class="col-4">${key.name}</div>
                 <div class="col-4">${key.type}</div>
-                <div class="col-4">${key.type == 'seed' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
+                <div class="col-4">${key.type == 'mnemonic' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
             </div>`;
         }
     }
@@ -142,7 +142,7 @@ async function importKeys_Clear() {
     importKeys2MnemonicPhrase.innerHTML = "";
     importKeys2MnemonicGuess.innerHTML = "";
     importKeys2MnemonicWord.value = "";
-    importKeys2MnemonicBIP39Passphrase.innerHTML = "";
+    importKeys2MnemonicBIP39Passphrase.value = "";
     importKeys2MnemonicError.innerHTML = "";
 
     importKeys2KeysKey.value = "";
@@ -219,7 +219,7 @@ async function importKeys3_Save() {
         return importKeys3Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
     if (importKeys1Type.value == "mnemonic") {
-        var done = await ImportKeys("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
+        var done = await ImportKeys("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.value);
         importKeys2MnemonicPhrase.innerHTML = "";
     } else if (importKeys1Type.value == "keys") {
         var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML);

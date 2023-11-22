@@ -84,3 +84,32 @@ function CheckWIF(WIF) {
         });
     });
 }
+
+/*
+ * ACCOUNT MANAGEMENT
+ */
+
+function GeneateXPUB(key, password, type) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('generate-xpub', key, password, type);
+        ipcRenderer.once('generate-xpub', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function NewXPUB(xpub) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('new-xpub', xpub);
+        ipcRenderer.once('new-xpub', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function GenerateAccount(name, type, secret, public, purpose, nAccount) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('generate-account', name, type, secret, public, purpose, nAccount);
+        ipcRenderer.once('generate-account', (event, response) => {
+            resolve(response);
+        });
+    });
+}

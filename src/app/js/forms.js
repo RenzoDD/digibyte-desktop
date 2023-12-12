@@ -5,6 +5,6 @@ function frmOpen(frmOpen) {
     frmOpen.hidden = false;
 }
 
-function icon(name) {
-    return `<svg class="bi" width="18" height="18"><use xlink:href="vendor/bootstrap-icons.svg#${name}"/></svg>`
+function icon(name, size = 18) {
+    return `<svg class="bi" width="${size}" height="${size}"><use xlink:href="vendor/bootstrap-icons.svg#${name}"/></svg>`
 }

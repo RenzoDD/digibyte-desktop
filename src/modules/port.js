@@ -118,8 +118,6 @@ ipcMain.on('import-keys', async function (event, type, name, password, secret, p
         keys.type = "mnemonic";
         keys.words = secret.split(" ").length;
         keys.passphrase = passphrase != "";
-        console.log(passphrase)
-        console.log(passphrase != "")
         keys.secret = EncryptAES256(mnemonic.seed, password);
 
         delete secret;
@@ -146,6 +144,14 @@ ipcMain.on('check-wif', async function (event, WIF) {
  * ACCOUNT MANAGEMENT
  */
 
+ipcMain.on('get-accounts', async function (event) {
+    var accounts = await storage.GetAccounts();
+    return event.reply('get-accounts', accounts);
+});
+ipcMain.on('get-account', async function (event, id) {
+    var account = await storage.GetAccount(id);
+    return event.reply('get-account', account);
+});
 ipcMain.on('generate-xpub', async function (event, key, password, type) {
     var key = await storage.GetKey(key);
     try { var seed = DecryptAES256(key.secret, password); }
@@ -192,7 +198,6 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
         account.external = 0;
     }
 
-    console.log(account);
     var result = await storage.AddAccount(account.id, account);
 
     return event.reply('generate-account', result);

@@ -45,8 +45,10 @@ body {
     color: var(--primary);
     background-color: var(--clear);
 }
-.window {
-    max-height: 40vh;
+.bg-dgb {
+    background-color: var(--primary);
+}
+.list {
     overflow-x: hidden;
     overflow-y: auto;
 }
@@ -58,7 +60,6 @@ body {
     background-color: #00326F;
     cursor: pointer;
 }
-
 
 /*
  *  Bootstrap Overwrite

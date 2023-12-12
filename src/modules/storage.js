@@ -73,7 +73,7 @@ storage.GetAccount = async function (id) {
 storage.AddAccount = async function (id, object) {
     var accounts = await Get("accounts");
     if (accounts.find(x => x == id))
-        return "The accounts already exist";
+        return "The account already exist";
 
     await Set(id + "@accounts", object);
     if (await Get(id + "@accounts") === null)

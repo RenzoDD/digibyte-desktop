@@ -1,4 +1,24 @@
 async function frmAccounts_Load() {
+    var accounts = await GetAccounts();
+
+    accountsList.innerHTML = "";
+
+    if (accounts.length == 0)
+        accountsList.innerHTML = `<div class="text-center">(No Accounts Found)</div>`;
+
+    for (var id of accounts) {
+        var account = await GetAccount(id);
+        if (account !== null) {
+            accountsList.innerHTML += `
+            <div class="option row p-4 mb-3" onclick="frmAccounts_Manage('${account.id}')">
+                <div class="col-3">${account.name}</div>
+                <div class="col-3">${account.type == 'derived' ? ({ 44: "legacy", 49: "compatibility", 84: "segwit" }[account.purpose]) : account.type}</div>
+                <div class="col-3">DGB</div>
+                <div class="col-3">USD</div>
+            </div>`;
+        }
+    }
+
     frmOpen(frmAccounts);
 }
 
@@ -129,5 +149,14 @@ async function addAccount3_Account(xpub, account) {
         addAccount4Message.innerHTML = "Account created";
     } else {
         addAccount4Message.innerHTML = icon("exclamation-circle") + " " + result;
+    }
+}
+
+async function frmAccounts_Manage(id) {
+    var account = await GetAccount(id);
+    if (account.type == 'derived') {
+        accountName.innerHTML = icon('digibyte', 40) + ' ' + account.name;
+
+        frmOpen(frmAccount);
     }
 }

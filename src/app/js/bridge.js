@@ -89,6 +89,22 @@ function CheckWIF(WIF) {
  * ACCOUNT MANAGEMENT
  */
 
+function GetAccounts() {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('get-accounts');
+        ipcRenderer.once('get-accounts', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function GetAccount(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('get-account', id);
+        ipcRenderer.once('get-account', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 function GeneateXPUB(key, password, type) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('generate-xpub', key, password, type);

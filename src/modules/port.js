@@ -175,7 +175,7 @@ ipcMain.on('new-xpub', async function (event, xpub, type) {
         var result = data.balance;
     else if (data.txs == 0)
         var result = true;
-    
+
     return event.reply('new-xpub', result);
 });
 ipcMain.on('generate-account', async function (event, name, type, secret, public, purpose, nAccount) {
@@ -183,16 +183,17 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
     account.id = SHA256(Math.random().toString());
     account.name = name;
     account.type = type;
+    account.chain = "livenet";
     account.secret = secret;
 
     if (type == "derived") {
         account.xpub = public;
-        account.chain = "main";
         account.purpose = { "legacy": 44, "compatibility": 49, "segwit": 84 }[purpose];
         account.account = nAccount;
         account.change = 0;
         account.external = 0;
     } else if (type == "mobile") {
+        account.chain = "livenet";
         account.xpub = public;
         account.change = 0;
         account.external = 0;

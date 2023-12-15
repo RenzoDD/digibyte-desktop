@@ -1,4 +1,5 @@
 require('./modules/port');
+require('./modules/sync');
 
 const { app, BrowserWindow } = require('electron');
 let myWindow = null;

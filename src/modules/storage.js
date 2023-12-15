@@ -83,6 +83,29 @@ storage.AddAccount = async function (id, object) {
     await Set("accounts", accounts);
     return true;
 }
+storage.UpdateAccount = async function (object) {
+    var accounts = await Get("accounts");
+    if (!accounts.find(x => x == object.id))
+        return "The account doesn't exist";
+
+    var original = await Get(object.id + "@accounts");
+
+    if (JSON.stringify(original) === JSON.stringify(object))
+        return "The account hasn't been modified";
+
+    await Set(object.id + "@accounts", object);
+
+    var account = await Get(object.id + "@accounts");
+    if (account === null)
+        return "There was a storage error";
+
+    if (JSON.stringify(object) !== JSON.stringify(account)) {
+        await Set(original.id + "@accounts", original);
+        return "There was an error";
+    }
+
+    return true;
+}
 storage.DeleteAccount = async function (id) {
     if (await Get(id + "@accounts") === null)
         return "They account doesn't exist";
@@ -95,6 +118,26 @@ storage.DeleteAccount = async function (id) {
     accounts = accounts.filter(x => x !== id);
     await Set("accounts", accounts);
 
+    return true;
+}
+
+storage.GetAccountData = async function (id) {
+    return await Get(id + "@account-data");
+}
+storage.SetAccountData = async function (id, object) {
+    await Set(id + "@account-data", object);
+    if (await Get(id + "@account-data") === null)
+        return "There was a storage error";
+    return true;
+}
+
+storage.GetTransactionData = async function (id) {
+    return await Get(id + "@tx-data");
+}
+storage.SetTransactionData = async function (id, object) {
+    await Set(id + "@tx-data", object);
+    if (await Get(id + "@tx-data") === null)
+        return "There was a storage error";
     return true;
 }
 

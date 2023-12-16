@@ -46,31 +46,36 @@ async function SyncXPUB(account) {
             if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
 
             var inSats = 0;
+            var thirdIn = "";
             for (var vin of tx.vin) {
                 if (vin.isAddress) {
                     for (var addr of vin.addresses)
                         if (addresses[addr]) {
                             inSats += parseInt(vin.value);
                             break;
-                        }
+                        } else if (thirdIn == "")
+                            thirdIn = addr;
                 }
             }
 
             var outSats = 0;
+            var thirdOut = "";
             for (var vout of tx.vout) {
                 if (vout.isAddress) {
                     for (var addr of vout.addresses)
                         if (addresses[addr]) {
                             outSats += parseInt(vout.value);
                             break;
-                        }
+                        } else if (thirdOut == "")
+                            thirdOut = addr;
                 }
             }
 
             var movement = {
                 txid: tx.txid,
+                note: thirdOut != "" ? thirdOut : (thirdIn != "" ? thirdIn : "Internal"),
                 change: outSats - inSats,
-                time: tx.blockTime,
+                unix: tx.blockTime,
                 height: tx.blockHeight
             };
             newData.push(movement);

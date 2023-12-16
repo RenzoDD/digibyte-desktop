@@ -203,3 +203,7 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 
     return event.reply('generate-account', result);
 });
+ipcMain.on('get-account-data', async function (event, id) {
+    var data = await storage.GetAccountData(id);
+    return event.reply('get-account-data', data);
+});

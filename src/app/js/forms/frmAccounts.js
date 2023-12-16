@@ -154,8 +154,41 @@ async function addAccount3_Account(xpub, account) {
 
 async function frmAccounts_Manage(id) {
     var account = await GetAccount(id);
+    var data = await GetAccountData(id);
     if (account.type == 'derived') {
         accountName.innerHTML = icon('digibyte', 40) + ' ' + account.name;
+        transactionList.innerHTML = "";
+
+        var lastDate = new Date(0).toDateString().substring(4, 15);
+        for (var i = 0; i < 100 && i < data.length; i++) {
+            var movement = data[i];
+            var date = new Date(movement.unix * 1000).toDateString().substring(4, 15);
+            var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);
+
+            if (date != lastDate)
+                transactionList.innerHTML += `
+                    <div class="mb-3">
+                        ${date}
+                    </div>`;
+
+            transactionList.innerHTML += `
+                    <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#" onclick="">
+						<div class="col-1 icn-green">
+						    ${icon(movement.change > 0 ? 'box-arrow-in-down' : (movement.change < 0 ? 'box-arrow-up' : 'dash-square'), 24)}
+						</div>
+						<div class="col-1">
+							${time}
+						</div>
+						<div class="col-5">${movement.note}</div>
+						<div class="col-5 text-end fw-bold" style="color: ${movement.change > 0 ? 'green' : (movement.change < 0 ? 'red' : 'white')}">
+                            ${movement.change > 0 ? '+' : (movement.change < 0 ? '-' : '')}
+                            ${coin(movement.change, 8)}
+                        </div >
+					</div >
+                `;
+
+            lastDate = date;
+        }
 
         frmOpen(frmAccount);
     }

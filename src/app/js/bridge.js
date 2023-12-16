@@ -129,3 +129,11 @@ function GenerateAccount(name, type, secret, public, purpose, nAccount) {
         });
     });
 }
+function GetAccountData(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('get-account-data', id);
+        ipcRenderer.once('get-account-data', (event, response) => {
+            resolve(response);
+        });
+    });
+}

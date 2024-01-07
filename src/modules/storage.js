@@ -21,14 +21,14 @@ async function Del(key) {
     await db.del(key);
 }
 
-(async function () {
+const storage = {};
+
+storage.Initialize = async function () {
     if (await Get("keys") === null)
         await Set("keys", []);
     if (await Get("accounts") === null)
         await Set("accounts", []);
-})()
-
-const storage = {};
+}
 
 storage.GetKeys = async function () {
     return await Get("keys");
@@ -121,20 +121,30 @@ storage.DeleteAccount = async function (id) {
     return true;
 }
 
-storage.GetAccountData = async function (id) {
-    return await Get(id + "@account-data");
+storage.GetAccountMovements = async function (id) {
+    return await Get(id + "@account-movements");
 }
-storage.SetAccountData = async function (id, object) {
-    await Set(id + "@account-data", object);
-    if (await Get(id + "@account-data") === null)
+storage.SetAccountMovements = async function (id, object) {
+    await Set(id + "@account-movements", object);
+    if (await Get(id + "@account-movements") === null)
         return "There was a storage error";
     return true;
 }
 
-storage.GetTransactionData = async function (id) {
+storage.GetAccountBalance = async function (id) {
+    return await Get(id + "@account-balance");
+}
+storage.SetAccountBalance = async function (id, object) {
+    await Set(id + "@account-balance", object);
+    if (await Get(id + "@account-balance") === null)
+        return "There was a storage error";
+    return true;
+}
+
+storage.GetTransaction = async function (id) {
     return await Get(id + "@tx-data");
 }
-storage.SetTransactionData = async function (id, object) {
+storage.SetTransaction = async function (id, object) {
     await Set(id + "@tx-data", object);
     if (await Get(id + "@tx-data") === null)
         return "There was a storage error";

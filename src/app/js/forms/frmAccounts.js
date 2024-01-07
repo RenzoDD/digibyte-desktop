@@ -154,24 +154,33 @@ async function addAccount3_Account(xpub, account) {
 
 async function frmAccounts_Manage(id) {
     var account = await GetAccount(id);
-    var data = await GetAccountData(id);
+    var movements = await GetAccountMovements(id);
+    var balance = await GetAccountBalance(id);
+
+    accountReceive.hidden = false;
+    accountReceive.hidden = false;
+    transactionList.innerHTML = "";
+
     if (account.type == 'derived') {
         accountName.innerHTML = icon('digibyte', 40) + ' ' + account.name;
-        transactionList.innerHTML = "";
+    } else if (account.type == 'mobile') {
+        accountName.innerHTML = icon('phone', 40) + ' ' + account.name;
+        accountReceive.hidden = true;
+    }
 
-        var lastDate = new Date(0).toDateString().substring(4, 15);
-        for (var i = 0; i < 100 && i < data.length; i++) {
-            var movement = data[i];
-            var date = new Date(movement.unix * 1000).toDateString().substring(4, 15);
-            var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);
+    var lastDate = new Date(0).toDateString().substring(4, 15);
+    for (var i = 0; i < 100 && i < movements.length; i++) {
+        var movement = movements[i];
+        var date = new Date(movement.unix * 1000).toDateString().substring(4, 15);
+        var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);
 
-            if (date != lastDate)
-                transactionList.innerHTML += `
+        if (date != lastDate)
+            transactionList.innerHTML += `
                     <div class="mb-3">
                         ${date}
                     </div>`;
 
-            transactionList.innerHTML += `
+        transactionList.innerHTML += `
                     <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#" onclick="">
 						<div class="col-1 icn-green">
 						    ${icon(movement.change > 0 ? 'box-arrow-in-down' : (movement.change < 0 ? 'box-arrow-up' : 'dash-square'), 24)}
@@ -187,9 +196,10 @@ async function frmAccounts_Manage(id) {
 					</div >
                 `;
 
-            lastDate = date;
-        }
-
-        frmOpen(frmAccount);
+        lastDate = date;
     }
+
+    document.getElementById('accountBalance').innerHTML = coin(balance.satoshis, 8, false) + " DGB";
+
+    frmOpen(frmAccount);
 }

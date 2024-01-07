@@ -6,7 +6,7 @@ const CONFIRMATIONS = 1;
  * SYNC
  */
 
-async function SyncXPUB(account) {
+async function SyncMovementsXPUB(account) {
     if (account.type == 'derived')
         var type = { 44: 'legacy', 49: 'compatibility', 84: 'segwit' }[account.purpose];
     else if (account.type == 'mobile')
@@ -31,7 +31,7 @@ async function SyncXPUB(account) {
     var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.chain, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
-    var data = await storage.GetAccountData(account.id);
+    var data = await storage.GetAccountMovements(account.id);
     if (data == null)
         data = [];
 
@@ -44,6 +44,7 @@ async function SyncXPUB(account) {
         for (var tx of info.transactions) {
             if (!(tx.confirmations > CONFIRMATIONS)) continue;
             if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
+            var isAsset = false;
 
             var inSats = 0;
             var thirdIn = "";
@@ -51,6 +52,7 @@ async function SyncXPUB(account) {
                 if (vin.isAddress) {
                     for (var addr of vin.addresses)
                         if (addresses[addr]) {
+                            isAsset = parseInt(vin.value) == 600 || isAsset;
                             inSats += parseInt(vin.value);
                             break;
                         } else if (thirdIn == "")
@@ -64,6 +66,7 @@ async function SyncXPUB(account) {
                 if (vout.isAddress) {
                     for (var addr of vout.addresses)
                         if (addresses[addr]) {
+                            isAsset = parseInt(vout.value) == 600 || isAsset;
                             outSats += parseInt(vout.value);
                             break;
                         } else if (thirdOut == "")
@@ -76,23 +79,63 @@ async function SyncXPUB(account) {
                 note: thirdOut != "" ? thirdOut : (thirdIn != "" ? thirdIn : "Internal"),
                 change: outSats - inSats,
                 unix: tx.blockTime,
-                height: tx.blockHeight
+                height: tx.blockHeight,
+                isAsset
             };
             newData.push(movement);
         }
 
         data = newData.concat(data);
-        await storage.SetAccountData(account.id, data);
-        console.log("Sync", newData.length, "txs");
+        await storage.SetAccountMovements(account.id, data);
+        console.log("Sync MOVE", account.id, newData.length, "txs");
 
         if (page >= info.totalPages)
             break;
 
     }
 }
+async function SyncBalanceXPUB(account) {
+    if (account.type == 'derived')
+        var type = { 44: 'legacy', 49: 'compatibility', 84: 'segwit' }[account.purpose];
+    else if (account.type == 'mobile')
+        var type = 'legacy';
 
+    var info = await DigiByte.explorer.utxo(account.xpub, type);
 
+    var oldBalance = await storage.GetAccountBalance(account.id);
+    if (oldBalance == null)
+        var oldBalance = {
+            satoshis: 0n,
+            DigiByteUTXO: [],
+            DigiAssetUTXO: []
+        }
 
+    var balance = {
+        satoshis: 0n,
+        DigiByteUTXO: [],
+        DigiAssetUTXO: []
+    }
+    for (var utxo of info) {
+        if (utxo.satoshis !== 600) {
+            balance.satoshis += BigInt(utxo.satoshis);
+            balance.DigiByteUTXO.push(utxo);
+        } else {
+            var recorded = oldBalance.DigiAssetUTXO.find(x => x.txid == utxo.txid && x.vout == utxo.vout);
+            if (recorded != null) {
+                balance.DigiAssetUTXO.push(recorded);
+                continue;
+            }
+            utxo.assetId = "";
+            utxo.metadata = "";
+            utxo.quantity = null;
+            balance.DigiAssetUTXO.push(utxo);
+        }
+    }
+    balance.satoshis = balance.satoshis.toString();
+
+    await storage.SetAccountBalance(account.id, balance);
+    console.log("Sync UTXO", account.id);
+}
 
 async function Sync() {
     var accounts = await storage.GetAccounts();
@@ -100,13 +143,26 @@ async function Sync() {
         var account = await storage.GetAccount(id);
 
         if (account.type == 'derived' || account.type == 'mobile') {
-            SyncXPUB(account);
-            return;
+            SyncMovementsXPUB(account);
+            SyncBalanceXPUB(account);
         }
 
 
     }
 }
 
-Sync();
-setInterval(Sync, 10 * 60 * 1000);
+async function StartSyncInterval() {
+    if (global.SyncID) {
+        console.log("Stoping sync...");
+        clearInterval(global.SyncID);
+    }
+
+    await storage.Initialize();
+    await Sync();
+
+    console.log("Starting sync...");
+    global.SyncID = setInterval(Sync, 10 * 60 * 1000);
+}
+StartSyncInterval();
+
+module.exports = StartSyncInterval;

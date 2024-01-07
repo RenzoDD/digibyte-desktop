@@ -2,12 +2,22 @@ const DigiByte = require('./digibyte');
 const { SHA256, EncryptAES256, DecryptAES256 } = require('./crypto');
 
 const storage = require('./storage');
+const StartSyncInterval = require('./sync');
 
 const { ipcMain } = require('electron');
 const { dialog } = require('electron');
 
 const fs = require('fs');
 const path = require('path');
+
+/*
+ * SYNC
+ */
+
+ipcMain.on('sync', async function (event) {
+    StartSyncInterval();
+    return event.reply('sync', true);
+});
 
 /*
  * KEY MANAGEMENT
@@ -203,7 +213,11 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 
     return event.reply('generate-account', result);
 });
-ipcMain.on('get-account-data', async function (event, id) {
-    var data = await storage.GetAccountData(id);
-    return event.reply('get-account-data', data);
+ipcMain.on('get-account-movements', async function (event, id) {
+    var data = await storage.GetAccountMovements(id);
+    return event.reply('get-account-movements', data);
+});
+ipcMain.on('get-account-balance', async function (event, id) {
+    var data = await storage.GetAccountBalance(id);
+    return event.reply('get-account-balance', data);
 });

@@ -122,7 +122,10 @@ storage.DeleteAccount = async function (id) {
 }
 
 storage.GetAccountMovements = async function (id) {
-    return await Get(id + "@account-movements");
+    var movements = await Get(id + "@account-movements");
+    if (movements == null)
+        movements = [];
+    return movements;
 }
 storage.SetAccountMovements = async function (id, object) {
     await Set(id + "@account-movements", object);
@@ -132,7 +135,15 @@ storage.SetAccountMovements = async function (id, object) {
 }
 
 storage.GetAccountBalance = async function (id) {
-    return await Get(id + "@account-balance");
+    var balance = await Get(id + "@account-balance");
+    if (balance == null)
+        var balance = {
+            height: 0,
+            satoshis: 0n,
+            DigiByteUTXO: {},
+            DigiAssetUTXO: {}
+        }
+    return balance;
 }
 storage.SetAccountBalance = async function (id, object) {
     await Set(id + "@account-balance", object);

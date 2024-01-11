@@ -39,8 +39,8 @@ async function SyncMovementsXPUB(account) {
     else if (account.type == 'mobile')
         var type = 'legacy';
 
-    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.chain, 0, account.external + 50);
-    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.chain, 1, account.change + 50);
+    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 0, account.external + 50);
+    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
     var movements = await storage.GetAccountMovements(account.id);
@@ -108,7 +108,7 @@ async function SyncMovementsXPUB(account) {
 
         movements = newMovements.concat(movements);
         await storage.SetAccountMovements(account.id, movements);
-        console.log("SyncMovementsXPUB", "SUCCESS", account.id, "txs:" + newMovements.length);
+        console.log("SyncMovementsXPUB", "SUCCESS", account.id, "txs:" + movements.length, "new:" + newMovements.length);
 
         if (page >= info.totalPages)
             break;
@@ -121,8 +121,8 @@ async function SyncBalanceXPUB(account) {
         var type = 'legacy';
 
 
-    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.chain, 0, account.external + 50);
-    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.chain, 1, account.change + 50);
+    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 0, account.external + 50);
+    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
     var movements = await storage.GetAccountMovements(account.id);
@@ -215,7 +215,7 @@ async function SyncBalanceXPUB(account) {
     balance.satoshis = balance.satoshis.toString();
 
     await storage.SetAccountBalance(account.id, balance);
-    console.log("SyncBalanceXPUB", "SUCCESS", account.id);
+    console.log("SyncBalanceXPUB", "SUCCESS", account.id, "sats:" + balance.satoshis);
 }
 
 async function Sync() {

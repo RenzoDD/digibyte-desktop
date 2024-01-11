@@ -151,7 +151,7 @@ ipcMain.on('check-wif', async function (event, WIF) {
 });
 
 /*
- * ACCOUNT MANAGEMENT
+ * ACCOUNTS MANAGEMENT
  */
 
 ipcMain.on('get-accounts', async function (event) {
@@ -193,7 +193,7 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
     account.id = SHA256(Math.random().toString());
     account.name = name;
     account.type = type;
-    account.chain = "livenet";
+    account.network = "livenet";
     account.secret = secret;
 
     if (type == "derived") {
@@ -203,7 +203,7 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
         account.change = 0;
         account.external = 0;
     } else if (type == "mobile") {
-        account.chain = "livenet";
+        account.network = "livenet";
         account.xpub = public;
         account.change = 0;
         account.external = 0;
@@ -213,6 +213,11 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 
     return event.reply('generate-account', result);
 });
+
+/*
+ * ACCOUNT MANAGEMENT
+ */
+
 ipcMain.on('get-account-movements', async function (event, id) {
     var data = await storage.GetAccountMovements(id);
     return event.reply('get-account-movements', data);
@@ -220,4 +225,10 @@ ipcMain.on('get-account-movements', async function (event, id) {
 ipcMain.on('get-account-balance', async function (event, id) {
     var data = await storage.GetAccountBalance(id);
     return event.reply('get-account-balance', data);
+});
+ipcMain.on('generate-last-address', async function (event, id) {
+    var account = await storage.GetAccount(id);
+    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, 0, account.external);
+
+    return event.reply('generate-last-address', address);
 });

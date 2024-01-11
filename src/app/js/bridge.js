@@ -98,7 +98,7 @@ function CheckWIF(WIF) {
 }
 
 /*
- * ACCOUNT MANAGEMENT
+ * ACCOUNTS MANAGEMENT
  */
 
 function GetAccounts() {
@@ -141,6 +141,11 @@ function GenerateAccount(name, type, secret, public, purpose, nAccount) {
         });
     });
 }
+
+/*
+ * ACCOUNT MANAGEMENT
+ */
+
 function GetAccountMovements(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('get-account-movements', id);
@@ -153,6 +158,14 @@ function GetAccountBalance(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('get-account-balance', id);
         ipcRenderer.once('get-account-balance', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function GenerateLastAddres(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('generate-last-address', id);
+        ipcRenderer.once('generate-last-address', (event, response) => {
             resolve(response);
         });
     });

@@ -52,13 +52,18 @@ DigiByte.GetXPUBs = function (seed, type) {
 
 DigiByte.DeriveHDPublicKey = function (xpub, network, change, amount) {
     var hdPublicKey = HDPublicKey.fromString(xpub);
-    hdPublicKey = hdPublicKey.derive(change);
+    hdPublicKey = hdPublicKey.deriveChild(change);
 
     var addresses = {};
     for (var n = 0; n <= amount; n++)
-        addresses[hdPublicKey.derive(n).publicKey.toAddress(network).toString()] = `${change}/${n}`;
+        addresses[hdPublicKey.deriveChild(n).publicKey.toAddress(network).toString()] = `${change}/${n}`;
 
     return addresses;
+}
+
+DigiByte.DeriveOneHDPublicKey = function (xpub, network, change, external) {
+    var hdPublicKey = HDPublicKey.fromString(xpub);
+    return hdPublicKey.deriveChild(`m/${change}/${external}`).publicKey.toAddress(network).toString();
 }
 
 /*

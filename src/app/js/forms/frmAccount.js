@@ -1,6 +1,6 @@
 async function frmAccount_Load(id) {
     accountID.value = id;
-    
+
     var account = await GetAccount(id);
     var movements = await GetAccountMovements(id);
     var balance = await GetAccountBalance(id);
@@ -37,9 +37,8 @@ async function frmAccount_Load(id) {
 							${time}
 						</div>
 						<div class="col-5">${movement.note}</div>
-						<div class="col-5 text-end fw-bold" style="color: ${movement.change > 0 ? 'green' : (movement.change < 0 ? 'red' : 'white')}">
-                            ${movement.change > 0 ? '+' : (movement.change < 0 ? '-' : '')}
-                            ${coin(movement.change, 8)}
+						<div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
+                            ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+ ' : movement.change < 0 ? '- ' : '') + coin(movement.change, 8))}
                         </div >
 					</div >
                 `;
@@ -62,7 +61,7 @@ async function frmAccount_Receive() {
 }
 async function receiveDGB_Show(screen) {
     receiveDGB1.hidden = true;
-    
+
     screen.hidden = false;
 }
 async function receiveDGB_Clear() {

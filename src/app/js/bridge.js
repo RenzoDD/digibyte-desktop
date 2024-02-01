@@ -162,10 +162,42 @@ function GetAccountBalance(id) {
         });
     });
 }
+function GetPrice(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('get-price', id);
+        ipcRenderer.once('get-price', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 function GenerateLastAddres(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('generate-last-address', id);
         ipcRenderer.once('generate-last-address', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function CopyAddressClipboard(text) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('copy-address-clipboard', text);
+        ipcRenderer.once('copy-address-clipboard', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function CheckAddress(address) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('check-address', address);
+        ipcRenderer.once('check-address', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function DGBtoSats(amount) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('dgb-to-sats', amount);
+        ipcRenderer.once('dgb-to-sats', (event, response) => {
             resolve(response);
         });
     });

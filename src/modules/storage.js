@@ -162,4 +162,14 @@ storage.SetTransaction = async function (id, object) {
     return true;
 }
 
+storage.GetPrice = async function () {
+    var exchange = await Get("@usd-exchange");
+    if (exchange == null)
+        exchange = { change: 0, price: 0 };
+    return exchange;
+}
+storage.SetPrice = async function (value) {
+    await Set("@usd-exchange", value);
+}
+
 module.exports = storage;

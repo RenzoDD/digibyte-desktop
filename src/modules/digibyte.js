@@ -4,6 +4,9 @@ const Mnemonic = require('digibyte-js/lib/mnemonic/index');
 const PrivateKey = require('digibyte-js/lib/privatekey');
 const Blockbook = require('digibyte-js/lib/blockbook');
 const HDPublicKey = require('digibyte-js/lib/hdpublickey');
+const Address = require('digibyte-js/lib/address');
+const Price = require('digibyte-js/lib/price');
+const Unit = require('digibyte-js/lib/unit');
 
 const DigiByte = {}
 
@@ -50,25 +53,37 @@ DigiByte.GetXPUBs = function (seed, type) {
     return xpubs;
 }
 
-DigiByte.DeriveHDPublicKey = function (xpub, network, change, amount) {
+DigiByte.DeriveHDPublicKey = function (xpub, network, type, change, amount) {
     var hdPublicKey = HDPublicKey.fromString(xpub);
     hdPublicKey = hdPublicKey.deriveChild(change);
 
     var addresses = {};
     for (var n = 0; n <= amount; n++)
-        addresses[hdPublicKey.deriveChild(n).publicKey.toAddress(network).toString()] = `${change}/${n}`;
+        addresses[hdPublicKey.deriveChild(n).publicKey.toAddress(network, type).toString()] = `${change}/${n}`;
 
     return addresses;
 }
 
-DigiByte.DeriveOneHDPublicKey = function (xpub, network, change, external) {
+DigiByte.DeriveOneHDPublicKey = function (xpub, network, type, change, external) {
     var hdPublicKey = HDPublicKey.fromString(xpub);
-    return hdPublicKey.deriveChild(`m/${change}/${external}`).publicKey.toAddress(network).toString();
+    return hdPublicKey.deriveChild(`m/${change}/${external}`).publicKey.toAddress(network, type).toString();
+}
+
+DigiByte.CheckAddress = function (address) {
+    return Address.isValid(address);
+}
+
+DigiByte.DGBtoSats = function (amount) {
+    return Unit.fromDGB(amount).toSatoshis();
 }
 
 /*
  * Explorer
  */
+
+DigiByte.GetPrice = async function () {
+    return (await Price.Binance());
+}
 
 DigiByte.explorer = new Blockbook();
 

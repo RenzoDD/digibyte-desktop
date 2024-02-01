@@ -7,6 +7,14 @@ const CONFIRMATIONS = 1;
  * SYNC
  */
 
+async function SyncPrice() {
+    var exchange = await DigiByte.GetPrice();
+    if (exchange != null) {
+        storage.SetPrice(exchange);
+        console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);
+    }
+}
+
 async function SyncLastAddressUTXO(account) {
     if (account.type == 'derived')
         var type = { 44: 'legacy', 49: 'compatibility', 84: 'segwit' }[account.purpose];
@@ -19,6 +27,7 @@ async function SyncLastAddressUTXO(account) {
     if (info == null)
         return console.log("SyncLastAddressUTXO", "ERROR", account.id);
 
+    info.tokens = info.tokens ? info.tokens : [];
     info.tokens.forEach(token => {
         var path = token.path.split('/');
         var n = parseInt(path.pop());
@@ -34,13 +43,14 @@ async function SyncLastAddressUTXO(account) {
     console.log("SyncLastAddressUTXO", "SUCCESS", account.id, "external:" + account.external, "change:" + account.change);
 }
 async function SyncMovementsXPUB(account) {
-    if (account.type == 'derived')
-        var type = { 44: 'legacy', 49: 'compatibility', 84: 'segwit' }[account.purpose];
-    else if (account.type == 'mobile')
-        var type = 'legacy';
+    var type = 'legacy';
+    if (account.purpose == 49)
+        type = 'compatibility'
+    else if (account.purpose === 84)
+        type = 'segwit';
 
-    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 0, account.external + 50);
-    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 1, account.change + 50);
+    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 0, account.external + 50);
+    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
     var movements = await storage.GetAccountMovements(account.id);
@@ -56,6 +66,7 @@ async function SyncMovementsXPUB(account) {
         if (info == null)
             return console.log("SyncMovementsXPUB", "NETWORK ERROR", account.id);
 
+        info.transactions = info.transactions ? info.transactions : [];
         for (var tx of info.transactions) {
             if (!(tx.confirmations > CONFIRMATIONS)) continue;
             if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
@@ -115,14 +126,15 @@ async function SyncMovementsXPUB(account) {
     }
 }
 async function SyncBalanceXPUB(account) {
-    if (account.type == 'derived')
-        var type = { 44: 'legacy', 49: 'compatibility', 84: 'segwit' }[account.purpose];
-    else if (account.type == 'mobile')
-        var type = 'legacy';
+    var type = 'legacy';
+    if (account.purpose == 49)
+        type = 'compatibility'
+    else if (account.purpose === 84)
+        type = 'segwit';
 
 
-    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 0, account.external + 50);
-    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, 1, account.change + 50);
+    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 0, account.external + 50);
+    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
     var movements = await storage.GetAccountMovements(account.id);
@@ -170,7 +182,7 @@ async function SyncBalanceXPUB(account) {
                 isAssetOP = (asm[0] == "OP_RETURN" && asm[1].startsWith("4441")) || isAsset
             }
         }
-        
+
         height = tx.blockHeight;
         balance.satoshis = BigInt(balance.satoshis);
 
@@ -210,7 +222,7 @@ async function SyncBalanceXPUB(account) {
         });
 
     }
-    
+
     balance.height = height;
     balance.satoshis = balance.satoshis.toString();
 
@@ -219,16 +231,16 @@ async function SyncBalanceXPUB(account) {
 }
 
 async function Sync() {
+    await SyncPrice();
+
     var accounts = await storage.GetAccounts();
     for (var id of accounts) {
         var account = await storage.GetAccount(id);
 
         if (account.type == 'derived' || account.type == 'mobile') {
-            (async function () {
-                await SyncLastAddressUTXO(account);
-                await SyncMovementsXPUB(account);
-                await SyncBalanceXPUB(account);
-            })()
+            await SyncLastAddressUTXO(account);
+            await SyncMovementsXPUB(account);
+            await SyncBalanceXPUB(account);
         }
     }
 }
@@ -240,10 +252,10 @@ async function StartSyncInterval() {
     }
 
     await storage.Initialize();
-    await Sync();
 
     console.log("Starting sync...");
     global.SyncID = setInterval(Sync, 10 * 60 * 1000);
+    await Sync();
 }
 StartSyncInterval();
 

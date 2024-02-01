@@ -46,7 +46,11 @@ async function frmAccount_Load(id) {
         lastDate = date;
     }
 
-    document.getElementById('accountBalance').innerHTML = coin(balance.satoshis, 8, false) + " DGB";
+    var balance = coin(balance.satoshis, 8, false);
+    accountBalance.innerHTML = balance + " DGB";
+    
+    var exchange = await GetPrice();
+    accountPrice.innerHTML = "$ " + (exchange.price * balance).toFixed(2);
 
     frmOpen(frmAccount);
 }
@@ -66,4 +70,80 @@ async function receiveDGB_Show(screen) {
 }
 async function receiveDGB_Clear() {
     receiveDGB1QR.src = "";
+    receiveDGB1Address.value = "";
+    receiveDGB1Copy.innerHTML = icon('clipboard');
+}
+async function receiveDGB_Copy() {
+    var result = await CopyAddressClipboard(receiveDGB1Address.value);
+    if (result) receiveDGB1Copy.innerHTML = icon('clipboard-check');
+    else receiveDGB1Copy.innerHTML = icon('clipboard-x');
+}
+
+async function frmAccount_Send() {
+    sendDGB_AddOutput();
+    sendDGB_Show(sendDGB1);
+}
+async function sendDGB_Show(screen) {
+    sendDGB1.hidden = true;
+
+    screen.hidden = false;
+}
+async function sendDGB_Clear() {
+    sendDGB1Outputs.amount = 0;
+    sendDGB1Outputs.innerHTML = "";
+}
+async function sendDGB_AddOutput() {
+    var n = sendDGB1Outputs.amount || 0;
+
+    sendDGB1Outputs.innerHTML += `
+    <div class="row mb-3">
+        <div class="col-9 pe-0 small">
+            Recipient ${n + 1}
+        </div>
+        <div class="col-3 px-1 small">
+            Amount
+        </div>
+        <div class="col-9 pe-0">
+            <input type="text" class="form-control form-control-sm font-monospace" id="sendDGB1Address${n}" placeholder="Address or DigiByte Domain" oninput="sendDGB_CheckAddress()">
+        </div>
+        <div class="col-3 ps-1">
+            <input type="number" class="form-control form-control-sm font-monospace" id="sendDGB1Amount${n}" step="1.00000000" min="0" placeholder="Amount" oninput="sendDGB_CheckAddress()" disabled>
+        </div>
+        <div class="col-9 mt-1 px-0 small" id="sendDGB1Message${n}">
+            
+        </div>
+        <div class="col-3 mt-1 px-0">
+            <input class="form-check-input" type="radio" name="sendDGB1SubstractFee" id="sendDGB1SubstractFee${n}" disabled>
+            <label class="form-check-label small" for="sendDGB1SubstractFee${n}">
+                Substract fee
+            </label>      
+        </div>
+    </div>`;
+
+    sendDGB1Outputs.amount = n + 1;
+}
+async function sendDGB_CheckAddress() {
+    var valid = true;
+    for (var n = 0; n < sendDGB1Outputs.amount; n++) {
+        var sendDGB1Address = document.getElementById(`sendDGB1Address${n}`);
+        var sendDGB1Amount = document.getElementById(`sendDGB1Amount${n}`);
+        var sendDGB1Message = document.getElementById(`sendDGB1Message${n}`);
+        var sendDGB1SubstractFee = document.getElementById(`sendDGB1SubstractFee${n}`);
+
+        if (await CheckAddress(sendDGB1Address.value)) {
+            sendDGB1Message.innerHTML = "";
+            sendDGB1Amount.disabled = false;
+            sendDGB1SubstractFee.disabled = false;
+            console.log(parseFloat(sendDGB1Amount.value))
+            valid = valid && ((await DGBtoSats(sendDGB1Amount.value)) >= 600);
+        } else {
+            sendDGB1Message.innerHTML = sendDGB1Address.value == "" ? "" : "Invalid address";
+            sendDGB1Amount.disabled = true;
+            sendDGB1SubstractFee.checked = false;
+            sendDGB1SubstractFee.disabled = true;
+            valid = valid && false;
+        }
+
+        sendDGB1Continue.disabled = !valid;
+    }
 }

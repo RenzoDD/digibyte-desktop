@@ -5,16 +5,22 @@ async function frmAccounts_Load() {
 
     if (accounts.length == 0)
         accountsList.innerHTML = `<div class="text-center">(No Accounts Found)</div>`;
+        
+    var exchange = await GetPrice();
 
     for (var id of accounts) {
         var account = await GetAccount(id);
         if (account !== null) {
+            var balance = await GetAccountBalance(id);
+            balance = coin(balance.satoshis, 8, false);
+            var usd = (exchange.price * balance).toFixed(2);
+
             accountsList.innerHTML += `
             <div class="option row p-4 mb-3" onclick="frmAccount_Load('${account.id}')">
                 <div class="col-3">${account.name}</div>
                 <div class="col-3">${account.type == 'derived' ? ({ 44: "legacy", 49: "compatibility", 84: "segwit" }[account.purpose]) : account.type}</div>
-                <div class="col-3">DGB</div>
-                <div class="col-3">USD</div>
+                <div class="col-3">${balance} DGB</div>
+                <div class="col-3">${usd} USD</div>
             </div>`;
         }
     }

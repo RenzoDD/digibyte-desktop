@@ -631,7 +631,7 @@
 				<div class="row p-4">
 					<div class="col-xxl-8 col-6">
 						<h2 id="accountBalance">169'735'665.28546325 DGB</h2>
-						<h4 style="color: #9A9A9A">$ 1'420'568.41</h4>
+						<h4 id="accountPrice" style="color: #9A9A9A">$ 1'420'568.41</h4>
 					</div>
 					<div class="col-xxl-2 col-3 d-grid gap-2">
 						<button class="btn btn-dgb bg-dgb fs-4" id="accountReceive" data-bs-toggle="modal" data-bs-target="#receiveDGB" onclick="frmAccount_Receive()">
@@ -641,7 +641,7 @@
 						</button>
 					</div>
 					<div class="col-xxl-2 col-3 d-grid gap-2">
-						<button class="btn btn-dgb bg-dgb fs-4" id="accountSend">
+						<button class="btn btn-dgb bg-dgb fs-4" id="accountSend" data-bs-toggle="modal" data-bs-target="#sendDGB" onclick="frmAccount_Send()">
 							<svg class="bi bi-btn" width="24" height="24">
 								<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-up-right" />
 							</svg> Send
@@ -669,7 +669,7 @@
 									<label>Address:</label>
 									<div class="input-group">
 										<input class="form-control text-center" id="receiveDGB1Address" readonly>
-										<button class="btn btn-success type="button">
+										<button class="btn btn-success" type="button" id="receiveDGB1Copy" onclick="receiveDGB_Copy()">
 											<svg class="bi" width="18" height="18">
 												<use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
 											</svg>
@@ -677,7 +677,40 @@
 									</div>
 								</div>
 								<div class="text-center">
-									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="">
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="receiveDGB_Clear()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Close
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal fade" id="sendDGB" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+					<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+						<div class="modal-content">
+							<div class="mt-4">
+								<h5 class="text-center">
+									Send DigiByte
+								</h5>
+							</div>
+							<div class="my-4 mx-3" id="sendDGB1">
+								<div id="sendDGB1Outputs" class="list" style="max-height: 50vh; ">
+
+								</div>
+								<div class="text-center">
+									<button class="btn btn-success btn-sm" onclick="" id="sendDGB1Continue" disabled>
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
+										</svg> Continue
+									</button>
+									<button class="btn btn-primary btn-sm" onclick="sendDGB_AddOutput()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#plus-circle" />
+										</svg> Add Recipient
+									</button>
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
 										<svg class="bi" width="18" height="18">
 											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 										</svg> Close

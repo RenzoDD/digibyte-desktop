@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/RenzoDD/digibyte-desktop#readme",
   "dependencies": {
-    "digibyte-js": "^2.2.2",
+    "digibyte-js": "^2.2.5",
     "level": "^8.0.0"
   },
   "devDependencies": {

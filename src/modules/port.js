@@ -6,6 +6,7 @@ const StartSyncInterval = require('./sync');
 
 const { ipcMain } = require('electron');
 const { dialog } = require('electron');
+const { clipboard } = require('electron');
 
 const fs = require('fs');
 const path = require('path');
@@ -226,9 +227,30 @@ ipcMain.on('get-account-balance', async function (event, id) {
     var data = await storage.GetAccountBalance(id);
     return event.reply('get-account-balance', data);
 });
+ipcMain.on('get-price', async function (event, id) {
+    var data = await storage.GetPrice();
+    return event.reply('get-price', data);
+});
 ipcMain.on('generate-last-address', async function (event, id) {
     var account = await storage.GetAccount(id);
-    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, 0, account.external);
+    var type = "legacy";
+    if (account.purpose === 49)
+        type = "compatibility";
+    if (account.purpose === 84)
+        type = "segwit";
+    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, type, 0, account.external);
 
     return event.reply('generate-last-address', address);
+});
+ipcMain.on('copy-address-clipboard', async function (event, text) {
+    clipboard.writeText(text);
+    return event.reply('copy-address-clipboard', true);
+});
+ipcMain.on('check-address', async function (event, address) {
+    var result = DigiByte.CheckAddress(address);
+    return event.reply('check-address', result);
+});
+ipcMain.on('dgb-to-sats', async function (event, amount) {
+    var result = DigiByte.DGBtoSats(amount);
+    return event.reply('dgb-to-sats', result);
 });

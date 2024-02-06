@@ -71,7 +71,7 @@ async function SyncMovementsXPUB(account) {
             if (!(tx.confirmations > CONFIRMATIONS)) continue;
             if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
 
-            await storage.SetTransaction(tx.txid, tx);
+            var rawTX = DigiByte.ParseTransaction(tx.hex);
 
             var isAsset = false;
             var isAssetOP = false;
@@ -79,6 +79,7 @@ async function SyncMovementsXPUB(account) {
             var inSats = 0;
             var thirdIn = "";
             for (var vin of tx.vin) {
+                vin.vout = rawTX.inputs.shift().outputIndex;
                 if (vin.isAddress) {
                     for (var addr of vin.addresses)
                         if (addresses[addr]) {
@@ -107,6 +108,7 @@ async function SyncMovementsXPUB(account) {
                 }
             }
 
+            await storage.SetTransaction(tx.txid, tx);
             newMovements.push({
                 txid: tx.txid,
                 note: thirdOut != "" ? thirdOut : (thirdIn != "" ? thirdIn : "Internal"),
@@ -190,21 +192,21 @@ async function SyncBalanceXPUB(account) {
         balance.satoshis = BigInt(balance.satoshis);
 
         toRemove.forEach(vin => {
-            var utxo = balance.DigiByteUTXO[`${tx.txid}:${vin.n}`];
+            var utxo = balance.DigiByteUTXO[`${vin.txid}:${vin.vout}`];
             if (utxo) {
                 balance.satoshis -= BigInt(utxo.satoshis);
-                delete balance.DigiByteUTXO[`${tx.txid}:${vin.n}`];
+                delete balance.DigiByteUTXO[`${vin.txid}:${vin.vout}`];
             }
 
-            var utxo = balance.DigiAssetUTXO[`${tx.txid}:${vin.n}`];
+            var utxo = balance.DigiAssetUTXO[`${vin.txid}:${vin.vout}`];
             if (utxo) {
                 balance.satoshis -= BigInt(utxo.satoshis);
-                delete balance.DigiAssetUTXO[`${tx.txid}:${vin.n}`];
+                delete balance.DigiAssetUTXO[`${vin.txid}:${vin.vout}`];
             }
         });
         toAdd.forEach(vout => {
             if (isAsset && isAssetOP) {
-                balance.DigiAssetUTXO[`${tx.txid}:${vin.n}`] = {
+                balance.DigiAssetUTXO[`${tx.txid}:${vout.n}`] = {
                     txid: tx.txid,
                     vout: vout.n,
                     script: vout.hex,
@@ -216,7 +218,7 @@ async function SyncBalanceXPUB(account) {
                 };
             } else {
                 balance.satoshis += BigInt(vout.value);
-                balance.DigiByteUTXO[`${tx.txid}:${vin.n}`] = {
+                balance.DigiByteUTXO[`${tx.txid}:${vout.n}`] = {
                     txid: tx.txid,
                     vout: vout.n,
                     script: vout.hex,
@@ -225,12 +227,11 @@ async function SyncBalanceXPUB(account) {
                 };
             }
         });
-
     }
 
     balance.height = height;
     balance.satoshis = balance.satoshis.toString();
-    console.log(balance);
+
     await storage.SetAccountBalance(account.id, balance);
     console.log("SyncBalanceXPUB", "SUCCESS", account.id, "sats:" + balance.satoshis);
 }

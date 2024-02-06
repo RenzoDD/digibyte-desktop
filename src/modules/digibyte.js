@@ -83,6 +83,10 @@ DigiByte.DGBtoSats = function (amount) {
     return Unit.fromDGB(amount).toSatoshis();
 }
 
+DigiByte.ParseTransaction = function (hex) {
+    return new Transaction(hex);
+}
+
 DigiByte.Transaction = function (options) {
     var tx = new Transaction()
         .from(options.inputs)
@@ -126,5 +130,6 @@ DigiByte.GetPrice = async function () {
 }
 
 DigiByte.explorer = new Blockbook();
+DigiByte.explorerV1 = new Blockbook(null, 'v1');
 
 module.exports = DigiByte;

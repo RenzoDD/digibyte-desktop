@@ -250,5 +250,5 @@ async function sendDGB3_Sign() {
     }
     
     sendDGB4Spinner.hidden = true;
-    return sendDGB4Message.innerHTML = data.result;
+    return sendDGB4Message.innerHTML = "Transaction sent! <br> " + data.result;
 }

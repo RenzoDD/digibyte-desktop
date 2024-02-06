@@ -33,11 +33,13 @@ function EncryptAES256(data, password) {
     // Calculate the SHA-256 hash of the password and convert it to a Buffer.
     var passwordBuffer = Buffer.from(SHA256(password), 'hex');
 
-    // Create a cipher object for AES-256 encryption in CBC mode.
-    var cipher = crypto.createCipheriv("aes-256-cbc", passwordBuffer, Buffer.alloc(16));
-
-    // Update the cipher with the data, specifying input and output encodings as 'utf-8' and 'hex' respectively.
-    return cipher.update(dataBuffer, "utf-8", "hex") + cipher.final("hex");
+    try {
+        // Create a cipher object for AES-256 encryption in CBC mode.
+        var cipher = crypto.createCipheriv("aes-256-cbc", passwordBuffer, Buffer.alloc(16));
+        return cipher.update(dataBuffer, "utf-8", "hex") + cipher.final("hex");
+    } catch (e) {
+        return null;
+    }
 }
 
 /**
@@ -55,11 +57,13 @@ function DecryptAES256(data, password) {
     // Calculate the SHA-256 hash of the password and convert it to a Buffer.
     var passwordBuffer = Buffer.from(SHA256(password), 'hex');
 
-    // Create a decipher object for AES-256 decryption in CBC mode.
-    var decipher = crypto.createDecipheriv("aes-256-cbc", passwordBuffer, Buffer.alloc(16));
-
-    // Update the decipher with the encrypted data, specifying input and output encodings as 'hex' and 'utf-8' respectively.
-    return decipher.update(dataBuffer, "hex", "utf-8") + decipher.final("utf-8");
+    try {
+        // Create a decipher object for AES-256 decryption in CBC mode.
+        var decipher = crypto.createDecipheriv("aes-256-cbc", passwordBuffer, Buffer.alloc(16));
+        return decipher.update(dataBuffer, "hex", "utf-8") + decipher.final("utf-8");
+    } catch (e) {
+        return null;
+    }
 }
 
 module.exports = { SHA256, EncryptAES256, DecryptAES256 }

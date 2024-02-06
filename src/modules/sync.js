@@ -127,11 +127,13 @@ async function SyncMovementsXPUB(account) {
 }
 async function SyncBalanceXPUB(account) {
     var type = 'legacy';
+    var path = "m/0'";
+    if (account.purpose)
+        path = `m/${account.purpose}'/20'/${account.account}'/`;
     if (account.purpose == 49)
         type = 'compatibility'
     else if (account.purpose === 84)
         type = 'segwit';
-
 
     var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 0, account.external + 50);
     var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 1, account.change + 50);
@@ -175,6 +177,7 @@ async function SyncBalanceXPUB(account) {
                 for (var addr of vout.addresses)
                     if (addresses[addr]) {
                         isAsset = parseInt(vout.value) == 600 || isAsset;
+                        vout.path = addresses[addr];
                         toAdd.push(vout);
                     }
             } else {
@@ -206,6 +209,7 @@ async function SyncBalanceXPUB(account) {
                     vout: vout.n,
                     script: vout.hex,
                     satoshis: parseInt(vout.value),
+                    path: path + vout.path,
                     assetId: "",
                     metadata: "",
                     quantity: ""
@@ -216,7 +220,8 @@ async function SyncBalanceXPUB(account) {
                     txid: tx.txid,
                     vout: vout.n,
                     script: vout.hex,
-                    satoshis: parseInt(vout.value)
+                    satoshis: parseInt(vout.value),
+                    path: path + vout.path
                 };
             }
         });
@@ -225,7 +230,7 @@ async function SyncBalanceXPUB(account) {
 
     balance.height = height;
     balance.satoshis = balance.satoshis.toString();
-
+    console.log(balance);
     await storage.SetAccountBalance(account.id, balance);
     console.log("SyncBalanceXPUB", "SUCCESS", account.id, "sats:" + balance.satoshis);
 }

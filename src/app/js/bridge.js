@@ -141,6 +141,15 @@ function GenerateAccount(name, type, secret, public, purpose, nAccount) {
         });
     });
 }
+function CheckPassword(id, password) {
+    console.log(id, password)
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('check-password', id, password);
+        ipcRenderer.once('check-password', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 
 /*
  * ACCOUNT MANAGEMENT
@@ -198,6 +207,22 @@ function DGBtoSats(amount) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('dgb-to-sats', amount);
         ipcRenderer.once('dgb-to-sats', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function CreateTransaction(id, password, options) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('create-tx', id, password, options);
+        ipcRenderer.once('create-tx', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function BroadcastTransaction(hex) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('broadcast-tx', hex);
+        ipcRenderer.once('broadcast-tx', (event, response) => {
             resolve(response);
         });
     });

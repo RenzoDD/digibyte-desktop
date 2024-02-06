@@ -7,6 +7,7 @@ const HDPublicKey = require('digibyte-js/lib/hdpublickey');
 const Address = require('digibyte-js/lib/address');
 const Price = require('digibyte-js/lib/price');
 const Unit = require('digibyte-js/lib/unit');
+const Transaction = require('digibyte-js/lib/transaction/transaction');
 
 const DigiByte = {}
 
@@ -69,12 +70,51 @@ DigiByte.DeriveOneHDPublicKey = function (xpub, network, type, change, external)
     return hdPublicKey.deriveChild(`m/${change}/${external}`).publicKey.toAddress(network, type).toString();
 }
 
+DigiByte.DeriveHDPrivateKey = function (xprv, path) {
+    var hdprivatekey = HDPrivateKey.fromSeed(xprv);
+    return hdprivatekey.deriveChild(path).privateKey.toWIF();
+}
+
 DigiByte.CheckAddress = function (address) {
     return Address.isValid(address);
 }
 
 DigiByte.DGBtoSats = function (amount) {
     return Unit.fromDGB(amount).toSatoshis();
+}
+
+DigiByte.Transaction = function (options) {
+    var tx = new Transaction()
+        .from(options.inputs)
+        .to(options.outputs)
+        .change(options.advanced.change);
+
+    if (options.advanced.memo)
+        tx.addData(options.advanced.memo);
+    if (options.advanced.timelock) {
+        if (options.advanced.timelock.block)
+            tx.lockUntilBlockHeight(options.advanced.timelock.block);
+        if (options.advanced.timelock.time)
+            tx.lockUntilDate(options.advanced.timelock.time);
+    }
+    if (options.advanced.rbf)
+        tx.enableRBF();
+
+    var chargedRecipient = options.outputs.find(x => x.fee);
+    if (chargedRecipient) {
+        chargedRecipient.satoshis -= tx._estimateSize() * options.advanced.feeperbyte;
+        if (chargedRecipient.satoshis < 600)
+            return { error: 'Insuficient output balance to substract fee' };
+        tx.clearOutputs();
+        tx.to(options.outputs);
+    }
+
+    tx.sign(options.keys);
+
+    var error = tx.getSerializationError();
+    if (error) return { error };
+
+    return { hex: tx.serialize() }
 }
 
 /*

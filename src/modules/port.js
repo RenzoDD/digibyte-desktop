@@ -165,8 +165,10 @@ ipcMain.on('get-account', async function (event, id) {
 });
 ipcMain.on('generate-xpub', async function (event, key, password, type) {
     var key = await storage.GetKey(key);
-    try { var seed = DecryptAES256(key.secret, password); }
-    catch { return event.reply('generate-xpub', "Wrong password"); }
+
+    var seed = DecryptAES256(key.secret, password);
+    if (seed == null)
+        return event.reply('generate-xpub', "Wrong password");
 
     var xpubs = DigiByte.GetXPUBs(seed, type);
     seed = "";
@@ -214,6 +216,16 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 
     return event.reply('generate-account', result);
 });
+ipcMain.on('check-password', async function (event, id, password) {
+    var account = await storage.GetAccount(id);
+    var key = await storage.GetKey(account.secret);
+
+    if (typeof key.secret != 'string')
+        key.secret = keys.secret[0];
+
+    var result = DecryptAES256(key.secret, password);
+    return event.reply('check-password', result != null);
+});
 
 /*
  * ACCOUNT MANAGEMENT
@@ -253,4 +265,58 @@ ipcMain.on('check-address', async function (event, address) {
 ipcMain.on('dgb-to-sats', async function (event, amount) {
     var result = DigiByte.DGBtoSats(amount);
     return event.reply('dgb-to-sats', result);
+});
+ipcMain.on('create-tx', async function (event, id, password, options) {
+    var account = await storage.GetAccount(id);
+    var balance = await storage.GetAccountBalance(id);
+    var key = await storage.GetKey(account.secret);
+
+    // Parse outputs
+    for (var n in options.outputs) {
+        var output = options.outputs[n]
+        output.satoshis = DigiByte.DGBtoSats(output.amount);
+        delete output.amount;
+
+        if (isNaN(output.satoshis)) return event.reply('create-tx', { error: `Invalid satoshis on output ${n}` });
+        if (output.satoshis < 0) return event.reply('create-tx', { error: `Negative satoshis on output ${n}` });
+        if (output.satoshis < 600) return event.reply('create-tx', { error: `Dust satoshis on output ${n}` });
+    }
+
+    // Parse inputs
+    options.inputs = Object.values(balance.DigiByteUTXO);
+
+    var keys = {}
+    if (account.type == 'derived') {
+        var xprv = DecryptAES256(key.secret, password);
+        for (var input of options.inputs)
+            if (!keys[input.path])
+                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path);
+    } else if (account.type == 'mobile') {
+
+    } else if (account.type == 'single') {
+        for (var key of key.secret)
+            keys[key] = DecryptAES256(key, password);
+    }
+    options.keys = Object.values(keys);
+
+    if (!options.advanced.change) {
+        var type = "legacy";
+        if (account.purpose === 49)
+            type = "compatibility";
+        if (account.purpose === 84)
+            type = "segwit";
+        options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, type, 1, account.change);
+    }
+
+    var result = DigiByte.Transaction(options);
+    return event.reply('create-tx', result);
+});
+ipcMain.on('broadcast-tx', async function (event, hex) {
+    for (var i = 0; i < 10; i++) {
+        var result = await DigiByte.explorer.sendtx(hex);
+        if (result != null) break;
+    }
+    if (result == null)
+        result = { error: "Broadcast error" };
+    return event.reply('broadcast-tx', result);
 });

@@ -86,17 +86,35 @@
 		<!-- Right Panel -->
 		<div class="col-10 h-100">
 			<!-- Top bar -->
-			<div class="text-end m-3">
-				<button class="btn btn-dgb btn-lg" onclick="Sync()">
-					<svg class="bi bi-btn" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
-					</svg>
-				</button>
-				<button class="btn btn-dgb btn-lg">
-					<svg class="bi bi-btn" width="18" height="18">
-						<use xlink:href="vendor/bootstrap-icons.svg#gear" />
-					</svg>
-				</button>
+			<div class="row m-3">
+				<div class="col" id="exchange">
+					<label>
+						<svg class="bi bi-btn" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#cash-coin" />
+						</svg>
+						--.--
+					</label>
+					&nbsp;
+					&nbsp;
+					<label>
+						<svg class="bi bi-btn" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#radar" />
+						</svg>
+						--.--
+					</label>
+				</div>
+				<div class="col text-end">
+					<button class="btn btn-dgb btn-lg" onclick="Sync()">
+						<svg class="bi bi-btn" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
+						</svg>
+					</button>
+					<button class="btn btn-dgb btn-lg">
+						<svg class="bi bi-btn" width="18" height="18">
+							<use xlink:href="vendor/bootstrap-icons.svg#gear" />
+						</svg>
+					</button>
+				</div>
 			</div>
 
 			<!-- Forms -->
@@ -695,21 +713,184 @@
 									Send DigiByte
 								</h5>
 							</div>
-							<div class="my-4 mx-3" id="sendDGB1">
+							<div class="my-4 mx-3" id="sendDGB1" hidden>
 								<div id="sendDGB1Outputs" class="list" style="max-height: 50vh; ">
 
 								</div>
+								<div class="mb-3">
+									<div class="form-check">
+										<input class="form-check-input" type="checkbox" id="sendDGB1AdvancedOptions" onchange="sendDGB1_AdvancedOptions()">
+										<label class="form-check-label" for="sendDGB1AdvancedOptions">
+											Advanced options
+										</label>
+									</div>
+								</div>
 								<div class="text-center">
-									<button class="btn btn-success btn-sm" onclick="" id="sendDGB1Continue" disabled>
+									<button class="btn btn-success btn-sm" id="sendDGB1Continue" onclick="sendDGB1_Continue()" disabled>
 										<svg class="bi" width="18" height="18">
 											<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 										</svg> Continue
 									</button>
-									<button class="btn btn-primary btn-sm" onclick="sendDGB_AddOutput()">
+									<button class="btn btn-primary btn-sm" onclick="sendDGB1_AddOutput()">
 										<svg class="bi" width="18" height="18">
 											<use xlink:href="vendor/bootstrap-icons.svg#plus-circle" />
 										</svg> Add Recipient
 									</button>
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Close
+									</button>
+								</div>
+							</div>
+							<div class="m-4" id="sendDGB2" hidden>
+								<h4>
+									Advanced Options
+								</h4>
+								<div class="mb-3">
+									<label for="sendDGB2Memo">On-chain memo (OP_Return):</label>
+									<input type="text" class="form-control form-control-sm" id="sendDGB2Memo" placeholder="Max. 80 bytes">
+								</div>
+
+								<hr class="mt-1 mb-3">
+
+								<div class="row mb-3">
+									<div class="col-3">
+										TX Fee:
+									</div>
+									<div class="col text-end" id="sendDGB2FeeIndicator">Low</div>
+									<div class="col-3">
+										<input type="range" class="form-range" id="sendDGB2FeeSelector" min="1" max="5" step="1" value="1" oninput="sendDGB2FeePerByte.value = { '1': 1, '2': 5, '3': 10, '4': 50, '5': 100 }[this.value]; sendDGB2FeeIndicator.innerHTML = { '1': 'Very Low', '2': 'Low', '3': 'Medium', '4': 'High', '5': 'Very High' }[this.value]">
+									</div>
+								</div>
+								<div class="mb-3" id="sendDGB2FeePerByteOption">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control form-control-sm text-end" id="sendDGB2FeePerByte" min="1" value="1" oninput="sendDGB2FeeIndicator.innerHTML = (sendDGB2FeePerByte.value >= 100 ? 'Very High' : sendDGB2FeePerByte.value >= 50 ? 'High' : sendDGB2FeePerByte.value >= 10 ? 'Medium' : sendDGB2FeePerByte.value >= 5 ? 'Low' : sendDGB2FeePerByte.value >= 1 ? 'Very Low' : 'Invalid')">
+										<span class="input-group-text">Satoshis/Byte</span>
+									</div>
+								</div>
+
+								<hr class="mt-1 mb-3">
+
+								<div class="row mb-3">
+									<div class="col-3">
+										TimeLock:
+									</div>
+									<div class="col-3">
+										<div class="form-check">
+											<input class="form-check-input" type="radio" name="sendDGB2TimeLock" id="sendDGB2NoneCheck" onchange="sendDGB2BlockOption.hidden = sendDGB2DateOption.hidden = this.checked" checked>
+											<label class="form-check-label" for="sendDGB2NoneCheck">
+												None
+											</label>
+										</div>
+									</div>
+									<div class="col-3">
+										<div class="form-check">
+											<input class="form-check-input" type="radio" name="sendDGB2TimeLock" id="sendDGB2BlockCheck" onchange="sendDGB2BlockOption.hidden = !this.checked; sendDGB2DateOption.hidden = this.checked">
+											<label class="form-check-label" for="sendDGB2BlockCheck">
+												Height
+											</label>
+										</div>
+									</div>
+									<div class="col-3">
+										<div class="form-check">
+											<input class="form-check-input" type="radio" name="sendDGB2TimeLock" id="sendDGB2DateTimeCheck" onchange="sendDGB2DateOption.hidden = !this.checked; sendDGB2BlockOption.hidden = this.checked">
+											<label class="form-check-label" for="sendDGB2DateTimeCheck">
+												DateTime
+											</label>
+										</div>
+									</div>
+								</div>
+								<div class="mb-3" id="sendDGB2BlockOption" hidden>
+									<input type="number" class="form-control form-control-sm" id="sendDGB2Block" placeholder="Height (block)" min="1">
+								</div>
+								<div class="mb-3" id="sendDGB2DateOption" hidden>
+									<div class="row">
+										<div class="col-6">
+											<input type="date" class="form-control form-control-sm" id="sendDGB2Date">
+										</div>
+										<div class="col-6">
+											<input type="time" class="form-control form-control-sm" id="sendDGB2Time">
+										</div>
+									</div>
+								</div>
+
+								<hr class="mt-1 mb-3">
+
+								<div class="mb-3">
+									<label for="sendDGB2Change">Custom change address:</label>
+									<input type="text" class="form-control form-control-sm" id="sendDGB2Change" placeholder="Change address">
+								</div>
+
+								<hr class="mt-1 mb-3">
+
+								<div class="row mb-3">
+									<div class="col">
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="sendDGB2Shuffle">
+											<label class="form-check-label" for="sendDGB2Shuffle">
+												Shuffle outputs
+											</label>
+										</div>
+									</div>
+									<div class="col">
+										<div class="form-check">
+											<input class="form-check-input" type="checkbox" id="sendDGB2RBF">
+											<label class="form-check-label" for="sendDGB2RBF">
+												Replace by fee
+											</label>
+										</div>
+									</div>
+								</div>
+
+								<hr class="mt-1 mb-3">
+
+								<div class="mb-3" id="sendDGB2Message" style="color:red">
+
+								</div>
+
+								<div class="text-center">
+									<button class="btn btn-success btn-sm" onclick="sendDGB2_Continue()" id="sendDGB2Continue">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
+										</svg> Continue
+									</button>
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Close
+									</button>
+								</div>
+							</div>
+							<div class="m-4" id="sendDGB3" hidden>
+								<div class="mb-3">
+									<label for="sendDGB3Password" class="form-label">Keys password:</label>
+									<input class="form-control" type="password" id="sendDGB3Password" placeholder="">
+								</div>
+								<div class="mb-3" id="sendDGB3Message">
+
+								</div>
+								<div class="text-center">
+									<button class="btn btn-success btn-sm" onclick="sendDGB3_Sign()" id="sendDGB3Sign">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
+										</svg> Sign
+									</button>
+									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+										</svg> Close
+									</button>
+								</div>
+							</div>
+							<div class="m-4" id="sendDGB4" hidden>
+								<div class="text-center mb-3" id="sendDGB4Spinner">
+									<div class="spinner-border text-primary"> </div>
+								</div>
+								<div class="mb-3" id="sendDGB4Message">
+
+								</div>
+								<div class="text-center">
 									<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
 										<svg class="bi" width="18" height="18">
 											<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />

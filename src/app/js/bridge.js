@@ -142,7 +142,6 @@ function GenerateAccount(name, type, secret, public, purpose, nAccount) {
     });
 }
 function CheckPassword(id, password) {
-    console.log(id, password)
     return new Promise((resolve, reject) => {
         ipcRenderer.send('check-password', id, password);
         ipcRenderer.once('check-password', (event, response) => {

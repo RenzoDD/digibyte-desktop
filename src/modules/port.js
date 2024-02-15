@@ -285,17 +285,18 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     options.inputs = Object.values(balance.DigiByteUTXO);
 
     var keys = {}
-    if (account.type == 'derived') {
+    if (account.type == 'derived' || account.type == 'mobile') {
         var xprv = DecryptAES256(key.secret, password);
         for (var input of options.inputs)
             if (!keys[input.path])
-                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path);
-    } else if (account.type == 'mobile') {
-
+                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path, account.type == 'mobile');
     } else if (account.type == 'single') {
         for (var key of key.secret)
             keys[key] = DecryptAES256(key, password);
     }
+    
+    console.log(account.xpub)
+    console.log(keys)
     options.keys = Object.values(keys);
 
     if (!options.advanced.change) {

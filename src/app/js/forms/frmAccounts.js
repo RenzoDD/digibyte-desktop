@@ -5,7 +5,7 @@ async function frmAccounts_Load() {
 
     if (accounts.length == 0)
         accountsList.innerHTML = `<div class="text-center">(No Accounts Found)</div>`;
-        
+
     var exchange = await GetPrice();
 
     for (var id of accounts) {
@@ -37,6 +37,7 @@ async function addAccount_Show(screen) {
     addAccount2.hidden = true;
     addAccount3.hidden = true;
     addAccount4.hidden = true;
+    addAccount5.hidden = true;
 
     screen.hidden = false;
 }
@@ -59,8 +60,8 @@ async function addAccount_Clear() {
     addAccount2Password.value = "";
     addAccount2Password.placeholder = "";
 
-    addAccount3Found.innerHTML = "";
-    addAccount3Spinner.hidden = true;
+    addAccount4Found.innerHTML = "";
+    addAccount4Spinner.hidden = true;
 }
 async function addAccount1_Continue() {
     if (addAccount1Keys.value == "null")
@@ -75,7 +76,7 @@ async function addAccount1_Continue() {
         if (key.words == 12 && key.passphrase == false)
             addAccount2Type.innerHTML += '<option value="mobile">DigiByte Mobile Account</option>';
     } else {
-        addAccount2Type.innerHTML += '<option value="mobile">Single Account</option>';
+        addAccount2Type.innerHTML += '<option value="single">Single Account</option>';
     }
     addAccount2Password.placeholder = "Password of " + key.name;
     addAccount_Show(addAccount2);
@@ -103,43 +104,48 @@ async function addAccount2_Continue() {
 
     addAccount2Password.value = "";
 
-    addAccount_Show(addAccount3);
+    if (addAccount2Type.value == 'derived' || addAccount2Type.value == 'mobile') {
+        addAccount_Show(addAccount4);
 
-    var unused = false;
-    addAccount3Spinner.hidden = false;
-    for (var n in xpubs) {
-        var xpub = xpubs[n];
-        var result = await NewXPUB(xpub, address);
+        var unused = false;
+        addAccount4Spinner.hidden = false;
+        for (var n in xpubs) {
+            var xpub = xpubs[n];
+            var result = await NewXPUB(xpub, address);
 
-        if (addAccount3Spinner.hidden == true)
-            break;
+            if (addAccount4Spinner.hidden == true)
+                break;
 
-        if (result === null)
-            break;
-        else if (result == true && unused == false) {
-            unused = true;
-            addAccount3Found.innerHTML += `
-            <div class="option row mx-1 p-3 mb-2" onclick="addAccount3_Account('${xpub}', ${n})">
+            if (result === null)
+                break;
+            else if (result == true && unused == false) {
+                unused = true;
+                addAccount4Found.innerHTML += `
+            <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
 				<div class="col-6 text-start">DigiByte ${n}</div>
 				<div class="col-6 text-end">(Unused)</div>
 			</div>`;
-        } else if (typeof result == 'string') {
-            addAccount3Found.innerHTML += `
-            <div class="option row mx-1 p-3 mb-2" onclick="addAccount3_Account('${xpub}', ${n})">
+            } else if (typeof result == 'string') {
+                addAccount4Found.innerHTML += `
+            <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
 				<div class="col-6 text-start">DigiByte ${n}</div>
 				<div class="col-6 text-end">${result}</div>
 			</div>`;
+            }
         }
-    }
 
-    addAccount3Spinner.hidden = true;
+        addAccount4Spinner.hidden = true;
+    } else if (addAccount2Type.value == 'single') {
+        
+        addAccount_Show(addAccount3);
+    }
 }
-async function addAccount3_StopLooking() {
-    addAccount3Spinner.hidden = true;
+async function addAccount4_StopLooking() {
+    addAccount4Spinner.hidden = true;
 }
-async function addAccount3_Account(xpub, account) {
-    addAccount_Show(addAccount4);
-    addAccount3Spinner.hidden = true;
+async function addAccount4_Account(xpub, account) {
+    addAccount_Show(addAccount5);
+    addAccount4Spinner.hidden = true;
 
     var purpose = "null";
     if (addAccount2Type.value == 'derived') {
@@ -152,8 +158,8 @@ async function addAccount3_Account(xpub, account) {
 
     if (result == true) {
         frmAccounts_Load();
-        addAccount4Message.innerHTML = "Account created";
+        addAccount5Message.innerHTML = "Account created";
     } else {
-        addAccount4Message.innerHTML = icon("exclamation-circle") + " " + result;
+        addAccount5Message.innerHTML = icon("exclamation-circle") + " " + result;
     }
 }

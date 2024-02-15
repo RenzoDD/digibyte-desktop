@@ -70,8 +70,8 @@ DigiByte.DeriveOneHDPublicKey = function (xpub, network, type, change, external)
     return hdPublicKey.deriveChild(`m/${change}/${external}`).publicKey.toAddress(network, type).toString();
 }
 
-DigiByte.DeriveHDPrivateKey = function (xprv, path) {
-    var hdprivatekey = HDPrivateKey.fromSeed(xprv);
+DigiByte.DeriveHDPrivateKey = function (xprv, path, mobile) {
+    var hdprivatekey = HDPrivateKey.fromSeed(xprv, null, mobile);
     return hdprivatekey.deriveChild(path).privateKey.toWIF();
 }
 
@@ -126,7 +126,7 @@ DigiByte.SignTransaction = function (options) {
     tx.sign(options.keys);
 
     var error = tx.getSerializationError();
-    if (error) return { error };
+    if (error) return { error: error.toString() };
 
     var hex = tx.serialize();
     var size = hex.length / 2;
@@ -142,7 +142,7 @@ DigiByte.SignTransaction = function (options) {
         }
         
         var error = tx.getSerializationError();
-        if (error) return { error };
+        if (error) return { error: error.toString() };
 
         var hex = tx.serialize();
     }

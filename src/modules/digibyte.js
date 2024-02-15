@@ -87,11 +87,19 @@ DigiByte.ParseTransaction = function (hex) {
     return new Transaction(hex);
 }
 
-DigiByte.Transaction = function (options) {
+DigiByte.SignTransaction = function (options) {
+    var inSats = 0;
+    options.inputs.forEach(utxo => inSats += utxo.satoshis);
+    var outSats = 0;
+    options.outputs.forEach(utxo => outSats += utxo.satoshis);
+
+    if (outSats > inSats) return { error: 'Input amount is less than output amount' };
+
     var tx = new Transaction()
         .from(options.inputs)
         .to(options.outputs)
-        .change(options.advanced.change);
+        .change(options.advanced.change)
+        .feePerByte(options.advanced.feeperbyte);
 
     if (options.advanced.memo)
         tx.addData(options.advanced.memo);
@@ -104,9 +112,11 @@ DigiByte.Transaction = function (options) {
     if (options.advanced.rbf)
         tx.enableRBF();
 
+    var fee = tx._estimateFee();
     var chargedRecipient = options.outputs.find(x => x.fee);
     if (chargedRecipient) {
-        chargedRecipient.satoshis -= tx._estimateSize() * options.advanced.feeperbyte;
+        chargedRecipient.satoshis -= fee;
+        tx.fee(tx._estimateFee());
         if (chargedRecipient.satoshis < 600)
             return { error: 'Insuficient output balance to substract fee' };
         tx.clearOutputs();
@@ -118,7 +128,26 @@ DigiByte.Transaction = function (options) {
     var error = tx.getSerializationError();
     if (error) return { error };
 
-    return { hex: tx.serialize() }
+    var hex = tx.serialize();
+    var size = hex.length / 2;
+    if (size > fee) {
+        tx.fee(size);
+        if (chargedRecipient) {
+            chargedRecipient.satoshis += fee;
+            chargedRecipient.satoshis -= size;
+            if (chargedRecipient.satoshis < 600)
+                return { error: 'Insuficient output balance to substract fee' };
+            tx.clearOutputs();
+            tx.to(options.outputs);
+        }
+        
+        var error = tx.getSerializationError();
+        if (error) return { error };
+
+        var hex = tx.serialize();
+    }
+
+    return { hex }
 }
 
 /*

@@ -31,6 +31,8 @@ Each DigiByte Desktop Account File contain four fields
   "secret":"1502e0797e56c58a7adf2a493e639f3c4a8da453f3267ead2f5fdcffbef9c849",
   "xpub":"xpub...",
   "purpose": 44,
+  "address": "legacy",
+  "path": "m/44'/20'/0'",
   "account": 0,
   "change": 0,
   "external": 0
@@ -72,6 +74,8 @@ Each DigiByte Desktop Account File contain four fields
   "network": "livenet",
   "secret":"e1f2cd9f46ef0a309ea6841a6ce5db7b9c65bb8cb5e9e112e5dd85653ccc4cc0",
   "xpub":"xpub...",
+  "address": "legacy",
+  "path": "m/0'",
   "change": 0,
   "external": 0
 }

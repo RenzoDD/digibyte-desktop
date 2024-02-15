@@ -18,7 +18,7 @@ async function frmAccounts_Load() {
             accountsList.innerHTML += `
             <div class="option row p-4 mb-3" onclick="frmAccount_Load('${account.id}')">
                 <div class="col-3">${account.name}</div>
-                <div class="col-3">${account.type == 'derived' ? ({ 44: "legacy", 49: "compatibility", 84: "segwit" }[account.purpose]) : account.type}</div>
+                <div class="col-3">${account.type == 'derived' ? account.address : account.type}</div>
                 <div class="col-3">${balance} DGB</div>
                 <div class="col-3">${usd} USD</div>
             </div>`;

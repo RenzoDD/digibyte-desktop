@@ -202,12 +202,16 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
     if (type == "derived") {
         account.xpub = public;
         account.purpose = { "legacy": 44, "compatibility": 49, "segwit": 84 }[purpose];
+        account.address = purpose;
+        account.path = `m/${account.purpose}'/20'/${nAccount}'`;
         account.account = nAccount;
         account.change = 0;
         account.external = 0;
     } else if (type == "mobile") {
         account.network = "livenet";
         account.xpub = public;
+        account.address = "legacy";
+        account.path = "m/0'";
         account.change = 0;
         account.external = 0;
     }
@@ -245,12 +249,7 @@ ipcMain.on('get-price', async function (event, id) {
 });
 ipcMain.on('generate-last-address', async function (event, id) {
     var account = await storage.GetAccount(id);
-    var type = "legacy";
-    if (account.purpose === 49)
-        type = "compatibility";
-    if (account.purpose === 84)
-        type = "segwit";
-    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, type, 0, account.external);
+    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 0, account.external);
 
     return event.reply('generate-last-address', address);
 });
@@ -300,15 +299,10 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     options.keys = Object.values(keys);
 
     if (!options.advanced.change) {
-        var type = "legacy";
-        if (account.purpose === 49)
-            type = "compatibility";
-        if (account.purpose === 84)
-            type = "segwit";
-        options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, type, 1, account.change);
+        options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 1, account.change);
     }
 
-    var result = DigiByte.Transaction(options);
+    var result = DigiByte.SignTransaction(options);
     return event.reply('create-tx', result);
 });
 ipcMain.on('broadcast-tx', async function (event, hex) {

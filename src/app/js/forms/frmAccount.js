@@ -57,8 +57,10 @@ async function frmAccount_Load(id) {
 
 async function frmAccount_Receive() {
     var address = await GenerateLastAddres(accountID.value);
+    var account = await GetAccount(accountID.value);
 
     receiveDGB1Address.value = address;
+    receiveDGB1Path.innerHTML = account.path + "/0/" + account.external;
     receiveDGB1QR.src = DigiQR.text(address, 200, 2);
 
     receiveDGB_Show(receiveDGB1);
@@ -70,6 +72,7 @@ async function receiveDGB_Show(screen) {
 }
 async function receiveDGB_Clear() {
     receiveDGB1QR.src = "";
+    receiveDGB1Path.innerHTML = "";
     receiveDGB1Address.value = "";
     receiveDGB1Copy.innerHTML = icon('clipboard');
 }
@@ -91,6 +94,7 @@ async function sendDGB_Show(screen) {
     sendDGB1.hidden = true;
     sendDGB2.hidden = true;
     sendDGB3.hidden = true;
+    sendDGB4.hidden = true;
 
     screen.hidden = false;
 }
@@ -221,8 +225,8 @@ async function sendDGB3_Sign() {
     if (sendDGB2Memo.value != "")
         options.advanced.memo = sendDGB2Memo.value;
 
-    options.advanced.feeperbyte = sendDGB2FeePerByte.value;
-
+    options.advanced.feeperbyte = parseInt(sendDGB2FeePerByte.value);
+ 
     if (sendDGB2BlockCheck.checked && sendDGB2Block.value < 500000000)
         options.advanced.timelock = { block: sendDGB2Block.value };
     else if (sendDGB2DateTimeCheck.checked && sendDGB2Date.value != '' && sendDGB2Time.value != '')
@@ -246,7 +250,7 @@ async function sendDGB3_Sign() {
     var data = await BroadcastTransaction(hex.hex);
     if (data.error) {
         sendDGB4Spinner.hidden = true;
-        return sendDGB4Message.innerHTML = icon("x-circle") + " " + hex.error;
+        return sendDGB4Message.innerHTML = icon("x-circle") + " " + data.error;
     }
     
     sendDGB4Spinner.hidden = true;

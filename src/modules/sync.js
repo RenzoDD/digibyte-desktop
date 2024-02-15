@@ -16,14 +16,9 @@ async function SyncPrice() {
 }
 
 async function SyncLastAddressUTXO(account) {
-    if (account.type == 'derived')
-        var type = { 44: 'legacy', 49: 'compatibility', 84: 'segwit' }[account.purpose];
-    else if (account.type == 'mobile')
-        var type = 'legacy';
-
     var info = null;
     for (var n = 0; n < 10 && info == null; n++)
-        var info = await DigiByte.explorer.xpub(account.xpub, type, { details: 'tokens', tokens: 'used' });
+        var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'tokens', tokens: 'used' });
     if (info == null)
         return console.log("SyncLastAddressUTXO", "ERROR", account.id);
 
@@ -43,14 +38,8 @@ async function SyncLastAddressUTXO(account) {
     console.log("SyncLastAddressUTXO", "SUCCESS", account.id, "external:" + account.external, "change:" + account.change);
 }
 async function SyncMovementsXPUB(account) {
-    var type = 'legacy';
-    if (account.purpose == 49)
-        type = 'compatibility'
-    else if (account.purpose === 84)
-        type = 'segwit';
-
-    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 0, account.external + 50);
-    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 1, account.change + 50);
+    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, account.address, 0, account.external + 50);
+    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, account.address, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
     var movements = await storage.GetAccountMovements(account.id);
@@ -62,7 +51,7 @@ async function SyncMovementsXPUB(account) {
 
         var info = null;
         for (var n = 0; n < 10 && info == null; n++)
-            var info = await DigiByte.explorer.xpub(account.xpub, type, { details: 'txs', pageSize: 50, page });
+            var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'txs', pageSize: 50, page });
         if (info == null)
             return console.log("SyncMovementsXPUB", "NETWORK ERROR", account.id);
 
@@ -128,17 +117,8 @@ async function SyncMovementsXPUB(account) {
     }
 }
 async function SyncBalanceXPUB(account) {
-    var type = 'legacy';
-    var path = "m/0'";
-    if (account.purpose)
-        path = `m/${account.purpose}'/20'/${account.account}'/`;
-    if (account.purpose == 49)
-        type = 'compatibility'
-    else if (account.purpose === 84)
-        type = 'segwit';
-
-    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 0, account.external + 50);
-    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, type, 1, account.change + 50);
+    var addresses0 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, account.address, 0, account.external + 50);
+    var addresses1 = DigiByte.DeriveHDPublicKey(account.xpub, account.network, account.address, 1, account.change + 50);
     var addresses = { ...addresses0, ...addresses1 };
 
     var movements = await storage.GetAccountMovements(account.id);
@@ -211,7 +191,7 @@ async function SyncBalanceXPUB(account) {
                     vout: vout.n,
                     script: vout.hex,
                     satoshis: parseInt(vout.value),
-                    path: path + vout.path,
+                    path: account.path + '/' + vout.path,
                     assetId: "",
                     metadata: "",
                     quantity: ""
@@ -223,7 +203,7 @@ async function SyncBalanceXPUB(account) {
                     vout: vout.n,
                     script: vout.hex,
                     satoshis: parseInt(vout.value),
-                    path: path + vout.path
+                    path: account.path + '/' + vout.path
                 };
             }
         });

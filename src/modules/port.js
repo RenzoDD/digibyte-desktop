@@ -1,107 +1,91 @@
 const DigiByte = require('./digibyte');
-const { SHA256, EncryptAES256 } = require('./crypto');
-const paths = require('./paths');
+const { SHA256, EncryptAES256, DecryptAES256 } = require('./crypto');
+
+const storage = require('./storage');
+const StartSyncInterval = require('./sync');
 
 const { ipcMain } = require('electron');
 const { dialog } = require('electron');
+const { clipboard } = require('electron');
+
 const fs = require('fs');
 const path = require('path');
 
 /*
- * WALLET MANAGEMENT
+ * SYNC
  */
 
-ipcMain.on('get-wallets', async function (event) {
-    var files = fs.readdirSync(paths.keys);
-    var wallets = files.filter(file => path.extname(file) === '.dgb');
-
-    return event.reply('get-wallets', wallets);
+ipcMain.on('sync', async function (event) {
+    StartSyncInterval();
+    return event.reply('sync', true);
 });
 
-ipcMain.on('read-wallet', async function (event, file) {
-    var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
-    if (!fs.existsSync(fullPath))
-        return event.reply('read-wallet', false);
+/*
+ * KEY MANAGEMENT
+ */
 
-    try {
-        var data = fs.readFileSync(fullPath);
-        var wallet = JSON.parse(data);
-    } catch (e) {
-        return event.reply('read-wallet', false);
-    }
-
-    if (!wallet.type)
-        return event.reply('read-wallet', false);
-    if (!wallet.secret)
-        return event.reply('read-wallet', false);
-    if (!wallet.integrity)
-        return event.reply('read-wallet', false);
-
-    var { integrity } = wallet;
-    delete wallet.integrity;
-
-    var check = SHA256(JSON.stringify(wallet));
-    wallet.integrity = integrity === check;
-
-    wallet.file = file;
-
-    return event.reply('read-wallet', wallet);
+ipcMain.on('get-keys', async function (event) {
+    var keys = await storage.GetKeys();
+    return event.reply('get-keys', keys);
 });
-
-ipcMain.on('create-wallet', async function (event, name, type, password) {
-    var words = type == "24-words" ? 24 : type == "12-words" ? 12 : 0;
+ipcMain.on('read-key', async function (event, id) {
+    var key = await storage.GetKey(id);
+    return event.reply('read-key', key);
+});
+ipcMain.on('generate-key', async function (event, name, type, password) {
+    var words = { "24-words": 24, "12-words": 12 }[type] || 0;
 
     if (words == 0)
-        return event.reply('create-wallet', "Invalid word type");
-
-    var fullPath = path.join(paths.keys, name + ".dgb").replaceAll('\\', '/');
-    if (fs.existsSync(fullPath))
-        return event.reply('create-wallet', "The wallet alrady exist. Please use a diferent name");
+        return event.reply('generate-key', "Invalid word type");
 
     var mnemonic = DigiByte.GenerateSeed(words);
 
     var keys = {};
-    keys.type = "seed";
+    keys.id = SHA256(Math.random().toString());
+    keys.name = name;
+    keys.type = "mnemonic";
+    keys.words = words;
+    keys.passphrase = false;
     keys.secret = EncryptAES256(mnemonic.seed, password);
 
-    var integrity = SHA256(JSON.stringify(keys));
-    keys.integrity = integrity;
+    var result = await storage.AddKey(keys.id, keys);
 
-    fs.writeFileSync(fullPath, JSON.stringify(keys, null, 2));
-    delete keys;
-
-    if (fs.existsSync(fullPath)) {
+    if (result === true) {
         var { list } = mnemonic;
         delete mnemonic;
-        return event.reply('create-wallet', list);
+        return event.reply('generate-key', list);
     }
 
-    return event.reply('create-wallet', "There was an error, please try again");
+    return event.reply('generate-key', result);
 });
-
-ipcMain.on('export-wallet', async function (event, file) {
-    var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
+ipcMain.on('export-key-file', async function (event, id) {
+    var keys = await storage.GetKey(id);
+    if (keys === null)
+        return event.reply('export-key-file', "This keys doesn't exist");
 
     var save = await dialog.showSaveDialog({
         title: 'Export Key File',
-        defaultPath: file,
+        defaultPath: keys.name,
         buttonLabel: 'Export'
     });
 
     if (save.canceled == true)
-        return event.reply('export-wallet', "Operation canceled");
+        return event.reply('export-key-file', "Operation canceled");
 
     if (fs.existsSync(save.filePath) == true)
-        return event.reply('export-wallet', "This file already exist");
+        return event.reply('export-key-file', "This file already exist");
 
-    fs.copyFileSync(fullPath, save.filePath);
-    if (!fs.existsSync(fullPath))
-        return event.reply('export-wallet', "There was an error, please try again");
 
-    return event.reply('export-wallet', true);
+    if (!save.filePath.endsWith('.dgb'))
+        save.filePath += ".dgb";
+
+    fs.writeFileSync(save.filePath, JSON.stringify(keys, null, 2));
+    if (!fs.existsSync(save.filePath))
+        return event.reply('export-key-file', "There was an error, please try again");
+
+    return event.reply('export-key-file', true);
 });
-
-ipcMain.on('import-file', async function (event, file) {
+ipcMain.on('import-key-file', async function (event) {
     var selected = await dialog.showOpenDialog({
         title: 'Import Key File',
         buttonLabel: 'Import',
@@ -110,79 +94,224 @@ ipcMain.on('import-file', async function (event, file) {
     });
 
     if (selected.canceled == true || selected.filePaths.length != 1)
-        return event.reply('import-file', "Operation canceled");
+        return event.reply('import-key-file', "Operation canceled");
 
-    var name = path.basename(selected.filePaths[0]);
-    var finalPath = path.join(paths.keys, name).replaceAll('\\', '/');
+    try {
+        var object = JSON.parse(fs.readFileSync(selected.filePaths[0]));
+    } catch (e) {
+        return event.reply('import-key-file', "The file is corrupted");
+    }
 
-    if (fs.existsSync(finalPath) == true)
-        return event.reply('import-file', "This file already exist, please choose a diferent file");
-
-    fs.copyFileSync(selected.filePaths[0], finalPath);
-    if (!fs.existsSync(finalPath))
-        return event.reply('import-file', "There was an error, please try again");
-
-    return event.reply('import-file', true);
+    var result = await storage.AddKey(object.id, object)
+    return event.reply('import-key-file', result);
 });
-
-ipcMain.on('delete-wallet', async function (event, file) {
-    var fullPath = path.join(paths.keys, file).replaceAll('\\', '/');
-    fs.unlinkSync(fullPath);
-    if (fs.existsSync(fullPath))
-        return event.reply('delete-wallet', "There was an error, please try again");
-
-    return event.reply('delete-wallet', true);
+ipcMain.on('delete-key', async function (event, id) {
+    var result = await storage.DeleteKey(id);
+    return event.reply('delete-key', result);
 });
-
-/*
- * MNEMONIC IMPORT
- */
-
 ipcMain.on('guess-word', async function (event, guess) {
     var word = DigiByte.GetMnemonicWord(guess.toLowerCase());
 
     return event.reply('guess-word', word || "");
 });
-
 ipcMain.on('check-mnemonic', async function (event, mnemonic) {
     var valid = DigiByte.CheckMnemonic(mnemonic);
 
     return event.reply('check-mnemonic', valid);
 });
-
-ipcMain.on('import-wallet', async function (event, type, name, password, secret, passphrase) {
+ipcMain.on('import-keys', async function (event, type, name, password, secret, passphrase) {
     var keys = {};
+    keys.id = SHA256(Math.random().toString());
+    keys.name = name;
 
     if (type === "mnemonic") {
         var mnemonic = DigiByte.GenerateSeed(secret, passphrase);
-        keys.type = "seed";
+        keys.type = "mnemonic";
+        keys.words = secret.split(" ").length;
+        keys.passphrase = passphrase != "";
         keys.secret = EncryptAES256(mnemonic.seed, password);
 
         delete secret;
         delete mnemonic;
     } else if (type === "keys") {
         keys.type = "keys";
-        keys.secret = EncryptAES256(secret, password);
-        
+        keys.secret = secret.map(x => EncryptAES256(x, password));
+
         delete secret;
     }
 
-    var integrity = SHA256(JSON.stringify(keys));
-    keys.integrity = integrity;
-
-    var fullPath = path.join(paths.keys, name + ".dgb").replaceAll('\\', '/');
-    fs.writeFileSync(fullPath, JSON.stringify(keys, null, 2));
+    var result = await storage.AddKey(keys.id, keys);
     delete keys;
 
-    return event.reply('import-wallet', fs.existsSync(fullPath));
+    return event.reply('import-keys', result);
 });
-
-/*
- * WIF IMPORT
- */
-
 ipcMain.on('check-wif', async function (event, WIF) {
     var valid = DigiByte.CheckWIF(WIF);
 
     return event.reply('check-wif', valid);
+});
+
+/*
+ * ACCOUNTS MANAGEMENT
+ */
+
+ipcMain.on('get-accounts', async function (event) {
+    var accounts = await storage.GetAccounts();
+    return event.reply('get-accounts', accounts);
+});
+ipcMain.on('get-account', async function (event, id) {
+    var account = await storage.GetAccount(id);
+    return event.reply('get-account', account);
+});
+ipcMain.on('generate-xpub', async function (event, key, password, type) {
+    var key = await storage.GetKey(key);
+
+    var seed = DecryptAES256(key.secret, password);
+    if (seed == null)
+        return event.reply('generate-xpub', "Wrong password");
+
+    var xpubs = DigiByte.GetXPUBs(seed, type);
+    seed = "";
+
+    return event.reply('generate-xpub', xpubs);
+});
+ipcMain.on('new-xpub', async function (event, xpub, type) {
+    var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
+    if (data == null)
+        var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
+    if (data == null)
+        var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
+
+    if (data == null)
+        var result = null;
+    else if (data.txs > 0)
+        var result = data.balance;
+    else if (data.txs == 0)
+        var result = true;
+
+    return event.reply('new-xpub', result);
+});
+ipcMain.on('generate-account', async function (event, name, type, secret, public, purpose, nAccount) {
+    var account = {};
+    account.id = SHA256(Math.random().toString());
+    account.name = name;
+    account.type = type;
+    account.network = "livenet";
+    account.secret = secret;
+
+    if (type == "derived") {
+        account.xpub = public;
+        account.purpose = { "legacy": 44, "compatibility": 49, "segwit": 84 }[purpose];
+        account.address = purpose;
+        account.path = `m/${account.purpose}'/20'/${nAccount}'`;
+        account.account = nAccount;
+        account.change = 0;
+        account.external = 0;
+    } else if (type == "mobile") {
+        account.network = "livenet";
+        account.xpub = public;
+        account.address = "legacy";
+        account.path = "m/0'";
+        account.change = 0;
+        account.external = 0;
+    }
+
+    var result = await storage.AddAccount(account.id, account);
+
+    return event.reply('generate-account', result);
+});
+ipcMain.on('check-password', async function (event, id, password) {
+    var account = await storage.GetAccount(id);
+    var key = await storage.GetKey(account.secret);
+
+    if (typeof key.secret != 'string')
+        key.secret = keys.secret[0];
+
+    var result = DecryptAES256(key.secret, password);
+    return event.reply('check-password', result != null);
+});
+
+/*
+ * ACCOUNT MANAGEMENT
+ */
+
+ipcMain.on('get-account-movements', async function (event, id) {
+    var data = await storage.GetAccountMovements(id);
+    return event.reply('get-account-movements', data);
+});
+ipcMain.on('get-account-balance', async function (event, id) {
+    var data = await storage.GetAccountBalance(id);
+    return event.reply('get-account-balance', data);
+});
+ipcMain.on('get-price', async function (event, id) {
+    var data = await storage.GetPrice();
+    return event.reply('get-price', data);
+});
+ipcMain.on('generate-last-address', async function (event, id) {
+    var account = await storage.GetAccount(id);
+    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 0, account.external);
+
+    return event.reply('generate-last-address', address);
+});
+ipcMain.on('copy-address-clipboard', async function (event, text) {
+    clipboard.writeText(text);
+    return event.reply('copy-address-clipboard', true);
+});
+ipcMain.on('check-address', async function (event, address) {
+    var result = DigiByte.CheckAddress(address);
+    return event.reply('check-address', result);
+});
+ipcMain.on('dgb-to-sats', async function (event, amount) {
+    var result = DigiByte.DGBtoSats(amount);
+    return event.reply('dgb-to-sats', result);
+});
+ipcMain.on('create-tx', async function (event, id, password, options) {
+    var account = await storage.GetAccount(id);
+    var balance = await storage.GetAccountBalance(id);
+    var key = await storage.GetKey(account.secret);
+
+    // Parse outputs
+    for (var n in options.outputs) {
+        var output = options.outputs[n]
+        output.satoshis = DigiByte.DGBtoSats(output.amount);
+        delete output.amount;
+
+        if (isNaN(output.satoshis)) return event.reply('create-tx', { error: `Invalid satoshis on output ${n}` });
+        if (output.satoshis < 0) return event.reply('create-tx', { error: `Negative satoshis on output ${n}` });
+        if (output.satoshis < 600) return event.reply('create-tx', { error: `Dust satoshis on output ${n}` });
+    }
+
+    // Parse inputs
+    options.inputs = Object.values(balance.DigiByteUTXO);
+
+    var keys = {}
+    if (account.type == 'derived' || account.type == 'mobile') {
+        var xprv = DecryptAES256(key.secret, password);
+        for (var input of options.inputs)
+            if (!keys[input.path])
+                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path, account.type == 'mobile');
+    } else if (account.type == 'single') {
+        for (var key of key.secret)
+            keys[key] = DecryptAES256(key, password);
+    }
+    
+    console.log(account.xpub)
+    console.log(keys)
+    options.keys = Object.values(keys);
+
+    if (!options.advanced.change) {
+        options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 1, account.change);
+    }
+
+    var result = DigiByte.SignTransaction(options);
+    return event.reply('create-tx', result);
+});
+ipcMain.on('broadcast-tx', async function (event, hex) {
+    for (var i = 0; i < 10; i++) {
+        var result = await DigiByte.explorer.sendtx(hex);
+        if (result != null) break;
+    }
+    if (result == null)
+        result = { error: "Broadcast error" };
+    return event.reply('broadcast-tx', result);
 });

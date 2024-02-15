@@ -1,34 +1,31 @@
-async function frmWallets_Load() {
-    var files = await GetWallets();
+async function frmKeys_Load() {
+    var keys = await GetKeys();
 
-    plWallets.innerHTML = "";
+    keysList.innerHTML = "";
 
-    if (files.length == 0)
-        plWallets.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
+    if (keys.length == 0)
+        keysList.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
 
-    for (var file of files) {
-        var wallet = await ReadWallet(file);
-        if (file !== false)
-            plWallets.innerHTML += `
-            <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmWallets_Manage('${file}')">
-                <div class="col-4">
-                    ${wallet.file}
-                </div>
-                <div class="col-4">
-                    ${wallet.type}
-                </div>
-                <div class="col-4">
-                    ${wallet.integrity ? "Correct" : "Failed"}
-                </div>
+    for (var id of keys) {
+        var key = await ReadKey(id);
+        if (key !== null) {
+            keysList.innerHTML += `
+            <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${id}')">
+                <div class="col-4">${key.name}</div>
+                <div class="col-4">${key.type}</div>
+                <div class="col-4">${key.type == 'mnemonic' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
             </div>`;
+        }
     }
 
-    frmOpen(frmWallets);
+    frmOpen(frmKeys);
 }
 
-async function frmWallets_Manage(file) {
+async function frmKeys_Manage(id) {
+    var key = await ReadKey(id);
+    manageKeys1ID.value = key.id;
+    manageKeys1Name.value = key.name;
     manageKey_Show(manageKeys1);
-    manageKeys1Wallet.value = file;
 }
 async function manageKey_Show(screen) {
     manageKeys1.hidden = true;
@@ -38,11 +35,12 @@ async function manageKey_Show(screen) {
     screen.hidden = false;
 }
 async function manageKey_Clear() {
-    manageKeys1Wallet.value = "";
+    manageKeys1ID.value = "";
+    manageKeys1Name.value = "";
     manageKeys3Status.innerHTML = "";
 }
 async function manageKeys1_Export() {
-    var save = await ExportWallet(manageKeys1Wallet.value);
+    var save = await ExportKeyFile(manageKeys1ID.value);
     if (save === true)
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
     else
@@ -54,17 +52,17 @@ async function manageKeys1_Delete() {
     manageKey_Show(manageKeys2);
 }
 async function manageKeys2_Delete() {
-    var deleted = await DeleteWallet(manageKeys1Wallet.value);
+    var deleted = await DeleteKey(manageKeys1ID.value);
     if (deleted === true)
         manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
     else
         manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
 
-    frmWallets_Load();
+    frmKeys_Load();
     manageKey_Show(manageKeys3);
 }
 
-async function frmWallets_Generate() {
+async function frmKeys_Generate() {
     generateKeys_Show(generateKeys1);
     generateKeys_Clear();
 }
@@ -100,7 +98,7 @@ async function generateKeys2_Generate() {
         return generateKeys2Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
 
-    var list = await CreateWallet(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
+    var list = await GenerateKey(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
 
     if (typeof list == 'string')
         generateKeys3List.innerHTML = `${icon('exclamation-circle')} ${list}`;
@@ -120,10 +118,10 @@ async function generateKeys2_Generate() {
     }
 
     generateKeys_Show(generateKeys3);
-    frmWallets_Load();
+    frmKeys_Load();
 }
 
-async function frmWallets_Import() {
+async function frmKeys_Import() {
     importKeys_Show(importKeys1);
     importKeys_Clear();
 }
@@ -144,7 +142,7 @@ async function importKeys_Clear() {
     importKeys2MnemonicPhrase.innerHTML = "";
     importKeys2MnemonicGuess.innerHTML = "";
     importKeys2MnemonicWord.value = "";
-    importKeys2MnemonicBIP39Passphrase.innerHTML = "";
+    importKeys2MnemonicBIP39Passphrase.value = "";
     importKeys2MnemonicError.innerHTML = "";
 
     importKeys2KeysKey.value = "";
@@ -165,13 +163,13 @@ async function importKeys1_Continue() {
         return importKeys1Error.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     if (importKeys1Type.value == "file") {
-        var save = await ImportFile();
+        var save = await ImportKeyFile();
         if (save === true)
             importKeys4Message.innerHTML = `${icon('check-circle')} Key imported successfully`;
         else
             importKeys4Message.innerHTML = `${icon('exclamation-circle')} ${save}`;
 
-        frmWallets_Load();
+        frmKeys_Load();
     }
 
     if (importKeys1Type.value == "mnemonic")
@@ -221,19 +219,19 @@ async function importKeys3_Save() {
         return importKeys3Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
     if (importKeys1Type.value == "mnemonic") {
-        var done = await ImportWallet("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.innerHTML);
+        var done = await ImportKeys("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.value);
         importKeys2MnemonicPhrase.innerHTML = "";
     } else if (importKeys1Type.value == "keys") {
-        var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML).join("-");
-        var done = await ImportWallet("keys", importKeys1Name.value, importKeys3Password1.value, keys, false);
+        var keys = ([...importKeys2KeysList.children]).map(child => child.innerHTML);
+        var done = await ImportKeys("keys", importKeys1Name.value, importKeys3Password1.value, keys, false);
         importKeys2KeysList.innerHTML = "";
     }
 
-    if (done)
+    if (done === true)
         importKeys4Message.innerHTML = `${icon('check-circle')} Keys saved`;
     else
-        importKeys4Message.innerHTML = `${icon('exclamation-circle')} There was an error, please try again`;
+        importKeys4Message.innerHTML = `${icon('exclamation-circle')} ${done}`;
 
     importKeys_Show(importKeys4);
-    frmWallets_Load();
+    frmKeys_Load();
 }

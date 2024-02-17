@@ -55,13 +55,19 @@ async function addAccount_Clear() {
     addAccount2Type.innerHTML = '<option value="null" selected disabled>Select account</option>';
     addAccount2TypeAddress.hidden = true;
     addAccount2TypeLegacy.checked = false;
-    addAccount2TypeCompatibility.checked = false;
+    addAccount2TypeScript.checked = false;
     addAccount2TypeSegwit.checked = false;
     addAccount2Password.value = "";
     addAccount2Password.placeholder = "";
 
+    addAccount3Found.innerHTML = "";
+    addAccount3Spinner.hidden = true;
+    addAccount3Error.innerHTML = "";
+
     addAccount4Found.innerHTML = "";
     addAccount4Spinner.hidden = true;
+
+    addAccount5Message.innerHTML = "";
 }
 async function addAccount1_Continue() {
     if (addAccount1Keys.value == "null")
@@ -85,26 +91,24 @@ async function addAccount2_Continue() {
     if (addAccount2Type.value == "null")
         return addAccount2Error.innerHTML = icon("exclamation-circle") + " Select an account type";
 
-    if (addAccount2Type.value == "derived") {
-        var address = "null";
-        address = addAccount2TypeLegacy.checked ? "legacy" : address;
-        address = addAccount2TypeCompatibility.checked ? "compatibility" : address;
-        address = addAccount2TypeSegwit.checked ? "segwit" : address;
-
-        if (address == "null")
-            return addAccount2Error.innerHTML = icon("exclamation-circle") + " Select an address type";
-    } if (addAccount2Type.value == "mobile") {
-        var address = "legacy";
-    }
-
-    if (addAccount2Type.value == 'derived')
-        var xpubs = await GeneateXPUB(addAccount1Keys.value, addAccount2Password.value, address);
-    else if (addAccount2Type.value == 'mobile')
-        var xpubs = await GeneateXPUB(addAccount1Keys.value, addAccount2Password.value, 'mobile');
-
-    addAccount2Password.value = "";
-
     if (addAccount2Type.value == 'derived' || addAccount2Type.value == 'mobile') {
+        if (addAccount2Type.value == "derived") {
+            var address = "null";
+            address = addAccount2TypeLegacy.checked ? "legacy" : address;
+            address = addAccount2TypeScript.checked ? "script" : address;
+            address = addAccount2TypeSegwit.checked ? "segwit" : address;
+
+            if (address == "null")
+                return addAccount2Error.innerHTML = icon("exclamation-circle") + " Select an address type";
+
+            var xpubs = await GenerateXPUB(addAccount1Keys.value, addAccount2Password.value, address);
+
+        } if (addAccount2Type.value == "mobile") {
+            var address = "legacy";
+            var xpubs = await GenerateXPUB(addAccount1Keys.value, addAccount2Password.value, 'mobile');
+        }
+
+        addAccount2Password.value = "";
         addAccount_Show(addAccount4);
 
         var unused = false;
@@ -121,23 +125,60 @@ async function addAccount2_Continue() {
             else if (result == true && unused == false) {
                 unused = true;
                 addAccount4Found.innerHTML += `
-            <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
-				<div class="col-6 text-start">DigiByte ${n}</div>
-				<div class="col-6 text-end">(Unused)</div>
-			</div>`;
+                    <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
+                        <div class="col-6 text-start">DigiByte ${n}</div>
+                        <div class="col-6 text-end">(Unused)</div>
+                    </div>`;
             } else if (typeof result == 'string') {
                 addAccount4Found.innerHTML += `
-            <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
-				<div class="col-6 text-start">DigiByte ${n}</div>
-				<div class="col-6 text-end">${result}</div>
-			</div>`;
+                    <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
+                        <div class="col-6 text-start">DigiByte ${n}</div>
+                        <div class="col-6 text-end">${coin(result, 8)}</div>
+                    </div>`;
             }
         }
-
         addAccount4Spinner.hidden = true;
     } else if (addAccount2Type.value == 'single') {
-        
+        var addresses = await GenerateAddresses(addAccount1Keys.value, addAccount2Password.value, 'livenet');
         addAccount_Show(addAccount3);
+        addAccount3Spinner.hidden = false;
+        for (var n of addresses) {
+            for (var type of Object.keys(n)) {
+                var result = await NewAddress(n[type]);
+                if (addAccount3Spinner.hidden == true)
+                    break;
+                if (result === null)
+                    break;
+                addAccount3Found.innerHTML += `
+                    <label class="option row mx-1 py-3 px-1 mb-2">
+                        <div class="col-1 my-auto">
+                            <input class="form-check-input" type="checkbox" id="addAccount3Check${n[type]}" value="${n[type]}">
+                        </div>
+                        <div class="col">
+                                ${n[type]}
+                                <br>
+                                ${result === true ? 'Unused' : 'DGB ' + coin(result, 8)}
+                        </div>
+                    </label>`;
+            }
+        }
+        addAccount3Spinner.hidden = true;
+    }
+}
+async function addAccount3_Create() {
+    addAccount3Spinner.hidden = true;
+    var checks = document.querySelectorAll('[id^="addAccount3Check"]');
+    var addresses = [];
+    checks.forEach(check => { if (check.checked) addresses.push(check.value); });
+    if (addresses.length == 0) return addAccount3Error.innerHTML = "Select at least one account";
+    
+    addAccount_Show(addAccount5);
+    var result = await GenerateAccount(addAccount1Name.value, addAccount2Type.value, addAccount1Keys.value, addresses);
+    if (result == true) {
+        frmAccounts_Load();
+        addAccount5Message.innerHTML = "Account created";
+    } else {
+        addAccount5Message.innerHTML = icon("exclamation-circle") + " " + result;
     }
 }
 async function addAccount4_StopLooking() {
@@ -150,7 +191,7 @@ async function addAccount4_Account(xpub, account) {
     var purpose = "null";
     if (addAccount2Type.value == 'derived') {
         purpose = addAccount2TypeLegacy.checked ? "legacy" : purpose;
-        purpose = addAccount2TypeCompatibility.checked ? "compatibility" : purpose;
+        purpose = addAccount2TypeScript.checked ? "script" : purpose;
         purpose = addAccount2TypeSegwit.checked ? "segwit" : purpose;
     }
 

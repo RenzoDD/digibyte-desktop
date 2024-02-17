@@ -39,7 +39,7 @@ DigiByte.CheckWIF = function (WIF) {
 
 DigiByte.GetXPUBs = function (seed, type) {
     var hdprivatekey = HDPrivateKey.fromSeed(Buffer.from(seed, 'hex'), null, type == 'mobile');
-    var purpose = { 'legacy': 44, 'compatibility': 49, 'segwit': 84 }[type];
+    var purpose = { 'legacy': 44, 'script': 49, 'segwit': 84 }[type];
 
     if (type == 'mobile') {
         var xpub = hdprivatekey.deriveChild("m/0'").hdPublicKey.toString();
@@ -73,6 +73,16 @@ DigiByte.DeriveOneHDPublicKey = function (xpub, network, type, change, external)
 DigiByte.DeriveHDPrivateKey = function (xprv, path, mobile) {
     var hdprivatekey = HDPrivateKey.fromSeed(xprv, null, mobile);
     return hdprivatekey.deriveChild(path).privateKey.toWIF();
+}
+
+DigiByte.WifToAddress = function (wif, network) {
+    var privateKey = new PrivateKey(wif);
+    var legacy = privateKey.toAddress(network, 'legacy').toString();
+    if (privateKey.compressed == false)
+        return { legacy };
+    var script = privateKey.toAddress(network, 'script').toString();
+    var segwit = privateKey.toAddress(network, 'segwit').toString();
+    return { legacy, script, segwit };
 }
 
 DigiByte.CheckAddress = function (address) {
@@ -140,7 +150,7 @@ DigiByte.SignTransaction = function (options) {
             tx.clearOutputs();
             tx.to(options.outputs);
         }
-        
+        tx.sign(options.keys);
         var error = tx.getSerializationError();
         if (error) return { error: error.toString() };
 

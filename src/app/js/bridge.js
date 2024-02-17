@@ -117,10 +117,18 @@ function GetAccount(id) {
         });
     });
 }
-function GeneateXPUB(key, password, type) {
+function GenerateXPUB(key, password, type) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('generate-xpub', key, password, type);
         ipcRenderer.once('generate-xpub', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function GenerateAddresses(key, password, network) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('generate-addresses', key, password, network);
+        ipcRenderer.once('generate-addresses', (event, response) => {
             resolve(response);
         });
     });
@@ -129,6 +137,14 @@ function NewXPUB(xpub) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('new-xpub', xpub);
         ipcRenderer.once('new-xpub', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function NewAddress(address) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('new-address', address);
+        ipcRenderer.once('new-address', (event, response) => {
             resolve(response);
         });
     });

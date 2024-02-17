@@ -60,7 +60,7 @@ async function frmAccount_Receive() {
     var account = await GetAccount(accountID.value);
 
     receiveDGB1Address.value = address;
-    receiveDGB1Path.innerHTML = account.path + "/0/" + account.external;
+    receiveDGB1Path.innerHTML = account.path ? account.path + "/0/" + account.external : "";
     receiveDGB1QR.src = DigiQR.text(address, 200, 2);
 
     receiveDGB_Show(receiveDGB1);
@@ -121,7 +121,7 @@ async function sendDGB_Clear() {
     sendDGB3Password.value = "";
     sendDGB3Password.placeholder = "";
     sendDGB3Message.innerHTML = "";
-    
+
     sendDGB4Spinner.hidden = false;
     sendDGB4Message.innerHTML = "";
 }
@@ -226,7 +226,7 @@ async function sendDGB3_Sign() {
         options.advanced.memo = sendDGB2Memo.value;
 
     options.advanced.feeperbyte = parseInt(sendDGB2FeePerByte.value);
- 
+
     if (sendDGB2BlockCheck.checked && sendDGB2Block.value < 500000000)
         options.advanced.timelock = { block: sendDGB2Block.value };
     else if (sendDGB2DateTimeCheck.checked && sendDGB2Date.value != '' && sendDGB2Time.value != '')
@@ -252,7 +252,7 @@ async function sendDGB3_Sign() {
         sendDGB4Spinner.hidden = true;
         return sendDGB4Message.innerHTML = icon("x-circle") + " " + data.error;
     }
-    
+
     sendDGB4Spinner.hidden = true;
     return sendDGB4Message.innerHTML = "Transaction sent! <br> " + data.result;
 }

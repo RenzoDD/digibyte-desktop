@@ -175,6 +175,16 @@ ipcMain.on('generate-xpub', async function (event, key, password, type) {
 
     return event.reply('generate-xpub', xpubs);
 });
+ipcMain.on('generate-addresses', async function (event, key, password, network) {
+    var key = await storage.GetKey(key);
+
+    var wifs = key.secret.map(wif => { return DecryptAES256(wif, password); });
+    if (wifs.indexOf(x => x == null) != -1)
+        return event.reply('generate-addresses', "Wrong password");
+
+    var addresses = wifs.map(wif => { return DigiByte.WifToAddress(wif, network) });
+    return event.reply('generate-addresses', addresses);
+});
 ipcMain.on('new-xpub', async function (event, xpub, type) {
     var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
     if (data == null)
@@ -191,6 +201,23 @@ ipcMain.on('new-xpub', async function (event, xpub, type) {
 
     return event.reply('new-xpub', result);
 });
+
+ipcMain.on('new-address', async function (event, address) {
+    var data = await DigiByte.explorer.address(address, { details: 'basic' });
+    if (data == null)
+        var data = await DigiByte.explorer.xpub(address, { details: 'basic' });
+    if (data == null)
+        var data = await DigiByte.explorer.xpub(address, { details: 'basic' });
+
+    if (data == null)
+        var result = null;
+    else if (data.txs > 0)
+        var result = data.balance;
+    else if (data.txs == 0)
+        var result = true;
+
+    return event.reply('new-address', result);
+});
 ipcMain.on('generate-account', async function (event, name, type, secret, public, purpose, nAccount) {
     var account = {};
     account.id = SHA256(Math.random().toString());
@@ -201,7 +228,7 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 
     if (type == "derived") {
         account.xpub = public;
-        account.purpose = { "legacy": 44, "compatibility": 49, "segwit": 84 }[purpose];
+        account.purpose = { "legacy": 44, "script": 49, "segwit": 84 }[purpose];
         account.address = purpose;
         account.path = `m/${account.purpose}'/20'/${nAccount}'`;
         account.account = nAccount;
@@ -214,6 +241,8 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
         account.path = "m/0'";
         account.change = 0;
         account.external = 0;
+    } else if (type == "single") {
+        account.addresses = public;
     }
 
     var result = await storage.AddAccount(account.id, account);
@@ -249,7 +278,13 @@ ipcMain.on('get-price', async function (event, id) {
 });
 ipcMain.on('generate-last-address', async function (event, id) {
     var account = await storage.GetAccount(id);
-    var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 0, account.external);
+    if (account.type == 'derived' || account.type == 'mobile')
+        var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 0, account.external);
+    else if (account.type == 'single') {
+        var address = account.addresses.shift();
+        account.addresses.push(address);
+        await storage.UpdateAccount(account);
+    }
 
     return event.reply('generate-last-address', address);
 });
@@ -285,18 +320,21 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     options.inputs = Object.values(balance.DigiByteUTXO);
 
     var keys = {}
-    if (account.type == 'derived' || account.type == 'mobile') {
+    if (account.type == 'derived') {
         var xprv = DecryptAES256(key.secret, password);
         for (var input of options.inputs)
             if (!keys[input.path])
-                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path, account.type == 'mobile');
+                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path);
+    } else if (account.type == 'mobile') {
+        var xprv = DecryptAES256(key.secret, password);
+        for (var input of options.inputs)
+            if (!keys[input.path])
+                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path, true);
     } else if (account.type == 'single') {
         for (var key of key.secret)
             keys[key] = DecryptAES256(key, password);
     }
-    
-    console.log(account.xpub)
-    console.log(keys)
+
     options.keys = Object.values(keys);
 
     if (!options.advanced.change) {

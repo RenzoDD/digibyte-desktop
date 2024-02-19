@@ -1,4 +1,7 @@
 async function frmAccounts_Load() {
+    var key = await ReadKey(keyID.value);
+    if (key == null) return;
+
     var accounts = await GetAccounts();
 
     accountsList.innerHTML = "";
@@ -10,7 +13,7 @@ async function frmAccounts_Load() {
 
     for (var id of accounts) {
         var account = await GetAccount(id);
-        if (account !== null) {
+        if (account !== null && account.secret == keyID.value) {
             var balance = await GetAccountBalance(id);
             balance = coin(balance.satoshis, 8, false);
             var usd = (exchange.price * balance).toFixed(2);
@@ -30,6 +33,17 @@ async function frmAccounts_Load() {
 
 async function frmAccounts_Add() {
     addAccount_Clear();
+
+    var key = await ReadKey(keyID.value);
+    if (key.type == "mnemonic") {
+        addAccount1Type.innerHTML += '<option value="derived">Derived Account</option>';
+        if (key.words == 12 && key.passphrase == false)
+            addAccount1Type.innerHTML += '<option value="mobile">DigiByte Mobile Account</option>';
+    } else {
+        addAccount1Type.innerHTML += '<option value="single">Single Account</option>';
+    }
+    addAccount2Password.placeholder = "Password of " + key.name;
+
     addAccount_Show(addAccount1)
 }
 async function addAccount_Show(screen) {
@@ -42,21 +56,14 @@ async function addAccount_Show(screen) {
     screen.hidden = false;
 }
 async function addAccount_Clear() {
-    addAccount1Keys.innerHTML = `<option value="null" selected disabled>Select keys</option>`;
-    var keys = await GetKeys();
-    for (var id of keys) {
-        var key = await ReadKey(id);
-        addAccount1Keys.innerHTML += `<option value="${id}">${key.name} (${key.type})</option>`;
-    }
-    addAccount1Keys.value = "null";
     addAccount1Name.value = "";
     addAccount1Error.innerHTML = "";
 
-    addAccount2Type.innerHTML = '<option value="null" selected disabled>Select account</option>';
-    addAccount2TypeAddress.hidden = true;
-    addAccount2TypeLegacy.checked = false;
-    addAccount2TypeScript.checked = false;
-    addAccount2TypeSegwit.checked = false;
+    addAccount1Type.innerHTML = '<option value="null" selected disabled>Select account</option>';
+    addAccount1TypeAddress.hidden = true;
+    addAccount1TypeLegacy.checked = false;
+    addAccount1TypeScript.checked = false;
+    addAccount1TypeSegwit.checked = false;
     addAccount2Password.value = "";
     addAccount2Password.placeholder = "";
 
@@ -70,42 +77,34 @@ async function addAccount_Clear() {
     addAccount5Message.innerHTML = "";
 }
 async function addAccount1_Continue() {
-    if (addAccount1Keys.value == "null")
-        return addAccount1Error.innerHTML = icon("exclamation-circle") + " Select a key";
-
     if (addAccount1Name.value == "")
         return addAccount1Error.innerHTML = icon("exclamation-circle") + " Enter a name";
+    if (addAccount1Type.value == "null")
+        return addAccount1Error.innerHTML = icon("exclamation-circle") + " Select an account type";
+    if (addAccount1Type.value == "derived") {
+        var address = "null";
+        address = addAccount1TypeLegacy.checked ? "legacy" : address;
+        address = addAccount1TypeScript.checked ? "script" : address;
+        address = addAccount1TypeSegwit.checked ? "segwit" : address;
 
-    var key = await ReadKey(addAccount1Keys.value);
-    if (key.type == "mnemonic") {
-        addAccount2Type.innerHTML += '<option value="derived">Derived Account</option>';
-        if (key.words == 12 && key.passphrase == false)
-            addAccount2Type.innerHTML += '<option value="mobile">DigiByte Mobile Account</option>';
-    } else {
-        addAccount2Type.innerHTML += '<option value="single">Single Account</option>';
+        if (address == "null")
+            return addAccount1Error.innerHTML = icon("exclamation-circle") + " Select an address type";
     }
-    addAccount2Password.placeholder = "Password of " + key.name;
     addAccount_Show(addAccount2);
 }
 async function addAccount2_Continue() {
-    if (addAccount2Type.value == "null")
-        return addAccount2Error.innerHTML = icon("exclamation-circle") + " Select an account type";
 
-    if (addAccount2Type.value == 'derived' || addAccount2Type.value == 'mobile') {
-        if (addAccount2Type.value == "derived") {
+    if (addAccount1Type.value == 'derived' || addAccount1Type.value == 'mobile') {
+        if (addAccount1Type.value == "derived") {
             var address = "null";
-            address = addAccount2TypeLegacy.checked ? "legacy" : address;
-            address = addAccount2TypeScript.checked ? "script" : address;
-            address = addAccount2TypeSegwit.checked ? "segwit" : address;
+            address = addAccount1TypeLegacy.checked ? "legacy" : address;
+            address = addAccount1TypeScript.checked ? "script" : address;
+            address = addAccount1TypeSegwit.checked ? "segwit" : address;
 
-            if (address == "null")
-                return addAccount2Error.innerHTML = icon("exclamation-circle") + " Select an address type";
-
-            var xpubs = await GenerateXPUB(addAccount1Keys.value, addAccount2Password.value, address);
-
-        } if (addAccount2Type.value == "mobile") {
+            var xpubs = await GenerateXPUB(keyID.value, addAccount2Password.value, address);
+        } if (addAccount1Type.value == "mobile") {
             var address = "legacy";
-            var xpubs = await GenerateXPUB(addAccount1Keys.value, addAccount2Password.value, 'mobile');
+            var xpubs = await GenerateXPUB(keyID.value, addAccount2Password.value, 'mobile');
         }
 
         addAccount2Password.value = "";
@@ -138,8 +137,8 @@ async function addAccount2_Continue() {
             }
         }
         addAccount4Spinner.hidden = true;
-    } else if (addAccount2Type.value == 'single') {
-        var addresses = await GenerateAddresses(addAccount1Keys.value, addAccount2Password.value, 'livenet');
+    } else if (addAccount1Type.value == 'single') {
+        var addresses = await GenerateAddresses(keyID.value, addAccount2Password.value, 'livenet');
         addAccount_Show(addAccount3);
         addAccount3Spinner.hidden = false;
         for (var n of addresses) {
@@ -171,9 +170,9 @@ async function addAccount3_Create() {
     var addresses = [];
     checks.forEach(check => { if (check.checked) addresses.push(check.value); });
     if (addresses.length == 0) return addAccount3Error.innerHTML = "Select at least one account";
-    
+
     addAccount_Show(addAccount5);
-    var result = await GenerateAccount(addAccount1Name.value, addAccount2Type.value, addAccount1Keys.value, addresses);
+    var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID.value, addresses);
     if (result == true) {
         frmAccounts_Load();
         addAccount5Message.innerHTML = "Account created";
@@ -189,13 +188,13 @@ async function addAccount4_Account(xpub, account) {
     addAccount4Spinner.hidden = true;
 
     var purpose = "null";
-    if (addAccount2Type.value == 'derived') {
-        purpose = addAccount2TypeLegacy.checked ? "legacy" : purpose;
-        purpose = addAccount2TypeScript.checked ? "script" : purpose;
-        purpose = addAccount2TypeSegwit.checked ? "segwit" : purpose;
+    if (addAccount1Type.value == 'derived') {
+        purpose = addAccount1TypeLegacy.checked ? "legacy" : purpose;
+        purpose = addAccount1TypeScript.checked ? "script" : purpose;
+        purpose = addAccount1TypeSegwit.checked ? "segwit" : purpose;
     }
 
-    var result = await GenerateAccount(addAccount1Name.value, addAccount2Type.value, addAccount1Keys.value, xpub, purpose, account);
+    var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID.value, xpub, purpose, account);
 
     if (result == true) {
         frmAccounts_Load();

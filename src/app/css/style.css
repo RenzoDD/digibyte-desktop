@@ -38,6 +38,9 @@ body {
 .option:hover {
     background-color: var(--secondary);
 }
+.option.active {
+    background-color: var(--tertiary);
+}
 .btn-dgb {
     color: var(--clear);
 }

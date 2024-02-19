@@ -219,7 +219,14 @@ async function SyncBalance(account) {
             var m = await storage.GetAccountMovements(account.id + "-" + address);
             movements = movements.concat(m.filter(x => x.height > balance.height));
         }
+        movements.sort((a, b) => a.txid.localeCompare(b.txid));
+        // Delete duplicate txs
+        movements = movements.filter((obj, index) => {
+            if (index === movements.length - 1) return true;
+            return obj.txid !== movements[index + 1].txid;
+        });
         movements.sort((a, b) => b.height - a.height);
+
         var oldMove = await storage.GetAccountMovements(account.id);
         await storage.SetAccountMovements(account.id, movements.concat(oldMove));
     }

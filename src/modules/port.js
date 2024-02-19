@@ -254,7 +254,7 @@ ipcMain.on('check-password', async function (event, id, password) {
     var key = await storage.GetKey(account.secret);
 
     if (typeof key.secret != 'string')
-        key.secret = keys.secret[0];
+        key.secret = key.secret[0];
 
     var result = DecryptAES256(key.secret, password);
     return event.reply('check-password', result != null);
@@ -338,7 +338,10 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     options.keys = Object.values(keys);
 
     if (!options.advanced.change) {
-        options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 1, account.change);
+        if (account.type == 'derived' || account.type == 'mobile')
+            options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 1, account.change);
+        else if (account.type == 'single')
+            options.advanced.change = account.addresses[0];
     }
 
     var result = DigiByte.SignTransaction(options);

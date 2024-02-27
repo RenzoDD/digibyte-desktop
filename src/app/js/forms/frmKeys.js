@@ -1,4 +1,6 @@
 async function frmKeys_Load() {
+    topKeyName.innerHTML = "";
+    keyID.value = null;
     var keys = await GetKeys();
 
     keysList.innerHTML = "";
@@ -13,12 +15,7 @@ async function frmKeys_Load() {
             <div class="option row p-4 mb-3 ${ (keyID.value == key.id)  ? "active" : "" }" onclick="frmKeys_Select('${id}')">
                 <div class="col-4 my-auto">${key.name}</div>
                 <div class="col-4 my-auto">${key.type}</div>
-                <div class="col-3 my-auto">${key.type == 'mnemonic' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
-                <div class="col-1 my-auto">
-                    <button class="btn btn-sm" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${id}')">
-                        ${icon('search')}
-                    </button>
-                </div>
+                <div class="col-4 my-auto">${key.type == 'mnemonic' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
             </div>`;
         }
     }
@@ -29,10 +26,16 @@ async function frmKeys_Load() {
 
 async function frmKeys_Select(id) {
     keyID.value = id;
-    frmKeys_Load();
+
+    var key = await ReadKey(keyID.value);
+    if (key == null) return;
+    topKeyName.innerHTML = icon("key", 18) + ' ' + key.name;
+
+    frmAccounts_Load();
 }
-async function frmKeys_Manage(id) {
-    var key = await ReadKey(id);
+async function frmKeys_Manage() {
+    var key = await ReadKey(keyID.value);
+    if (key == null) return;
     manageKeys1ID.value = key.id;
     manageKeys1Name.value = key.name;
     manageKey_Show(manageKeys1);

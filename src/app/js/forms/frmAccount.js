@@ -14,6 +14,8 @@ async function frmAccount_Load(id) {
     } else if (account.type == 'mobile') {
         accountName.innerHTML = icon('phone', 40) + ' ' + account.name;
         accountReceive.hidden = true;
+    } else if (account.type == 'single') {
+        accountName.innerHTML = icon('paperclip', 40) + ' ' + account.name;
     }
 
     var lastDate = new Date(0).toDateString().substring(4, 15);
@@ -53,6 +55,8 @@ async function frmAccount_Load(id) {
     accountPrice.innerHTML = "$ " + (exchange.price * balance).toFixed(2);
 
     frmOpen(frmAccount);
+    topKeys.hidden = true;
+    topReturnToAccounts.hidden = false;
 }
 
 async function frmAccount_Receive() {

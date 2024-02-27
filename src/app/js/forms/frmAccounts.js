@@ -31,6 +31,13 @@ async function frmAccounts_Load() {
     frmOpen(frmAccounts);
 }
 
+
+async function topReturnToAccounts_Click() {
+    frmAccounts_Load();
+    topKeys.hidden = false;
+    topReturnToAccounts.hidden = true;
+}
+
 async function frmAccounts_Add() {
     addAccount_Clear();
 

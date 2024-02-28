@@ -99,6 +99,9 @@ td {
     fill: var(--clear) !important;
 }
 
+.text-justify {
+    text-align: justify;
+}
 
 /*
  *  Scroll Overwrite
@@ -122,4 +125,11 @@ td {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+
+
+.custom-center {
+    display: flex;
+    align-items: center;
 }

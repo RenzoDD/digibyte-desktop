@@ -1,6 +1,6 @@
 require('./modules/port');
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 let myWindow = null;
 
 // Only one instance
@@ -41,5 +41,11 @@ app.whenReady().then(() => {
 	myWindow.webContents.once('did-finish-load', function () {
 		myWindow.show();
 		myWindow.maximize();
+	});
+
+	myWindow.webContents.on('will-navigate', function (event, url) {
+		console.log(url)
+		event.preventDefault();
+		shell.openExternal(url);
 	});
 });

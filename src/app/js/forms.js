@@ -1,8 +1,8 @@
 function frmOpen(frmOpen) {
     const forms = document.querySelectorAll(`[id^="frm"]`);
     for (var frm of forms)
-        frm.hidden = true;
-    frmOpen.hidden = false;
+        frm.classList.add('d-none');
+    frmOpen.classList.remove('d-none');
 }
 
 function icon(name, size = 18) {

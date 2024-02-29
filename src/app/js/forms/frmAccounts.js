@@ -39,8 +39,6 @@ async function topReturnToAccounts_Click() {
 }
 
 async function frmAccounts_Add() {
-    addAccount_Clear();
-
     var key = await ReadKey(keyID.value);
     if (key.type == "mnemonic") {
         addAccount1Type.innerHTML += '<option value="derived">Derived Account</option>';
@@ -51,7 +49,8 @@ async function frmAccounts_Add() {
     }
     addAccount2Password.placeholder = "Password of " + key.name;
 
-    addAccount_Show(addAccount1)
+    addAccount_Show(addAccount1);
+    modalToggle(addAccount);
 }
 async function addAccount_Show(screen) {
     addAccount1.hidden = true;
@@ -62,7 +61,8 @@ async function addAccount_Show(screen) {
 
     screen.hidden = false;
 }
-async function addAccount_Clear() {
+async function addAccount_Close() {
+    modalToggle(addAccount);
     addAccount1Name.value = "";
     addAccount1Error.innerHTML = "";
 

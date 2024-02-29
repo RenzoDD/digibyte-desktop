@@ -39,6 +39,7 @@ async function frmKeys_Manage() {
     manageKeys1ID.value = key.id;
     manageKeys1Name.value = key.name;
     manageKey_Show(manageKeys1);
+    modalToggle(manageKeys);
 }
 async function manageKey_Show(screen) {
     manageKeys1.hidden = true;
@@ -47,7 +48,8 @@ async function manageKey_Show(screen) {
 
     screen.hidden = false;
 }
-async function manageKey_Clear() {
+async function manageKey_Close() {
+    modalToggle(manageKeys);
     manageKeys1ID.value = "";
     manageKeys1Name.value = "";
     manageKeys3Status.innerHTML = "";
@@ -77,7 +79,7 @@ async function manageKeys2_Delete() {
 
 async function frmKeys_Generate() {
     generateKeys_Show(generateKeys1);
-    generateKeys_Clear();
+    modalToggle(generateKeys)
 }
 async function generateKeys_Show(screen) {
     generateKeys1.hidden = true;
@@ -86,7 +88,8 @@ async function generateKeys_Show(screen) {
 
     screen.hidden = false;
 }
-async function generateKeys_Clear() {
+async function generateKeys_Close() {
+    modalToggle(generateKeys);
     generateKeys1Type.value = "null";
     generateKeys1Name.value = "";
     generateKeys1Error.innerHTML = "";
@@ -136,7 +139,7 @@ async function generateKeys2_Generate() {
 
 async function frmKeys_Import() {
     importKeys_Show(importKeys1);
-    importKeys_Clear();
+    modalToggle(importKeys);
 }
 async function importKeys_Show(screen) {
     importKeys1.hidden = true;
@@ -147,7 +150,8 @@ async function importKeys_Show(screen) {
 
     screen.hidden = false;
 }
-async function importKeys_Clear() {
+async function importKeys_Close() {
+    modalToggle(importKeys);
     importKeys1Type.value = "null";
     importKeys1Name.value = "";
     importKeys1Error.innerHTML = "";

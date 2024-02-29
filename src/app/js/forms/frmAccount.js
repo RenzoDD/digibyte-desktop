@@ -68,13 +68,15 @@ async function frmAccount_Receive() {
     receiveDGB1QR.src = DigiQR.text(address, 200, 2);
 
     receiveDGB_Show(receiveDGB1);
+    modalToggle(receiveDGB);
 }
 async function receiveDGB_Show(screen) {
     receiveDGB1.hidden = true;
 
     screen.hidden = false;
 }
-async function receiveDGB_Clear() {
+async function receiveDGB_Close() {
+    modalToggle(receiveDGB);
     receiveDGB1QR.src = "";
     receiveDGB1Path.innerHTML = "";
     receiveDGB1Address.value = "";
@@ -93,6 +95,7 @@ async function frmAccount_Send() {
 
     sendDGB1_AddOutput();
     sendDGB_Show(sendDGB1);
+    modalToggle(sendDGB);
 }
 async function sendDGB_Show(screen) {
     sendDGB1.hidden = true;
@@ -102,7 +105,8 @@ async function sendDGB_Show(screen) {
 
     screen.hidden = false;
 }
-async function sendDGB_Clear() {
+async function sendDGB_Close() {
+    modalToggle(sendDGB);
     sendDGB1Outputs.amount = 0;
     sendDGB1Outputs.innerHTML = "";
     sendDGB1AdvancedOptions.checked = false;

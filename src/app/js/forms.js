@@ -4,6 +4,13 @@ function frmOpen(frmOpen) {
         frm.classList.add('d-none');
     frmOpen.classList.remove('d-none');
 }
+const modals = {};
+function modalToggle(modal) {
+    if (!modals[modal.id])
+        modals[modal.id] = new bootstrap.Modal(modal);
+
+    modals[modal.id].toggle();
+}
 
 function icon(name, size = 18) {
     return `<svg class="bi" width="${size}" height="${size}"><use xlink:href="vendor/bootstrap-icons.svg#${name}"/></svg>`

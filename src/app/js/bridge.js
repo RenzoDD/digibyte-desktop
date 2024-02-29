@@ -133,9 +133,9 @@ function GenerateAddresses(key, password, network) {
         });
     });
 }
-function NewXPUB(xpub) {
+function NewXPUB(xpub, type) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('new-xpub', xpub);
+        ipcRenderer.send('new-xpub', xpub, type);
         ipcRenderer.once('new-xpub', (event, response) => {
             resolve(response);
         });

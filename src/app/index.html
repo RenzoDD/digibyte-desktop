@@ -44,11 +44,6 @@
 							<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
 						</svg>
 					</button>
-					<button id="topManageKey" class="btn btn-dgb btn-lg" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage()" hidden>
-						<svg class="bi bi-btn" width="18" height="18">
-							<use xlink:href="vendor/bootstrap-icons.svg#key" />
-						</svg>
-					</button>
 					<button id="topKeys" class="btn btn-dgb btn-lg" onclick="frmKeys_Load()">
 						<svg class="bi bi-btn" width="18" height="18">
 							<use xlink:href="vendor/bootstrap-icons.svg#wallet" />
@@ -166,14 +161,14 @@
 				<hr>
 				<div class="row">
 					<div class="col-6">
-						<div class="option text-center p-4 me-1" data-bs-toggle="modal" data-bs-target="#generateKeys" onclick="frmKeys_Generate()">
+						<div class="option text-center p-4 me-1" onclick="frmKeys_Generate()">
 							<svg class="bi" width="18" height="18">
 								<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
 							</svg> Generate
 						</div>
 					</div>
 					<div class="col-6">
-						<div class="option text-center p-4 ms-1" data-bs-toggle="modal" data-bs-target="#importKeys" onclick="frmKeys_Import()">
+						<div class="option text-center p-4 ms-1" onclick="frmKeys_Import()">
 							<svg class="bi" width="18" height="18">
 								<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-right" />
 							</svg> Import
@@ -216,14 +211,14 @@
 				<hr>
 				<div class="row">
 					<div class="col-9">
-						<div class="option text-center p-4 me-1" data-bs-toggle="modal" data-bs-target="#addAccount" onclick="frmAccounts_Add()">
+						<div class="option text-center p-4 me-1" onclick="frmAccounts_Add()">
 							<svg class="bi" width="18" height="18">
 								<use xlink:href="vendor/bootstrap-icons.svg#plus-circle" />
 							</svg> Add Account
 						</div>
 					</div>
 					<div class="col-3">
-						<div class="option text-center p-4 me-1" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage()">
+						<div class="option text-center p-4 me-1" onclick="frmKeys_Manage()">
 							<svg class="bi" width="18" height="18">
 								<use xlink:href="vendor/bootstrap-icons.svg#wrench-adjustable-circle" />
 							</svg> Manage Key
@@ -242,21 +237,21 @@
 						<h4 id="accountPrice" style="color: #9A9A9A">$ 1'420'568.41</h4>
 					</div>
 					<div class="col-xxl-2 col-3 d-grid gap-2">
-						<button class="btn btn-dgb bg-dgb fs-4" id="accountReceive" data-bs-toggle="modal" data-bs-target="#receiveDGB" onclick="frmAccount_Receive()">
+						<button class="btn btn-dgb bg-dgb fs-4" id="accountReceive" onclick="frmAccount_Receive()">
 							<svg class="bi bi-btn" width="24" height="24">
 								<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-in-down-left" />
 							</svg> Receive
 						</button>
 					</div>
 					<div class="col-xxl-2 col-3 d-grid gap-2">
-						<button class="btn btn-dgb bg-dgb fs-4" id="accountSend" data-bs-toggle="modal" data-bs-target="#sendDGB" onclick="frmAccount_Send()">
+						<button class="btn btn-dgb bg-dgb fs-4" id="accountSend" onclick="frmAccount_Send()">
 							<svg class="bi bi-btn" width="24" height="24">
 								<use xlink:href="vendor/bootstrap-icons.svg#box-arrow-up-right" />
 							</svg> Send
 						</button>
 					</div>
 				</div>
-				<div class="list px-3" style="max-height: 60vh;" id="transactionList">
+				<div class="list px-3" style="max-height: 55vh;" id="transactionList">
 
 				</div>
 			</div>
@@ -292,10 +287,10 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="generateKeys_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="generateKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
-									</svg> Cancel
+									</svg> Close
 								</button>
 							</div>
 						</div>
@@ -317,17 +312,17 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
 									</svg> Generate
 								</button>
-								<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="generateKeys_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="generateKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
-									</svg> Cancel
+									</svg> Close
 								</button>
 							</div>
 						</div>
 						<div class="m-4" id="generateKeys3">
 							<div id="generateKeys3List"></div>
 							<div class="text-center">
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="generateKeys_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="generateKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -368,7 +363,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="importKeys_Clear()">
+								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Cancel
@@ -447,7 +442,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="importKeys_Clear()">
+								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Cancel
@@ -477,7 +472,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="importKeys_Clear()">
+								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Cancel
@@ -503,7 +498,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
 									</svg> Save
 								</button>
-								<button class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="importKeys_Clear()">
+								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Cancel
@@ -513,7 +508,7 @@
 						<div class="m-4" id="importKeys4">
 							<div id="importKeys4Message"></div>
 							<div class="text-center">
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="importKeys_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -550,7 +545,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#trash" />
 									</svg> Delete
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="manageKey_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="manageKey_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -568,7 +563,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#trash" />
 									</svg> Delete
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="manageKey_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="manageKey_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -578,7 +573,7 @@
 						<div class="m-4" id="manageKeys3">
 							<div class="text-center mb-3" id="manageKeys3Status"></div>
 							<div class="text-center mb-3">
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="manageKey_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="manageKey_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -633,7 +628,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="addAccount_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="addAccount_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -654,7 +649,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="addAccount_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="addAccount_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -679,7 +674,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Create
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="addAccount_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="addAccount_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -701,7 +696,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#x-square" />
 									</svg> Stop Looking
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="addAccount_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="addAccount_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -712,7 +707,7 @@
 							<div class="mb-3 text-center">
 								<span id="addAccount5Message"></span>
 							</div>
-							<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="addAccount_Clear()">
+							<button class="btn btn-secondary btn-sm" onclick="addAccount_Close()">
 								<svg class="bi" width="18" height="18">
 									<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 								</svg> Close
@@ -748,7 +743,7 @@
 								</div>
 							</div>
 							<div class="text-center">
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="receiveDGB_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="receiveDGB_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -789,7 +784,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#plus-circle" />
 									</svg> Add Recipient
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="sendDGB_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -908,7 +903,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="sendDGB_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -929,7 +924,7 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
 									</svg> Sign
 								</button>
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="sendDGB_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -944,7 +939,7 @@
 
 							</div>
 							<div class="text-center">
-								<button class="btn btn-secondary btn-sm" data-bs-dismiss="modal" onclick="sendDGB_Clear()">
+								<button class="btn btn-secondary btn-sm" onclick="sendDGB_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close
@@ -954,6 +949,7 @@
 					</div>
 				</div>
 			</div>
+
 		</div>
 	</div>
 

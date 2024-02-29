@@ -1,6 +1,7 @@
 const DigiByte = require('./digibyte');
 const storage = require('./storage');
 
+let SYNCING = false;
 const CONFIRMATIONS = 1;
 
 /*
@@ -341,6 +342,9 @@ async function Sync() {
 }
 
 async function StartSyncInterval() {
+    if (SYNCING) return;
+    SYNCING = true;
+
     if (global.SyncID) {
         console.log("Stoping sync...");
         clearInterval(global.SyncID);
@@ -351,6 +355,8 @@ async function StartSyncInterval() {
     console.log("Starting sync...");
     global.SyncID = setInterval(Sync, 10 * 60 * 1000);
     await Sync();
+    
+    SYNCING = false;
 }
 StartSyncInterval();
 

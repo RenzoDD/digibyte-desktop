@@ -41,12 +41,14 @@ ipcMain.on('generate-key', async function (event, name, type, password) {
     var mnemonic = DigiByte.GenerateSeed(words);
 
     var keys = {};
-    keys.id = SHA256(Math.random().toString());
+    keys.id = "";
     keys.name = name;
     keys.type = "mnemonic";
     keys.words = words;
     keys.passphrase = false;
     keys.secret = EncryptAES256(mnemonic.seed, password);
+
+    keys.id = SHA256(JSON.stringify(keys));
 
     var result = await storage.AddKey(keys.id, keys);
 
@@ -97,12 +99,19 @@ ipcMain.on('import-key-file', async function (event) {
         return event.reply('import-key-file', "Operation canceled");
 
     try {
-        var object = JSON.parse(fs.readFileSync(selected.filePaths[0]));
+        var key = fs.readFileSync(selected.filePaths[0]);
+        var id = key.id;
+        key.id = "";
+
+        var integrity = SHA256(JSON.stringify(key));
+
+        if (integrity !== id)
+            return event.reply('import-key-file', "The integrity check failed");
     } catch (e) {
         return event.reply('import-key-file', "The file is corrupted");
     }
 
-    var result = await storage.AddKey(object.id, object)
+    var result = await storage.AddKey(key.id, key)
     return event.reply('import-key-file', result);
 });
 ipcMain.on('delete-key', async function (event, id) {
@@ -121,7 +130,7 @@ ipcMain.on('check-mnemonic', async function (event, mnemonic) {
 });
 ipcMain.on('import-keys', async function (event, type, name, password, secret, passphrase) {
     var keys = {};
-    keys.id = SHA256(Math.random().toString());
+    keys.id = "";
     keys.name = name;
 
     if (type === "mnemonic") {
@@ -139,6 +148,7 @@ ipcMain.on('import-keys', async function (event, type, name, password, secret, p
 
         delete secret;
     }
+    keys.id = SHA256(JSON.stringify(keys));
 
     var result = await storage.AddKey(keys.id, keys);
     delete keys;

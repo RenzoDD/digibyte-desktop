@@ -77,31 +77,33 @@ async function SyncMovementsXPUB(account) {
             var isAssetOP = false;
 
             var inSats = 0;
-            var thirdIn = "";
+            var personalIn = [];
+            var thirdPartyIn = [];
             for (var vin of tx.vin) {
                 vin.vout = rawTX.inputs.shift().outputIndex;
                 if (vin.isAddress) {
-                    for (var addr of vin.addresses)
-                        if (addresses[addr]) {
-                            isAsset = parseInt(vin.value) == 600 || isAsset;
-                            inSats += parseInt(vin.value);
-                            break;
-                        } else if (thirdIn == "")
-                            thirdIn = addr;
+                    var addr = vin.addresses[0];
+                    if (addresses[addr]) {
+                        isAsset = parseInt(vin.value) == 600 || isAsset;
+                        inSats += parseInt(vin.value);
+                        personalIn.push(addr);
+                    } else
+                        thirdPartyIn.push(addr);
                 }
             }
 
             var outSats = 0;
-            var thirdOut = "";
+            var personalOut = [];
+            var thirdPartyOut = [];
             for (var vout of tx.vout) {
                 if (vout.isAddress) {
-                    for (var addr of vout.addresses)
-                        if (addresses[addr]) {
-                            isAsset = parseInt(vout.value) == 600 || isAsset;
-                            outSats += parseInt(vout.value);
-                            break;
-                        } else if (thirdOut == "")
-                            thirdOut = addr;
+                    var addr = vout.addresses[0]
+                    if (addresses[addr]) {
+                        isAsset = parseInt(vout.value) == 600 || isAsset;
+                        outSats += parseInt(vout.value);
+                        personalOut.push(addr);
+                    } else
+                        thirdPartyOut.push(addr);
                 } else {
                     var asm = vout.addresses[0].split(" ");
                     isAssetOP = (asm[0] == "OP_RETURN" && asm[1].startsWith("4441")) || isAsset
@@ -109,14 +111,39 @@ async function SyncMovementsXPUB(account) {
             }
 
             await storage.SetTransaction(tx.txid, tx);
-            newMovements.push({
-                txid: tx.txid,
-                note: thirdOut != "" ? thirdOut : (thirdIn != "" ? thirdIn : "Internal"),
-                change: outSats - inSats,
-                unix: tx.blockTime,
-                height: tx.blockHeight,
-                isAsset: isAsset && isAssetOP
-            });
+
+            var movement = {};
+            if (personalIn.length > 0) {
+                if (thirdPartyOut.length > 0)
+                    movement.type = "sent";
+                else if (personalOut.length > 0)
+                    movement.type = "internal";
+            } else if (thirdPartyIn.length > 0) {
+                if (personalOut.length > 0)
+                    movement.type = "received";
+                else if (thirdPartyOut.length > 0)
+                    movement.type = "impossible";
+            }
+
+            if (movement.type == "received") {
+                movement.from = thirdPartyIn;
+                movement.to = personalOut;
+            } else if (movement.type == "sent") {
+                movement.from = personalIn;
+                movement.to = thirdPartyOut;
+            } else if (movement.type == "internal") {
+                movement.from = personalIn;
+                movement.to = personalOut;
+            }
+
+            movement.note = "";
+            movement.txid = tx.txid;
+            movement.change = outSats - inSats;
+            movement.unix = tx.blockTime;
+            movement.height = tx.blockHeight;
+            movement.isAsset = isAsset && isAssetOP;
+
+            newMovements.push(movement);
         }
 
         movements = newMovements.concat(movements);
@@ -155,31 +182,33 @@ async function SyncMovementsAddresses(account) {
                 var isAssetOP = false;
 
                 var inSats = 0;
-                var thirdIn = "";
+                var personalIn = [];
+                var thirdPartyIn = [];
                 for (var vin of tx.vin) {
                     vin.vout = rawTX.inputs.shift().outputIndex;
                     if (vin.isAddress) {
-                        for (var addr of vin.addresses)
-                            if (addresses[addr]) {
-                                isAsset = parseInt(vin.value) == 600 || isAsset;
-                                inSats += parseInt(vin.value);
-                                break;
-                            } else if (thirdIn == "")
-                                thirdIn = addr;
+                        var addr = vin.addresses[0]
+                        if (addresses[addr]) {
+                            isAsset = parseInt(vin.value) == 600 || isAsset;
+                            inSats += parseInt(vin.value);
+                            personalIn.push(addr);
+                        } else
+                            thirdPartyIn.push(addr);
                     }
                 }
 
                 var outSats = 0;
-                var thirdOut = "";
+                var personalOut = [];
+                var thirdPartyOut = [];
                 for (var vout of tx.vout) {
                     if (vout.isAddress) {
-                        for (var addr of vout.addresses)
-                            if (addresses[addr]) {
-                                isAsset = parseInt(vout.value) == 600 || isAsset;
-                                outSats += parseInt(vout.value);
-                                break;
-                            } else if (thirdOut == "")
-                                thirdOut = addr;
+                        var addr = vout.addresses[0]
+                        if (addresses[addr]) {
+                            isAsset = parseInt(vout.value) == 600 || isAsset;
+                            outSats += parseInt(vout.value);
+                            personalOut.push(addr);
+                        } else
+                            thirdPartyOut.push(addr);
                     } else {
                         var asm = vout.addresses[0].split(" ");
                         isAssetOP = (asm[0] == "OP_RETURN" && asm[1].startsWith("4441")) || isAsset
@@ -187,14 +216,39 @@ async function SyncMovementsAddresses(account) {
                 }
 
                 await storage.SetTransaction(tx.txid, tx);
-                newMovements.push({
-                    txid: tx.txid,
-                    note: thirdOut != "" ? thirdOut : (thirdIn != "" ? thirdIn : "Internal"),
-                    change: outSats - inSats,
-                    unix: tx.blockTime,
-                    height: tx.blockHeight,
-                    isAsset: isAsset && isAssetOP
-                });
+
+                var movement = {};
+                if (personalIn.length > 0) {
+                    if (thirdPartyOut.length > 0)
+                        movement.type = "sent";
+                    else if (personalOut.length > 0)
+                        movement.type = "internal";
+                } else if (thirdPartyIn.length > 0) {
+                    if (personalOut.length > 0)
+                        movement.type = "received";
+                    else if (thirdPartyOut.length > 0)
+                        movement.type = "impossible";
+                }
+    
+                if (movement.type == "received") {
+                    movement.from = thirdPartyIn;
+                    movement.to = personalOut;
+                } else if (movement.type == "sent") {
+                    movement.from = personalIn;
+                    movement.to = thirdPartyOut;
+                } else if (movement.type == "internal") {
+                    movement.from = personalIn;
+                    movement.to = personalOut;
+                }
+        
+                movement.note = "";
+                movement.txid = tx.txid;
+                movement.change = outSats - inSats;
+                movement.unix = tx.blockTime;
+                movement.height = tx.blockHeight;
+                movement.isAsset = isAsset && isAssetOP;
+    
+                newMovements.push(movement);
             }
 
             movements = newMovements.concat(movements);
@@ -355,7 +409,7 @@ async function StartSyncInterval() {
     console.log("Starting sync...");
     global.SyncID = setInterval(Sync, 10 * 60 * 1000);
     await Sync();
-    
+
     SYNCING = false;
 }
 StartSyncInterval();

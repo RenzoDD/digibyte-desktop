@@ -99,14 +99,16 @@ ipcMain.on('import-key-file', async function (event) {
         return event.reply('import-key-file', "Operation canceled");
 
     try {
-        var key = fs.readFileSync(selected.filePaths[0]);
+        var key = JSON.parse(fs.readFileSync(selected.filePaths[0]));
+
         var id = key.id;
         key.id = "";
 
         var integrity = SHA256(JSON.stringify(key));
-
         if (integrity !== id)
             return event.reply('import-key-file', "The integrity check failed");
+
+        key.id = id;
     } catch (e) {
         return event.reply('import-key-file', "The file is corrupted");
     }
@@ -260,9 +262,10 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
     return event.reply('generate-account', result);
 });
 ipcMain.on('check-password', async function (event, id, password) {
+    console.log(id, password)
     var account = await storage.GetAccount(id);
-    var key = await storage.GetKey(account.secret);
-
+    var key = await storage.GetKey(account !== null ? account.secret : id);
+    
     if (typeof key.secret != 'string')
         key.secret = key.secret[0];
 

@@ -64,19 +64,21 @@ async function addAccount_Show(screen) {
 async function addAccount_Close() {
     modalToggle(addAccount);
     addAccount1Name.value = "";
-    addAccount1Error.innerHTML = "";
+    addAccount1Message.innerHTML = "";
 
     addAccount1Type.innerHTML = '<option value="null" selected disabled>Select account</option>';
     addAccount1TypeAddress.hidden = true;
     addAccount1TypeLegacy.checked = false;
     addAccount1TypeScript.checked = false;
     addAccount1TypeSegwit.checked = false;
+
     addAccount2Password.value = "";
     addAccount2Password.placeholder = "";
+    addAccount2Message.innerHTML = "";
 
     addAccount3Found.innerHTML = "";
     addAccount3Spinner.hidden = true;
-    addAccount3Error.innerHTML = "";
+    addAccount3Message.innerHTML = "";
 
     addAccount4Found.innerHTML = "";
     addAccount4Spinner.hidden = true;
@@ -85,9 +87,9 @@ async function addAccount_Close() {
 }
 async function addAccount1_Continue() {
     if (addAccount1Name.value == "")
-        return addAccount1Error.innerHTML = icon("exclamation-circle") + " Enter a name";
+        return addAccount1Message.innerHTML = icon("exclamation-circle") + " Enter a name";
     if (addAccount1Type.value == "null")
-        return addAccount1Error.innerHTML = icon("exclamation-circle") + " Select an account type";
+        return addAccount1Message.innerHTML = icon("exclamation-circle") + " Select an account type";
     if (addAccount1Type.value == "derived") {
         var address = "null";
         address = addAccount1TypeLegacy.checked ? "legacy" : address;
@@ -95,11 +97,13 @@ async function addAccount1_Continue() {
         address = addAccount1TypeSegwit.checked ? "segwit" : address;
 
         if (address == "null")
-            return addAccount1Error.innerHTML = icon("exclamation-circle") + " Select an address type";
+            return addAccount1Message.innerHTML = icon("exclamation-circle") + " Select an address type";
     }
     addAccount_Show(addAccount2);
 }
 async function addAccount2_Continue() {
+    if (await CheckPassword(keyID.value, addAccount2Password.value) == false)
+        return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";
 
     if (addAccount1Type.value == 'derived' || addAccount1Type.value == 'mobile') {
         if (addAccount1Type.value == "derived") {
@@ -176,7 +180,7 @@ async function addAccount3_Create() {
     var checks = document.querySelectorAll('[id^="addAccount3Check"]');
     var addresses = [];
     checks.forEach(check => { if (check.checked) addresses.push(check.value); });
-    if (addresses.length == 0) return addAccount3Error.innerHTML = "Select at least one account";
+    if (addresses.length == 0) return addAccount3Message.innerHTML = "Select at least one account";
 
     addAccount_Show(addAccount5);
     var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID.value, addresses);

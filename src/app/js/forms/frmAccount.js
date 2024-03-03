@@ -1,9 +1,11 @@
+let movements = [];
 async function frmAccount_Load(id) {
     accountID.value = id;
 
     var account = await GetAccount(id);
-    var movements = await GetAccountMovements(id);
     var balance = await GetAccountBalance(id);
+
+    movements = await GetAccountMovements(id);
 
     accountReceive.hidden = false;
     accountReceive.hidden = false;
@@ -26,24 +28,23 @@ async function frmAccount_Load(id) {
 
         if (date != lastDate)
             transactionList.innerHTML += `
-                    <div class="mb-3">
-                        ${date}
-                    </div>`;
+                <div class="mb-3">
+                    ${date}
+                </div>`;
 
         transactionList.innerHTML += `
-                    <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#" onclick="">
-						<div class="col-1 icn-green">
-						    ${icon(movement.change > 0 ? 'box-arrow-in-down' : (movement.change < 0 ? 'box-arrow-up' : 'dash-square'), 24)}
-						</div>
-						<div class="col-1">
-							${time}
-						</div>
-						<div class="col-5">${movement.note}</div>
-						<div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
-                            ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8))}
-                        </div >
-					</div >
-                `;
+            <div class="option row p-4 mb-3" onclick="frmAccount_TX('${i}')">
+				<div class="col-1 icn-green">
+				    ${icon(movement.type == 'received' ? 'box-arrow-in-down' : movement.type == 'sent' ? 'box-arrow-up' : 'dash-square', 24)}
+				</div>
+				<div class="col-1">
+					${time}
+				</div>
+				<div class="col-5">${movement.type == 'received' ? movement.from[0] : movement.type == 'sent' ? movement.to[0] : movement.to[0]}</div>
+				<div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
+                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8))}
+                </div >
+			</div>`;
 
         lastDate = date;
     }
@@ -263,4 +264,53 @@ async function sendDGB3_Sign() {
 
     sendDGB4Spinner.hidden = true;
     return sendDGB4Message.innerHTML = "Transaction sent! <br> " + data.result;
+}
+
+async function frmAccount_TX(position) {
+    lookupMovement_Show(lookupMovement1);
+
+    var movement = movements[position];
+    console.log(movement);
+
+    if (movement.type == 'sent') {
+        lookupMovement1Action.innerHTML = "Sent";
+        lookupMovement1Icon.innerHTML = icon('box-arrow-up', 28);
+    } else if (movement.type == 'received') {
+        lookupMovement1Action.innerHTML = "Received";
+        lookupMovement1Icon.innerHTML = icon('box-arrow-in-down', 28);
+    } else {
+        lookupMovement1Action.innerHTML = "Internal";
+        lookupMovement1Icon.innerHTML = icon('dash-square', 28);
+    }
+
+    lookupMovement1Amount.innerHTML = (movement.change > 0 ? ' +' : ' ') + coin(movement.change, 8);
+
+    var date = new Date(movement.unix * 1000).toDateString().substring(4, 15);
+    var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);
+
+    lookupMovement1Time.innerHTML = date + " " + time;
+
+    lookupMovement1TXID.innerHTML = movement.txid;
+
+    movement.from.forEach(address => lookupMovement1From.innerHTML += address + "<br>");
+    movement.to.forEach(address => lookupMovement1To.innerHTML += address + "<br>");
+
+    lookupMovement1Explorer.href = "https://digiexplorer.info/tx/" + movement.txid;
+    modalToggle(lookupMovement);
+}
+async function lookupMovement_Show(screen) {
+    lookupMovement1.hidden = true;
+
+    screen.hidden = false;
+}
+async function lookupMovement_Close() {
+    modalToggle(lookupMovement);
+    lookupMovement1Action.innerHTML = "";
+    lookupMovement1Icon.innerHTML = "";
+    lookupMovement1Amount.innerHTML = "";
+    lookupMovement1Time.innerHTML = "";
+    lookupMovement1TXID.innerHTML = "";
+    lookupMovement1From.innerHTML = "";
+    lookupMovement1To.innerHTML = "";
+    lookupMovement1Explorer.href = "";
 }

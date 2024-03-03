@@ -92,26 +92,26 @@ async function generateKeys_Close() {
     modalToggle(generateKeys);
     generateKeys1Type.value = "null";
     generateKeys1Name.value = "";
-    generateKeys1Error.innerHTML = "";
+    generateKeys1Message.innerHTML = "";
 
     generateKeys2Password1.value = "";
     generateKeys2Password2.value = "";
-    generateKeys2Error.innerHTML = "";
+    generateKeys2Message.innerHTML = "";
 
     generateKeys3List.innerHTML = "";
 }
 async function generateKeys1_Continue() {
     if (generateKeys1Type.value != "24-words" && generateKeys1Type.value != "12-words")
-        return generateKeys1Error.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
+        return generateKeys1Message.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
 
     if (generateKeys1Name.value == "")
-        return generateKeys1Error.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
+        return generateKeys1Message.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     generateKeys_Show(generateKeys2);
 }
 async function generateKeys2_Generate() {
     if (generateKeys2Password1.value !== generateKeys2Password2.value)
-        return generateKeys2Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
+        return generateKeys2Message.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
 
     var list = await GenerateKey(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
@@ -153,31 +153,32 @@ async function importKeys_Show(screen) {
 async function importKeys_Close() {
     modalToggle(importKeys);
     importKeys1Type.value = "null";
+    importKeys1Name.hidden = true;
     importKeys1Name.value = "";
-    importKeys1Error.innerHTML = "";
+    importKeys1Message.innerHTML = "";
 
     importKeys2MnemonicPhrase.innerHTML = "";
     importKeys2MnemonicGuess.innerHTML = "";
     importKeys2MnemonicWord.value = "";
     importKeys2MnemonicBIP39Passphrase.value = "";
-    importKeys2MnemonicError.innerHTML = "";
+    importKeys2MnemonicMessage.innerHTML = "";
 
     importKeys2KeysKey.value = "";
     importKeys2KeysList.innerHTML = "";
-    importKeys2KeysError.innerHTML = "";
+    importKeys2KeysMessage.innerHTML = "";
 
     importKeys3Password1.value = "";
     importKeys3Password2.value = "";
-    importKeys3Error.innerHTML = "";
+    importKeys3Message.innerHTML = "";
 
     importKeys4Message.innerHTML = "";
 }
 async function importKeys1_Continue() {
     if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys" && importKeys1Type.value != "file")
-        return importKeys1Error.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
+        return importKeys1Message.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
 
     if (importKeys1Name.value == "" && importKeys1Type.value != "file")
-        return importKeys1Error.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
+        return importKeys1Message.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     if (importKeys1Type.value == "file") {
         var save = await ImportKeyFile();
@@ -198,7 +199,7 @@ async function importKeys1_Continue() {
 }
 async function importKeys2Mnemonic_Continue() {
     if (!(await CheckMnemonic(importKeys2MnemonicPhrase.innerHTML.trim())))
-        return importKeys2MnemonicError.innerHTML = `${icon('exclamation-circle')} Invalid mnemonic phrase`;
+        return importKeys2MnemonicMessage.innerHTML = `${icon('exclamation-circle')} Invalid mnemonic phrase`;
 
     importKeys_Show(importKeys3);
 }
@@ -218,22 +219,22 @@ async function importKeys2Mnemonic_keyboardClick(btn) {
 }
 async function importKeys2Keys_Continue() {
     if (importKeys2KeysList.children.length == 0)
-        return importKeys2KeysError.innerHTML = `${icon('exclamation-circle')} Missing private key`;
+        return importKeys2KeysMessage.innerHTML = `${icon('exclamation-circle')} Missing private key`;
 
     importKeys_Show(importKeys3);
 }
 async function importKeys2Keys_AddPrivateKey() {
-    importKeys2KeysError.innerHTML = "";
+    importKeys2KeysMessage.innerHTML = "";
     if (await CheckWIF(importKeys2KeysKey.value)) {
         importKeys2KeysList.innerHTML += `<li>${importKeys2KeysKey.value}</li>`;
         importKeys2KeysKey.value = "";
     } else {
-        return importKeys2KeysError.innerHTML = `${icon('exclamation-circle')} Invalid WIF`;
+        return importKeys2KeysMessage.innerHTML = `${icon('exclamation-circle')} Invalid WIF`;
     }
 }
 async function importKeys3_Save() {
     if (importKeys3Password1.value !== importKeys3Password2.value)
-        return importKeys3Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
+        return importKeys3Message.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
     if (importKeys1Type.value == "mnemonic") {
         var done = await ImportKeys("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.value);

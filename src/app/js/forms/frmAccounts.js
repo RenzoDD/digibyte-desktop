@@ -31,7 +31,6 @@ async function frmAccounts_Load() {
     frmOpen(frmAccounts);
 }
 
-
 async function topReturnToAccounts_Click() {
     frmAccounts_Load();
     topKeys.hidden = false;
@@ -121,10 +120,20 @@ async function addAccount2_Continue() {
         addAccount2Password.value = "";
         addAccount_Show(addAccount4);
 
+        var accounts = await GetAccounts();
+        var oldXPUBs = [];
+        for (var id of accounts) {
+            var account = await GetAccount(id);
+            if (account.xpub) oldXPUBs.push(account.xpub)
+        }
+
         var unused = false;
         addAccount4Spinner.hidden = false;
         for (var n in xpubs) {
             var xpub = xpubs[n];
+            if (oldXPUBs.indexOf(xpub) != -1)
+                continue;
+
             var result = await NewXPUB(xpub, address);
 
             if (addAccount4Spinner.hidden == true)

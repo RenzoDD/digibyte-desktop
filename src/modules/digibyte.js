@@ -47,7 +47,7 @@ DigiByte.GetXPUBs = function (seed, type) {
     }
 
     var xpubs = [];
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 300; i++) {
         var xpub = hdprivatekey.deriveChild(`m/${purpose}'/20'/${i}'`).hdPublicKey.toString();
         xpubs.push(xpub);
     }

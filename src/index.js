@@ -3,6 +3,10 @@ require('./modules/port');
 const { app, BrowserWindow, shell } = require('electron');
 let myWindow = null;
 
+global.ExecuteOnRenderer = async function (event, ...args) {
+	myWindow.webContents.send(event, ...args);
+}
+
 // Only one instance
 if (!app.requestSingleInstanceLock()) {
 	app.quit();
@@ -44,7 +48,6 @@ app.whenReady().then(() => {
 	});
 
 	myWindow.webContents.on('will-navigate', function (event, url) {
-		console.log(url)
 		event.preventDefault();
 		shell.openExternal(url);
 	});

@@ -1,5 +1,5 @@
 async function frmAccounts_Load() {
-    var key = await ReadKey(keyID.value);
+    var key = await ReadKey(keyID);
     if (key == null) return;
 
     var accounts = await GetAccounts();
@@ -13,7 +13,7 @@ async function frmAccounts_Load() {
 
     for (var id of accounts) {
         var account = await GetAccount(id);
-        if (account !== null && account.secret == keyID.value) {
+        if (account !== null && account.secret == keyID) {
             var balance = await GetAccountBalance(id);
             balance = coin(balance.satoshis, 8, false);
             var usd = (exchange.price * balance).toFixed(2);
@@ -29,16 +29,12 @@ async function frmAccounts_Load() {
     }
 
     frmOpen(frmAccounts);
-}
-
-async function topReturnToAccounts_Click() {
-    frmAccounts_Load();
     topKeys.hidden = false;
     topReturnToAccounts.hidden = true;
 }
 
 async function frmAccounts_Add() {
-    var key = await ReadKey(keyID.value);
+    var key = await ReadKey(keyID);
     if (key.type == "mnemonic") {
         addAccount1Type.innerHTML += '<option value="derived">Derived Account</option>';
         if (key.words == 12 && key.passphrase == false)
@@ -101,7 +97,7 @@ async function addAccount1_Continue() {
     addAccount_Show(addAccount2);
 }
 async function addAccount2_Continue() {
-    if (await CheckPassword(keyID.value, addAccount2Password.value) == false)
+    if (await CheckPassword(keyID, addAccount2Password.value) == false)
         return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";
 
     if (addAccount1Type.value == 'derived' || addAccount1Type.value == 'mobile') {
@@ -111,10 +107,10 @@ async function addAccount2_Continue() {
             address = addAccount1TypeScript.checked ? "script" : address;
             address = addAccount1TypeSegwit.checked ? "segwit" : address;
 
-            var xpubs = await GenerateXPUB(keyID.value, addAccount2Password.value, address);
+            var xpubs = await GenerateXPUB(keyID, addAccount2Password.value, address);
         } if (addAccount1Type.value == "mobile") {
             var address = "legacy";
-            var xpubs = await GenerateXPUB(keyID.value, addAccount2Password.value, 'mobile');
+            var xpubs = await GenerateXPUB(keyID, addAccount2Password.value, 'mobile');
         }
 
         addAccount2Password.value = "";
@@ -158,7 +154,7 @@ async function addAccount2_Continue() {
         }
         addAccount4Spinner.hidden = true;
     } else if (addAccount1Type.value == 'single') {
-        var addresses = await GenerateAddresses(keyID.value, addAccount2Password.value, 'livenet');
+        var addresses = await GenerateAddresses(keyID, addAccount2Password.value, 'livenet');
         addAccount_Show(addAccount3);
         addAccount3Spinner.hidden = false;
         for (var n of addresses) {
@@ -192,7 +188,7 @@ async function addAccount3_Create() {
     if (addresses.length == 0) return addAccount3Message.innerHTML = "Select at least one account";
 
     addAccount_Show(addAccount5);
-    var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID.value, addresses);
+    var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID, addresses);
     if (result == true) {
         frmAccounts_Load();
         addAccount5Message.innerHTML = "Account created";
@@ -214,7 +210,7 @@ async function addAccount4_Account(xpub, account) {
         purpose = addAccount1TypeSegwit.checked ? "segwit" : purpose;
     }
 
-    var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID.value, xpub, purpose, account);
+    var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID, xpub, purpose, account);
 
     if (result == true) {
         frmAccounts_Load();

@@ -262,7 +262,6 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
     return event.reply('generate-account', result);
 });
 ipcMain.on('check-password', async function (event, id, password) {
-    console.log(id, password)
     var account = await storage.GetAccount(id);
     var key = await storage.GetKey(account !== null ? account.secret : id);
     

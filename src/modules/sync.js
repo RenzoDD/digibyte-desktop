@@ -2,7 +2,6 @@ const DigiByte = require('./digibyte');
 const storage = require('./storage');
 
 let SYNCING = false;
-const CONFIRMATIONS = 1;
 
 /*
  * SYNC
@@ -12,6 +11,8 @@ async function SyncPrice() {
     var exchange = await DigiByte.GetPrice();
     if (exchange != null) {
         storage.SetPrice(exchange);
+
+        global.ExecuteOnRenderer('sync-price');
         console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);
     }
 }
@@ -58,6 +59,7 @@ async function SyncMovementsXPUB(account) {
     var last = (movements[0] || { txid: '' }).txid;
 
     var newMovements = [];
+    var newMovementsIndicator = false;
     for (var page = 1; true; page++) {
 
         var info = null;
@@ -68,7 +70,7 @@ async function SyncMovementsXPUB(account) {
 
         info.transactions = info.transactions ? info.transactions : [];
         for (var tx of info.transactions) {
-            if (!(tx.confirmations > CONFIRMATIONS)) continue;
+            if (!(tx.confirmations > 1)) continue;
             if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
 
             var rawTX = DigiByte.ParseTransaction(tx.hex);
@@ -149,14 +151,17 @@ async function SyncMovementsXPUB(account) {
         movements = newMovements.concat(movements);
         await storage.SetAccountMovements(account.id, movements);
         console.log("SyncMovementsXPUB", "SUCCESS", account.id, "txs:" + movements.length, "new:" + newMovements.length);
+        if (newMovements.length > 0) newMovementsIndicator = true;
 
         if (page >= info.totalPages)
             break;
     }
+    return newMovementsIndicator;
 }
 
 async function SyncMovementsAddresses(account) {
     var addresses = GetAddresses(account);
+    var newMovementsIndicator = false;
     for (var address of Object.keys(addresses)) {
         var movements = await storage.GetAccountMovements(account.id + "-" + address);
 
@@ -173,7 +178,7 @@ async function SyncMovementsAddresses(account) {
 
             info.transactions = info.transactions ? info.transactions : [];
             for (var tx of info.transactions) {
-                if (!(tx.confirmations > CONFIRMATIONS)) continue;
+                if (!(tx.confirmations > 1)) continue;
                 if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
 
                 var rawTX = DigiByte.ParseTransaction(tx.hex);
@@ -229,7 +234,7 @@ async function SyncMovementsAddresses(account) {
                     else if (thirdPartyOut.length > 0)
                         movement.type = "impossible";
                 }
-    
+
                 if (movement.type == "received") {
                     movement.from = thirdPartyIn;
                     movement.to = personalOut;
@@ -240,25 +245,28 @@ async function SyncMovementsAddresses(account) {
                     movement.from = personalIn;
                     movement.to = personalOut;
                 }
-        
+
                 movement.note = "";
                 movement.txid = tx.txid;
                 movement.change = outSats - inSats;
                 movement.unix = tx.blockTime;
                 movement.height = tx.blockHeight;
                 movement.isAsset = isAsset && isAssetOP;
-    
+
                 newMovements.push(movement);
             }
 
             movements = newMovements.concat(movements);
             await storage.SetAccountMovements(account.id + "-" + address, movements);
             console.log("SyncMovementsAddresses", "SUCCESS", account.id + "-" + address, "txs:" + movements.length, "new:" + newMovements.length);
+            if (newMovements.length > 0)
+                newMovementsIndicator = true;
 
             if (page >= info.totalPages)
                 break;
         }
     }
+    return newMovementsIndicator;
 }
 
 async function SyncBalance(account) {
@@ -380,18 +388,22 @@ async function SyncBalance(account) {
 
 async function Sync() {
     await SyncPrice();
+    global.ExecuteOnRenderer('sync-percentage', 0)
 
     var accounts = await storage.GetAccounts();
-    for (var id of accounts) {
-        var account = await storage.GetAccount(id);
+    for (var id in accounts) {
+        var account = await storage.GetAccount(accounts[id]);
 
         if (account.type == 'derived' || account.type == 'mobile') {
             await SyncLastAddressUTXO(account);
-            await SyncMovementsXPUB(account);
+            var update = await SyncMovementsXPUB(account);
         } else if (account.type == 'single') {
-            await SyncMovementsAddresses(account);
+            var update = await SyncMovementsAddresses(account);
         }
         await SyncBalance(account);
+
+        global.ExecuteOnRenderer('sync-percentage', ((parseInt(id) + 1) / accounts.length * 100).toFixed())
+        if (update) global.ExecuteOnRenderer('sync-account', accounts[id]);
     }
 }
 

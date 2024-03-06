@@ -1,8 +1,13 @@
+let keyID = null;
+let accountID = null;
+let lastForm = null;
+
 function frmOpen(frmOpen) {
     const forms = document.querySelectorAll(`[id^="frm"]`);
     for (var frm of forms)
         frm.classList.add('d-none');
     frmOpen.classList.remove('d-none');
+    lastForm = frmOpen.id;
 }
 const modals = {};
 function modalToggle(modal) {
@@ -12,8 +17,8 @@ function modalToggle(modal) {
     modals[modal.id].toggle();
 }
 
-function icon(name, size = 18) {
-    return `<svg class="bi" width="${size}" height="${size}"><use xlink:href="vendor/bootstrap-icons.svg#${name}"/></svg>`
+function icon(name, size = 18, isBTN) {
+    return `<svg class="bi ${isBTN ? "bi-btn" : ""}" width="${size}" height="${size}"><use xlink:href="vendor/bootstrap-icons.svg#${name}"/></svg>`
 }
 /**
  * 

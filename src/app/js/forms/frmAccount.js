@@ -1,27 +1,12 @@
 let movements = [];
-async function frmAccount_Load(id) {
-    accountID.value = id;
-
-    var account = await GetAccount(id);
-    var balance = await GetAccountBalance(id);
-
-    movements = await GetAccountMovements(id);
-
-    accountReceive.hidden = false;
-    accountReceive.hidden = false;
-    transactionList.innerHTML = "";
-
-    if (account.type == 'derived') {
-        accountName.innerHTML = icon('digibyte', 40) + ' ' + account.name;
-    } else if (account.type == 'mobile') {
-        accountName.innerHTML = icon('phone', 40) + ' ' + account.name;
-        accountReceive.hidden = true;
-    } else if (account.type == 'single') {
-        accountName.innerHTML = icon('paperclip', 40) + ' ' + account.name;
+async function transactionList_Fill(start, instance = null) {
+    if (instance != null) {
+        instance.parentElement.removeChild(instance);
     }
-
     var lastDate = new Date(0).toDateString().substring(4, 15);
-    for (var i = 0; i < 100 && i < movements.length; i++) {
+    for (var i = start; i < start + 50; i++) {
+        if (i >= movements.length) break;
+
         var movement = movements[i];
         var date = new Date(movement.unix * 1000).toDateString().substring(4, 15);
         var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);
@@ -48,6 +33,36 @@ async function frmAccount_Load(id) {
 
         lastDate = date;
     }
+    if (i < movements.length) {
+        transactionList.innerHTML += `
+        <div class="option row p-4 mb-3" onclick="transactionList_Fill(${i}, this)">
+            <div class="text-center">
+                ${icon('plus-circle')} Show more...
+            </div>
+        </div>`;
+    }
+}
+async function frmAccount_Load(id) {
+    accountID = id;
+
+    var account = await GetAccount(id);
+    var balance = await GetAccountBalance(id);
+
+    movements = await GetAccountMovements(id);
+
+    accountReceive.hidden = false;
+    transactionList.innerHTML = "";
+
+    if (account.type == 'derived') {
+        accountName.innerHTML = icon('digibyte', 40) + ' ' + account.name;
+    } else if (account.type == 'mobile') {
+        accountName.innerHTML = icon('phone', 40) + ' ' + account.name;
+        accountReceive.hidden = true;
+    } else if (account.type == 'single') {
+        accountName.innerHTML = icon('paperclip', 40) + ' ' + account.name;
+    }
+
+    transactionList_Fill(0);
 
     var balance = coin(balance.satoshis, 8, false);
     accountBalance.innerHTML = balance + " DGB";
@@ -61,8 +76,8 @@ async function frmAccount_Load(id) {
 }
 
 async function frmAccount_Receive() {
-    var address = await GenerateLastAddres(accountID.value);
-    var account = await GetAccount(accountID.value);
+    var address = await GenerateLastAddres(accountID);
+    var account = await GetAccount(accountID);
 
     receiveDGB1Address.value = address;
     receiveDGB1Path.innerHTML = account.path ? account.path + "/0/" + account.external : "";
@@ -90,7 +105,7 @@ async function receiveDGB_Copy() {
 }
 
 async function frmAccount_Send() {
-    var account = await GetAccount(accountID.value);
+    var account = await GetAccount(accountID);
     var keys = await ReadKey(account.secret);
     sendDGB3Password.placeholder = keys.name;
 
@@ -206,7 +221,7 @@ async function sendDGB2_Continue() {
     sendDGB_Show(sendDGB3);
 }
 async function sendDGB3_Sign() {
-    if (await CheckPassword(accountID.value, sendDGB3Password.value) == false)
+    if (await CheckPassword(accountID, sendDGB3Password.value) == false)
         return sendDGB3Message.innerHTML = icon("x-circle") + " Incorrect password";
     sendDGB3Message.innerHTML = "";
 
@@ -250,7 +265,7 @@ async function sendDGB3_Sign() {
     if (sendDGB2RBF.checked)
         options.advanced.rbf = true;
 
-    var hex = await CreateTransaction(accountID.value, sendDGB3Password.value, options);
+    var hex = await CreateTransaction(accountID, sendDGB3Password.value, options);
     if (hex.error) {
         sendDGB4Spinner.hidden = true;
         return sendDGB4Message.innerHTML = icon("x-circle") + " " + hex.error;
@@ -270,7 +285,6 @@ async function frmAccount_TX(position) {
     lookupMovement_Show(lookupMovement1);
 
     var movement = movements[position];
-    console.log(movement);
 
     if (movement.type == 'sent') {
         lookupMovement1Action.innerHTML = "Sent";

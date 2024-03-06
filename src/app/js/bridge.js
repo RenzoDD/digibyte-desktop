@@ -12,6 +12,28 @@ function Sync() {
     });
 }
 
+ipcRenderer.on('sync-price', async (event) => {
+    var exchange = await GetPrice();
+    topPrice.innerHTML = icon('cash-coin', 18) + " " + exchange.price + " USD";
+
+    if (exchange.change > 0)
+        topRate.innerHTML = icon('graph-up-arrow', 18) + " +" + exchange.change + " %";
+    else if (exchange.change < 0)
+        topRate.innerHTML = icon('graph-down-arrow', 18) + " " + exchange.change + " %";
+    else
+        topRate.innerHTML = icon('radar', 18) + " " + exchange.change + " %";
+});
+ipcRenderer.on('sync-account', async (event, id) => {
+    if (lastForm == 'frmAccounts')
+        frmAccounts_Load()
+    else if (lastForm == 'frmAccount' && id == accountID)
+        frmAccount_Load(id);
+});
+ipcRenderer.on('sync-percentage', async (event, percentage) => {
+    if (percentage == 100) topSync.innerHTML = icon('arrow-repeat', 18, true);
+    else topSync.innerHTML = percentage + " %";
+});
+
 /*
  * KEY MANAGEMENT
  */

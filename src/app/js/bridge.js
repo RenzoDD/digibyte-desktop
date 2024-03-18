@@ -192,6 +192,14 @@ function CheckPassword(id, password) {
  * ACCOUNT MANAGEMENT
  */
 
+function GetAccountMempool(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('get-account-mempool', id);
+        ipcRenderer.once('get-account-mempool', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 function GetAccountMovements(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('get-account-movements', id);

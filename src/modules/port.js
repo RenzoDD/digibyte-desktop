@@ -276,6 +276,10 @@ ipcMain.on('check-password', async function (event, id, password) {
  * ACCOUNT MANAGEMENT
  */
 
+ipcMain.on('get-account-mempool', async function (event, id) {
+    var data = await storage.GetAccountMempool(id);
+    return event.reply('get-account-mempool', data);
+});
 ipcMain.on('get-account-movements', async function (event, id) {
     var data = await storage.GetAccountMovements(id);
     return event.reply('get-account-movements', data);

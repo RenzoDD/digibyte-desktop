@@ -134,6 +134,31 @@ storage.SetAccountMovements = async function (id, object) {
     return true;
 }
 
+storage.GetAccountMempool = async function (id) {
+    var movements = await Get(id + "@account-mempool");
+    if (movements == null)
+        movements = [];
+    return movements;
+}
+storage.SetAccountMempool = async function (id, object) {
+    await Set(id + "@account-mempool", object);
+    if (await Get(id + "@account-mempool") === null)
+        return "There was a storage error";
+    return true;
+}
+storage.AddTxAccountMempool = async function (id, object) {
+    var movements = await Get(id + "@account-mempool");
+    movements.push(object);
+    await Set(id + "@account-mempool", movements);
+    return true;
+}
+storage.ClearAccountMempool = async function (id) {
+    await Set(id + "@account-mempool", []);
+    if (await Get(id + "@account-mempool") === null)
+        return "There was a storage error";
+    return true;
+}
+
 storage.GetAccountBalance = async function (id) {
     var balance = await Get(id + "@account-balance");
     if (balance == null)

@@ -1,3 +1,4 @@
+let mempool = [];
 let movements = [];
 async function transactionList_Fill(start, instance = null) {
     if (instance != null) {
@@ -18,7 +19,7 @@ async function transactionList_Fill(start, instance = null) {
                 </div>`;
 
         transactionList.innerHTML += `
-            <div class="option row p-4 mb-3" onclick="frmAccount_TX('${i}')">
+            <div class="option row p-4 mb-3" onclick="frmAccount_TX('movement', '${i}')">
 				<div class="col-1 icn-green">
 				    ${icon(movement.type == 'received' ? 'box-arrow-in-down' : movement.type == 'sent' ? 'box-arrow-up' : 'dash-square', 24)}
 				</div>
@@ -48,6 +49,7 @@ async function frmAccount_Load(id) {
     var account = await GetAccount(id);
     var balance = await GetAccountBalance(id);
 
+    mempool = await GetAccountMempool(id);
     movements = await GetAccountMovements(id);
 
     accountReceive.hidden = false;
@@ -60,6 +62,27 @@ async function frmAccount_Load(id) {
         accountReceive.hidden = true;
     } else if (account.type == 'single') {
         accountName.innerHTML = icon('paperclip', 40) + ' ' + account.name;
+    }
+
+
+    for (var i = 0; i < mempool.length; i++) {
+        if (transactionList.innerHTML == "")
+            transactionList.innerHTML = "Unconfirmed";
+        var movement = mempool[i];
+        var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);
+        transactionList.innerHTML += `
+            <div class="option row p-4 mb-3" onclick="frmAccount_TX('mempool', '${i}')">
+                <div class="col-1 icn-green">
+                    ${icon(movement.type == 'received' ? 'box-arrow-in-down' : movement.type == 'sent' ? 'box-arrow-up' : 'dash-square', 24)}
+                </div>
+                <div class="col-1">
+                    ${time}
+                </div>
+                <div class="col-5">${movement.type == 'received' ? movement.from[0] : movement.type == 'sent' ? movement.to[0] : movement.to[0]}</div>
+                <div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
+                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8))}
+                </div >
+            </div>`;
     }
 
     transactionList_Fill(0);
@@ -281,10 +304,13 @@ async function sendDGB3_Sign() {
     return sendDGB4Message.innerHTML = "Transaction sent! <br> " + data.result;
 }
 
-async function frmAccount_TX(position) {
+async function frmAccount_TX(type, position) {
     lookupMovement_Show(lookupMovement1);
 
-    var movement = movements[position];
+    if (type == "movement")
+        var movement = movements[position];
+    if (type == "mempool")
+        var movement = mempool[position];
 
     if (movement.type == 'sent') {
         lookupMovement1Action.innerHTML = "Sent";

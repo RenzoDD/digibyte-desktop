@@ -2,6 +2,7 @@ const DigiByte = require('./digibyte');
 const storage = require('./storage');
 
 let SYNCING = false;
+let CONFIRMATIONS = 15;
 
 /*
  * SYNC
@@ -29,6 +30,79 @@ function GetAddresses(account) {
         }, {});
     }
 }
+function TxToMovement(tx, addresses) {
+    var raw = DigiByte.ParseTransaction(tx.hex);
+
+    var isAsset = false;
+    var isAssetOP = false;
+
+    var inSats = 0;
+    var personalIn = [];
+    var thirdPartyIn = [];
+    for (var vin of tx.vin) {
+        vin.vout = raw.inputs.shift().outputIndex;
+        if (vin.isAddress) {
+            var addr = vin.addresses[0]
+            if (addresses[addr]) {
+                isAsset = parseInt(vin.value) == 600 || isAsset;
+                inSats += parseInt(vin.value);
+                personalIn.push(addr);
+            } else
+                thirdPartyIn.push(addr);
+        }
+    }
+
+    var outSats = 0;
+    var personalOut = [];
+    var thirdPartyOut = [];
+    for (var vout of tx.vout) {
+        if (vout.isAddress) {
+            var addr = vout.addresses[0]
+            if (addresses[addr]) {
+                isAsset = parseInt(vout.value) == 600 || isAsset;
+                outSats += parseInt(vout.value);
+                personalOut.push(addr);
+            } else
+                thirdPartyOut.push(addr);
+        } else {
+            var asm = vout.addresses[0].split(" ");
+            isAssetOP = (asm[0] == "OP_RETURN" && asm[1].startsWith("4441")) || isAsset
+        }
+    }
+
+    var movement = {};
+    if (personalIn.length > 0) {
+        if (thirdPartyOut.length > 0)
+            movement.type = "sent";
+        else if (personalOut.length > 0)
+            movement.type = "internal";
+    } else if (thirdPartyIn.length > 0) {
+        if (personalOut.length > 0)
+            movement.type = "received";
+        else if (thirdPartyOut.length > 0)
+            movement.type = "impossible";
+    }
+
+    if (movement.type == "received") {
+        movement.from = thirdPartyIn;
+        movement.to = personalOut;
+    } else if (movement.type == "sent") {
+        movement.from = personalIn;
+        movement.to = thirdPartyOut;
+    } else if (movement.type == "internal") {
+        movement.from = personalIn;
+        movement.to = personalOut;
+    }
+
+    movement.note = "";
+    movement.txid = tx.txid;
+    movement.change = outSats - inSats;
+    movement.unix = tx.blockTime;
+    movement.height = tx.blockHeight;
+    movement.isAsset = isAsset && isAssetOP;
+
+    return movement;
+}
 
 async function SyncLastAddressUTXO(account) {
     var info = null;
@@ -55,6 +129,7 @@ async function SyncLastAddressUTXO(account) {
 async function SyncMovementsXPUB(account) {
     var addresses = GetAddresses(account);
     var movements = await storage.GetAccountMovements(account.id);
+    await storage.ClearAccountMempool(account.id);
 
     var last = (movements[0] || { txid: '' }).txid;
 
@@ -70,88 +145,24 @@ async function SyncMovementsXPUB(account) {
 
         info.transactions = info.transactions ? info.transactions : [];
         for (var tx of info.transactions) {
-            if (!(tx.confirmations > 1)) continue;
             if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
 
-            var rawTX = DigiByte.ParseTransaction(tx.hex);
-
-            var isAsset = false;
-            var isAssetOP = false;
-
-            var inSats = 0;
-            var personalIn = [];
-            var thirdPartyIn = [];
-            for (var vin of tx.vin) {
-                vin.vout = rawTX.inputs.shift().outputIndex;
-                if (vin.isAddress) {
-                    var addr = vin.addresses[0];
-                    if (addresses[addr]) {
-                        isAsset = parseInt(vin.value) == 600 || isAsset;
-                        inSats += parseInt(vin.value);
-                        personalIn.push(addr);
-                    } else
-                        thirdPartyIn.push(addr);
-                }
-            }
-
-            var outSats = 0;
-            var personalOut = [];
-            var thirdPartyOut = [];
-            for (var vout of tx.vout) {
-                if (vout.isAddress) {
-                    var addr = vout.addresses[0]
-                    if (addresses[addr]) {
-                        isAsset = parseInt(vout.value) == 600 || isAsset;
-                        outSats += parseInt(vout.value);
-                        personalOut.push(addr);
-                    } else
-                        thirdPartyOut.push(addr);
-                } else {
-                    var asm = vout.addresses[0].split(" ");
-                    isAssetOP = (asm[0] == "OP_RETURN" && asm[1].startsWith("4441")) || isAsset
-                }
-            }
-
+            var movement = TxToMovement(tx, addresses);
             await storage.SetTransaction(tx.txid, tx);
-
-            var movement = {};
-            if (personalIn.length > 0) {
-                if (thirdPartyOut.length > 0)
-                    movement.type = "sent";
-                else if (personalOut.length > 0)
-                    movement.type = "internal";
-            } else if (thirdPartyIn.length > 0) {
-                if (personalOut.length > 0)
-                    movement.type = "received";
-                else if (thirdPartyOut.length > 0)
-                    movement.type = "impossible";
+            
+            if (tx.confirmations < CONFIRMATIONS) {
+                await storage.AddTxAccountMempool(account.id, movement);
+                newMovementsIndicator = true;
+                continue;
             }
-
-            if (movement.type == "received") {
-                movement.from = thirdPartyIn;
-                movement.to = personalOut;
-            } else if (movement.type == "sent") {
-                movement.from = personalIn;
-                movement.to = thirdPartyOut;
-            } else if (movement.type == "internal") {
-                movement.from = personalIn;
-                movement.to = personalOut;
-            }
-
-            movement.note = "";
-            movement.txid = tx.txid;
-            movement.change = outSats - inSats;
-            movement.unix = tx.blockTime;
-            movement.height = tx.blockHeight;
-            movement.isAsset = isAsset && isAssetOP;
 
             newMovements.push(movement);
+            newMovementsIndicator = true;
         }
 
         movements = newMovements.concat(movements);
         await storage.SetAccountMovements(account.id, movements);
         console.log("SyncMovementsXPUB", "SUCCESS", account.id, "txs:" + movements.length, "new:" + newMovements.length);
-        if (newMovements.length > 0) newMovementsIndicator = true;
 
         if (page >= info.totalPages)
             break;
@@ -164,6 +175,7 @@ async function SyncMovementsAddresses(account) {
     var newMovementsIndicator = false;
     for (var address of Object.keys(addresses)) {
         var movements = await storage.GetAccountMovements(account.id + "-" + address);
+        await storage.ClearAccountMempool(account.id + "-" + address);
 
         var last = (movements[0] || { txid: '' }).txid;
 
@@ -178,89 +190,24 @@ async function SyncMovementsAddresses(account) {
 
             info.transactions = info.transactions ? info.transactions : [];
             for (var tx of info.transactions) {
-                if (!(tx.confirmations > 1)) continue;
                 if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
-
-                var rawTX = DigiByte.ParseTransaction(tx.hex);
-
-                var isAsset = false;
-                var isAssetOP = false;
-
-                var inSats = 0;
-                var personalIn = [];
-                var thirdPartyIn = [];
-                for (var vin of tx.vin) {
-                    vin.vout = rawTX.inputs.shift().outputIndex;
-                    if (vin.isAddress) {
-                        var addr = vin.addresses[0]
-                        if (addresses[addr]) {
-                            isAsset = parseInt(vin.value) == 600 || isAsset;
-                            inSats += parseInt(vin.value);
-                            personalIn.push(addr);
-                        } else
-                            thirdPartyIn.push(addr);
-                    }
-                }
-
-                var outSats = 0;
-                var personalOut = [];
-                var thirdPartyOut = [];
-                for (var vout of tx.vout) {
-                    if (vout.isAddress) {
-                        var addr = vout.addresses[0]
-                        if (addresses[addr]) {
-                            isAsset = parseInt(vout.value) == 600 || isAsset;
-                            outSats += parseInt(vout.value);
-                            personalOut.push(addr);
-                        } else
-                            thirdPartyOut.push(addr);
-                    } else {
-                        var asm = vout.addresses[0].split(" ");
-                        isAssetOP = (asm[0] == "OP_RETURN" && asm[1].startsWith("4441")) || isAsset
-                    }
-                }
-
+                                
+                var movement = TxToMovement(tx, addresses);
                 await storage.SetTransaction(tx.txid, tx);
 
-                var movement = {};
-                if (personalIn.length > 0) {
-                    if (thirdPartyOut.length > 0)
-                        movement.type = "sent";
-                    else if (personalOut.length > 0)
-                        movement.type = "internal";
-                } else if (thirdPartyIn.length > 0) {
-                    if (personalOut.length > 0)
-                        movement.type = "received";
-                    else if (thirdPartyOut.length > 0)
-                        movement.type = "impossible";
+                if (tx.confirmations < CONFIRMATIONS) {
+                    await storage.AddTxAccountMempool(account.id + "-" + address, movement);
+                    newMovementsIndicator = true;
+                    continue;
                 }
-
-                if (movement.type == "received") {
-                    movement.from = thirdPartyIn;
-                    movement.to = personalOut;
-                } else if (movement.type == "sent") {
-                    movement.from = personalIn;
-                    movement.to = thirdPartyOut;
-                } else if (movement.type == "internal") {
-                    movement.from = personalIn;
-                    movement.to = personalOut;
-                }
-
-                movement.note = "";
-                movement.txid = tx.txid;
-                movement.change = outSats - inSats;
-                movement.unix = tx.blockTime;
-                movement.height = tx.blockHeight;
-                movement.isAsset = isAsset && isAssetOP;
 
                 newMovements.push(movement);
+                newMovementsIndicator = true;
             }
 
             movements = newMovements.concat(movements);
             await storage.SetAccountMovements(account.id + "-" + address, movements);
             console.log("SyncMovementsAddresses", "SUCCESS", account.id + "-" + address, "txs:" + movements.length, "new:" + newMovements.length);
-            if (newMovements.length > 0)
-                newMovementsIndicator = true;
 
             if (page >= info.totalPages)
                 break;
@@ -275,7 +222,6 @@ async function SyncBalance(account) {
 
     if (account.type == 'derived' || account.type == 'mobile') {
         var movements = await storage.GetAccountMovements(account.id);
-        movements = movements.filter(x => x.height > balance.height);
     } else if (account.type == 'single') {
         var movements = [];
         for (var address of Object.keys(addresses)) {
@@ -292,8 +238,26 @@ async function SyncBalance(account) {
 
         var oldMove = await storage.GetAccountMovements(account.id);
         await storage.SetAccountMovements(account.id, movements.concat(oldMove));
+
+
+        var mempool = [];
+        for (var address of Object.keys(addresses)) {
+            var m = await storage.GetAccountMempool(account.id + "-" + address);
+            mempool = mempool.concat(m);
+        }
+        mempool.sort((a, b) => a.txid.localeCompare(b.txid));
+        // Delete duplicate txs
+        mempool = mempool.filter((obj, index) => {
+            if (index === mempool.length - 1) return true;
+            return obj.txid !== mempool[index + 1].txid;
+        });
+        mempool.sort((a, b) => b.height - a.height);
+
+        await storage.SetAccountMempool(account.id, mempool);
     }
 
+    
+    movements = movements.filter(x => x.height > balance.height);
 
     var height = balance.height;
     for (var i = movements.length - 1; i >= 0; i--) {
@@ -342,15 +306,9 @@ async function SyncBalance(account) {
         height = tx.blockHeight;
 
         toRemove.forEach(vin => {
-            var utxo = balance.DigiByteUTXO[`${vin.txid}:${vin.vout}`];
-            if (utxo) {
-                delete balance.DigiByteUTXO[`${vin.txid}:${vin.vout}`];
-            }
-
-            var utxo = balance.DigiAssetUTXO[`${vin.txid}:${vin.vout}`];
-            if (utxo) {
-                delete balance.DigiAssetUTXO[`${vin.txid}:${vin.vout}`];
-            }
+            var id = `${vin.txid}:${vin.vout}`;
+            delete balance.DigiByteUTXO[id];
+            delete balance.DigiAssetUTXO[id];
         });
         toAdd.forEach(vout => {
             if (isAsset && isAssetOP) {
@@ -405,6 +363,8 @@ async function Sync() {
         global.ExecuteOnRenderer('sync-percentage', ((parseInt(id) + 1) / accounts.length * 100).toFixed())
         if (update) global.ExecuteOnRenderer('sync-account', accounts[id]);
     }
+    if (accounts.length == 0)
+        global.ExecuteOnRenderer('sync-percentage', 100);
 }
 
 async function StartSyncInterval() {

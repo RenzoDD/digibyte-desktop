@@ -2,7 +2,7 @@ const DigiByte = require('./digibyte');
 const storage = require('./storage');
 
 let SYNCING = false;
-let CONFIRMATIONS = 15;
+let CONFIRMATIONS = 1;
 
 /*
  * SYNC
@@ -106,10 +106,10 @@ function TxToMovement(tx, addresses) {
 
 async function SyncLastAddressUTXO(account) {
     var info = null;
-    for (var n = 0; n < 10 && info == null; n++)
-        var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'tokens', tokens: 'used' });
-    if (info == null)
-        return console.log("SyncLastAddressUTXO", "ERROR", account.id);
+    DigiByte.explorer.retry = 10;
+    var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'tokens', tokens: 'used' });
+    if (info.error)
+        return console.log("SyncLastAddressUTXO", "ERROR -", info.error, account.id);
 
     info.tokens = info.tokens ? info.tokens : [];
     info.tokens.forEach(token => {
@@ -137,11 +137,10 @@ async function SyncMovementsXPUB(account) {
     var newMovementsIndicator = false;
     for (var page = 1; true; page++) {
 
-        var info = null;
-        for (var n = 0; n < 10 && info == null; n++)
-            var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'txs', pageSize: 50, page });
-        if (info == null)
-            return console.log("SyncMovementsXPUB", "NETWORK ERROR", account.id);
+        DigiByte.explorer.retry = 10;
+        var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'txs', pageSize: 50, page });
+        if (info.error)
+            return console.log("SyncMovementsXPUB", "NETWORK ERROR -", info.error, account.id);
 
         info.transactions = info.transactions ? info.transactions : [];
         for (var tx of info.transactions) {
@@ -182,11 +181,10 @@ async function SyncMovementsAddresses(account) {
         var newMovements = [];
         for (var page = 1; true; page++) {
 
-            var info = null;
-            for (var n = 0; n < 10 && info == null; n++)
-                var info = await DigiByte.explorer.address(address, { details: 'txs', pageSize: 50, page });
-            if (info == null)
-                return console.log("SyncMovementsAddresses", "NETWORK ERROR", account.id);
+            DigiByte.explorer.retry = 10;
+            var info = await DigiByte.explorer.address(address, { details: 'txs', pageSize: 50, page });
+            if (info.error)
+                return console.log("SyncMovementsAddresses", "NETWORK ERROR -", info.error, account.id);
 
             info.transactions = info.transactions ? info.transactions : [];
             for (var tx of info.transactions) {
@@ -268,10 +266,10 @@ async function SyncBalance(account) {
 
         var tx = await storage.GetTransaction(movement.txid);
         if (tx == null) {
-            for (var n = 0; n < 10 && tx == null; n++)
-                var tx = await DigiByte.explorer.transaction(movement.txid);
-            if (tx == null)
-                return console.log("SyncLastAddressUTXO", "ERROR", account.id);
+            DigiByte.explorer.retry = 10;
+            var tx = await DigiByte.explorer.transaction(movement.txid);
+            if (tx.error)
+                return console.log("SyncLastAddressUTXO", "ERROR -", tx.error, account.id);
             await storage.SetTransaction(movement.txid, tx);
         }
 

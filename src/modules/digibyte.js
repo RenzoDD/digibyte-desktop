@@ -165,10 +165,9 @@ DigiByte.SignTransaction = function (options) {
  */
 
 DigiByte.GetPrice = async function () {
-    return (await Price.Binance());
+    return (await Price.GetBinanceUSD());
 }
 
 DigiByte.explorer = new Blockbook();
-DigiByte.explorerV1 = new Blockbook(null, 'v1');
 
 module.exports = DigiByte;

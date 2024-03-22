@@ -198,13 +198,10 @@ ipcMain.on('generate-addresses', async function (event, key, password, network) 
     return event.reply('generate-addresses', addresses);
 });
 ipcMain.on('new-xpub', async function (event, xpub, type) {
+    DigiByte.explorer.retry = 3;
     var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
-    if (data == null)
-        var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
-    if (data == null)
-        var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
 
-    if (data == null)
+    if (data.error)
         var result = null;
     else if (data.txs > 0)
         var result = data.balance;
@@ -215,13 +212,10 @@ ipcMain.on('new-xpub', async function (event, xpub, type) {
 });
 
 ipcMain.on('new-address', async function (event, address) {
+    DigiByte.explorer.retry = 3;
     var data = await DigiByte.explorer.address(address, { details: 'basic' });
-    if (data == null)
-        var data = await DigiByte.explorer.xpub(address, { details: 'basic' });
-    if (data == null)
-        var data = await DigiByte.explorer.xpub(address, { details: 'basic' });
 
-    if (data == null)
+    if (data.error)
         var result = null;
     else if (data.txs > 0)
         var result = data.balance;
@@ -264,7 +258,7 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 ipcMain.on('check-password', async function (event, id, password) {
     var account = await storage.GetAccount(id);
     var key = await storage.GetKey(account !== null ? account.secret : id);
-    
+
     if (typeof key.secret != 'string')
         key.secret = key.secret[0];
 
@@ -335,6 +329,9 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     // Parse inputs
     options.inputs = Object.values(balance.DigiByteUTXO);
 
+    // TODO sort inputs
+    // TODO choose minimun inputs
+
     var keys = {}
     if (account.type == 'derived') {
         var xprv = DecryptAES256(key.secret, password);
@@ -364,11 +361,7 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     return event.reply('create-tx', result);
 });
 ipcMain.on('broadcast-tx', async function (event, hex) {
-    for (var i = 0; i < 10; i++) {
-        var result = await DigiByte.explorer.sendtx(hex);
-        if (result != null) break;
-    }
-    if (result == null)
-        result = { error: "Broadcast error" };
+    DigiByte.explorer.retry = 10;
+    var result = await DigiByte.explorer.sendtx(hex);
     return event.reply('broadcast-tx', result);
 });

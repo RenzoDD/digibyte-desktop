@@ -326,11 +326,49 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
         if (output.satoshis < 600) return event.reply('create-tx', { error: `Dust satoshis on output ${n}` });
     }
 
-    // Parse inputs
-    options.inputs = Object.values(balance.DigiByteUTXO);
+    var outSats = 0;
+    options.outputs.forEach(utxo => outSats += utxo.satoshis);
+    var chargedRecipient = options.outputs.find(x => x.fee);
 
-    // TODO sort inputs
-    // TODO choose minimun inputs
+    // Parse inputs
+    var inputs = Object.values(balance.DigiByteUTXO);
+    options.inputs = [];
+
+    if (options.advanced.coinControl == 'max-save') {
+        options.inputs = inputs;
+        inputs = [];
+    } else if (options.advanced.coinControl == 'short-save') { // Less fees on short term
+        inputs.sort((a, b) => a.height - b.height);
+        inputs.sort((a, b) => b.satoshis - a.satoshis);
+    } else if (options.advanced.coinControl == 'long-save') { // Less fees on long term
+        inputs.sort((a, b) => a.height - b.height);
+        inputs.sort((a, b) => a.satoshis - b.satoshis);
+    } else if (options.advanced.coinControl == 'security') { // More security
+        inputs.sort((a, b) => a.satoshis - b.satoshis);
+        inputs.sort((a, b) => a.script.localeCompare(b.script));
+    }
+
+    do {
+        if (inputs.length == 0) break;
+        options.inputs.push(inputs.shift());
+
+        var inSats = 0;
+        options.inputs.forEach(utxo => inSats += utxo.satoshis);
+
+        var outWithFee = outSats + (chargedRecipient ? 0 : DigiByte.CalculateTxFee(options));
+    } while (inSats < outWithFee);
+
+    if (options.advanced.coinControl == 'security') {
+        var last = options.inputs[options.inputs.length - 1].script;
+
+        while (inputs.length != 0) {
+            if (inputs[0].script == last)
+                options.inputs.push(inputs.shift());
+            else break;
+        }
+    }
+
+    console.log(options.inputs)
 
     var keys = {}
     if (account.type == 'derived') {
@@ -362,6 +400,7 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
 });
 ipcMain.on('broadcast-tx', async function (event, hex) {
     DigiByte.explorer.retry = 10;
-    var result = await DigiByte.explorer.sendtx(hex);
+    //var result = await DigiByte.explorer.sendtx(hex);
+    var result = { error: 'testing' }
     return event.reply('broadcast-tx', result);
 });

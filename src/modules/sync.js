@@ -315,7 +315,8 @@ async function SyncBalance(account) {
                     vout: vout.n,
                     script: vout.hex,
                     satoshis: parseInt(vout.value),
-                    path: account.path + '/' + vout.path,
+                    height: tx.blockHeight,
+                    path: account.path ? account.path + '/' + vout.path : null,
                     assetId: "",
                     metadata: "",
                     quantity: ""
@@ -326,7 +327,8 @@ async function SyncBalance(account) {
                     vout: vout.n,
                     script: vout.hex,
                     satoshis: parseInt(vout.value),
-                    path: account.path + '/' + vout.path
+                    height: tx.blockHeight,
+                    path: account.path ? account.path + '/' + vout.path : null
                 };
             }
         });

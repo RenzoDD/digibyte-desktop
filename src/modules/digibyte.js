@@ -97,6 +97,15 @@ DigiByte.ParseTransaction = function (hex) {
     return new Transaction(hex);
 }
 
+DigiByte.CalculateTxFee = function (options) {
+    var inputs = options.inputs.length;
+    var outputs = options.outputs.length;
+    var data = (options.advanced.memo || "").length;
+
+    if (data != 0) outputs++;
+    return (10 + inputs + (inputs * 180) + (outputs * 34) + data) * 2;
+}
+
 DigiByte.SignTransaction = function (options) {
     var inSats = 0;
     options.inputs.forEach(utxo => inSats += utxo.satoshis);

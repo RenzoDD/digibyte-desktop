@@ -767,22 +767,35 @@
 							</div>
 
 							<hr class="mt-1 mb-3">
+							
+							<div class="mb-3">
+								<label for="sendDGB2CoinControl">Coin control:</label>
+								<select class="form-select" id="sendDGB2CoinControl">
+									<option value="short-save">Short Term Fee Save</option>
+									<option value="long-save" selected>Long Term Fee Save</option>
+									<option value="max-save">Max Fee Save</option>
+									<option value="security">Extra Security</option>
+								</select>
+							</div>
+
+							<hr class="mt-1 mb-3">
 
 							<div class="row mb-3">
-								<div class="col-3">
-									TX Fee:
+								<div class="col-1">
+									Fee:
 								</div>
-								<div class="col text-end" id="sendDGB2FeeIndicator">Low</div>
-								<div class="col-3">
+								<div class="col-3 text-end" id="sendDGB2FeeIndicator">Low</div>
+								<div class="col-2">
 									<input type="range" class="form-range" id="sendDGB2FeeSelector" min="1" max="5" step="1" value="1" oninput="sendDGB2FeePerByte.value = { '1': 1, '2': 5, '3': 10, '4': 50, '5': 100 }[this.value]; sendDGB2FeeIndicator.innerHTML = { '1': 'Very Low', '2': 'Low', '3': 'Medium', '4': 'High', '5': 'Very High' }[this.value]">
 								</div>
-							</div>
-							<div class="mb-3" id="sendDGB2FeePerByteOption">
-								<div class="input-group input-group-sm">
-									<input type="number" class="form-control form-control-sm text-end" id="sendDGB2FeePerByte" min="1" value="1" oninput="sendDGB2FeeIndicator.innerHTML = (sendDGB2FeePerByte.value >= 100 ? 'Very High' : sendDGB2FeePerByte.value >= 50 ? 'High' : sendDGB2FeePerByte.value >= 10 ? 'Medium' : sendDGB2FeePerByte.value >= 5 ? 'Low' : sendDGB2FeePerByte.value >= 1 ? 'Very Low' : 'Invalid')">
-									<span class="input-group-text">Satoshis/Byte</span>
+								<div class="col" id="sendDGB2FeePerByteOption">
+									<div class="input-group input-group-sm">
+										<input type="number" class="form-control form-control-sm text-end" id="sendDGB2FeePerByte" min="1" value="1" oninput="sendDGB2FeeIndicator.innerHTML = (sendDGB2FeePerByte.value >= 100 ? 'Very High' : sendDGB2FeePerByte.value >= 50 ? 'High' : sendDGB2FeePerByte.value >= 10 ? 'Medium' : sendDGB2FeePerByte.value >= 5 ? 'Low' : sendDGB2FeePerByte.value >= 1 ? 'Very Low' : 'Invalid')">
+										<span class="input-group-text">Satoshis/Byte</span>
+									</div>
 								</div>
 							</div>
+							
 
 							<hr class="mt-1 mb-3">
 

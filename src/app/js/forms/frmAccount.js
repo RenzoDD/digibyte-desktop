@@ -288,6 +288,8 @@ async function sendDGB3_Sign() {
     if (sendDGB2RBF.checked)
         options.advanced.rbf = true;
 
+    options.advanced.coinControl = sendDGB2CoinControl.value;
+
     var hex = await CreateTransaction(accountID, sendDGB3Password.value, options);
     if (hex.error) {
         sendDGB4Spinner.hidden = true;

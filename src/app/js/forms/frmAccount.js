@@ -122,7 +122,7 @@ async function receiveDGB_Close() {
     receiveDGB1Copy.innerHTML = icon('clipboard');
 }
 async function receiveDGB_Copy() {
-    var result = await CopyAddressClipboard(receiveDGB1Address.value);
+    var result = await CopyClipboard(receiveDGB1Address.value);
     if (result) receiveDGB1Copy.innerHTML = icon('clipboard-check');
     else receiveDGB1Copy.innerHTML = icon('clipboard-x');
 }
@@ -302,8 +302,31 @@ async function sendDGB3_Sign() {
         return sendDGB4Message.innerHTML = icon("x-circle") + " " + data.error;
     }
 
+    await AddToMempool(accountID, data.result);
+    await frmAccount_Load(accountID);
+
     sendDGB4Spinner.hidden = true;
-    return sendDGB4Message.innerHTML = "Transaction sent! <br> " + data.result;
+    return sendDGB4Message.innerHTML = `
+        <div class="text-center">${icon('check-circle', 40)}</div>
+        <div class="text-center">Transaction Broadcasted</div>
+        <div class="text-break">
+            <label>TXID:</label>
+            <div class="input-group">
+                <input type="text" class="form-control form-control-sm monospace" value="${data.result}" readonly>
+                <button class="btn btn-success" type="button" id="sendDGB3Copy" onclick="sendDGB3_Copy('${data.result}')">
+                    <svg class="bi" width="18" height="18">
+                        <use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
+                    </svg>
+                </button>
+            </div>
+            
+        </div>
+    `;
+}
+async function sendDGB3_Copy(txid) {
+    var result = await CopyClipboard(txid);
+    if (result) sendDGB3Copy.innerHTML = icon('clipboard-check');
+    else sendDGB3Copy.innerHTML = icon('clipboard-x');
 }
 
 async function frmAccount_TX(type, position) {

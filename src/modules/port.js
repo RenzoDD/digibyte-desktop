@@ -2,7 +2,7 @@ const DigiByte = require('./digibyte');
 const { SHA256, EncryptAES256, DecryptAES256 } = require('./crypto');
 
 const storage = require('./storage');
-const StartSyncInterval = require('./sync');
+const { GetAddresses, TxToMovement, StartSyncInterval } = require('./sync');
 
 const { ipcMain } = require('electron');
 const { dialog } = require('electron');
@@ -298,9 +298,9 @@ ipcMain.on('generate-last-address', async function (event, id) {
 
     return event.reply('generate-last-address', address);
 });
-ipcMain.on('copy-address-clipboard', async function (event, text) {
+ipcMain.on('copy-clipboard', async function (event, text) {
     clipboard.writeText(text);
-    return event.reply('copy-address-clipboard', true);
+    return event.reply('copy-clipboard', true);
 });
 ipcMain.on('check-address', async function (event, address) {
     var result = DigiByte.CheckAddress(address);
@@ -368,8 +368,6 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
         }
     }
 
-    console.log(options.inputs)
-
     var keys = {}
     if (account.type == 'derived') {
         var xprv = DecryptAES256(key.secret, password);
@@ -400,7 +398,20 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
 });
 ipcMain.on('broadcast-tx', async function (event, hex) {
     DigiByte.explorer.retry = 10;
-    //var result = await DigiByte.explorer.sendtx(hex);
-    var result = { error: 'testing' }
+    var result = await DigiByte.explorer.sendtx(hex);
     return event.reply('broadcast-tx', result);
+});
+ipcMain.on('add-to-mempool', async function (event, id, txid) {
+    do {
+        var result = await DigiByte.explorer.transaction(txid);
+    } while (result.error);
+
+    var account = await storage.GetAccount(id);
+    var addresses = GetAddresses(account);
+    var movement = TxToMovement(result, addresses)
+
+    var mempool = await storage.GetAccountMempool(id);
+    mempool.push(movement);
+    await storage.SetAccountMempool(id, mempool);
+    return event.reply('add-to-mempool', result);
 });

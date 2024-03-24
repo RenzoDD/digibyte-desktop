@@ -386,6 +386,6 @@ async function StartSyncInterval() {
 }
 StartSyncInterval();
 
-module.exports = StartSyncInterval;
+module.exports = { GetAddresses, TxToMovement, StartSyncInterval };
 
 

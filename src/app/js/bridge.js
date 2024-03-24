@@ -232,10 +232,10 @@ function GenerateLastAddres(id) {
         });
     });
 }
-function CopyAddressClipboard(text) {
+function CopyClipboard(text) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('copy-address-clipboard', text);
-        ipcRenderer.once('copy-address-clipboard', (event, response) => {
+        ipcRenderer.send('copy-clipboard', text);
+        ipcRenderer.once('copy-clipboard', (event, response) => {
             resolve(response);
         });
     });
@@ -268,6 +268,14 @@ function BroadcastTransaction(hex) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('broadcast-tx', hex);
         ipcRenderer.once('broadcast-tx', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function AddToMempool(id, txid) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('add-to-mempool', id, txid);
+        ipcRenderer.once('add-to-mempool', (event, response) => {
             resolve(response);
         });
     });

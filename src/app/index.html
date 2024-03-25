@@ -30,7 +30,7 @@
 							<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
 						</svg>
 					</button>
-					<button id="topSettings" class="btn btn-dgb btn-lg" onclick="frmKeys_Manage()">
+					<button id="topSettings" class="btn btn-dgb btn-lg" onclick="frmKeys_Manage(); frmAccounts_Manage()">
 						<svg class="bi bi-btn" width="18" height="18">
 							<use xlink:href="vendor/bootstrap-icons.svg#sliders" />
 						</svg>
@@ -198,6 +198,7 @@
 				<div class="list px-3" style="max-height: 45vh;" id="accountsList">
 
 				</div>
+				<hr>
 				<div class="row">
 					<div class="col">
 						<div class="option text-center p-4 me-1" onclick="frmAccounts_Add()">
@@ -668,6 +669,71 @@
 							<div class="mb-3 text-center" id="addAccount5Message"></div>
 							<div class="mb-3 text-center">
 								<button class="btn btn-secondary btn-sm" onclick="addAccount_Close()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+									</svg> Close
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal fade" id="manageAccount" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+				<div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+					<div class="modal-content">
+						<div class="mt-4">
+							<h5 class="text-center">
+								Manage Account
+							</h5>
+						</div>
+						<div class="m-4" id="manageAccount1">
+							<div class="mb-3">
+								<label for="manageAccount1Name">Name:</label>
+								<input type="text" class="form-control" id="manageAccount1Name" readonly>
+							</div>
+							<div class="mb-3">
+								<label for="manageAccount1xpub">XPUB:</label>
+								<input type="text" class="form-control" id="manageAccount1xpub" readonly>
+							</div>
+							<div class="mb-3">
+								<label for="manageAccount1Path">Derivation Path:</label>
+								<input type="text" class="form-control" id="manageAccount1Path" readonly>
+							</div>
+							<div class="text-center mb-3">
+								<button type="button" class="btn btn-danger btn-sm" onclick="manageAccount1_Delete()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#trash" />
+									</svg> Delete
+								</button>
+								<button class="btn btn-secondary btn-sm" onclick="manageAccount_Close()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+									</svg> Close
+								</button>
+							</div>
+						</div>
+						<div class="m-4" id="manageAccount2">
+							<div class="text-center mb-3">
+								Are you sure you want to delete this key file?<br>
+								(This can't be undone)
+							</div>
+							<div class="text-center mb-3">
+								<button type="button" class="btn btn-danger btn-sm" onclick="manageAccount2_Delete()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#trash" />
+									</svg> Delete
+								</button>
+								<button class="btn btn-secondary btn-sm" onclick="manageAccount_Close()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+									</svg> Close
+								</button>
+							</div>
+						</div>
+						<div class="m-4" id="manageAccount3">
+							<div class="text-center mb-3" id="manageAccount3Status"></div>
+							<div class="text-center mb-3">
+								<button class="btn btn-secondary btn-sm" onclick="manageAccount_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
 									</svg> Close

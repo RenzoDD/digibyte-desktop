@@ -187,6 +187,14 @@ function CheckPassword(id, password) {
         });
     });
 }
+function DeleteAccount(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('delete-account', id);
+        ipcRenderer.once('delete-account', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 
 /*
  * ACCOUNT MANAGEMENT

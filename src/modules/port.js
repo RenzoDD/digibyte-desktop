@@ -41,6 +41,7 @@ ipcMain.on('generate-key', async function (event, name, type, password) {
     var mnemonic = DigiByte.GenerateSeed(words);
 
     var keys = {};
+    keys.file = "key";
     keys.id = "";
     keys.name = name;
     keys.type = "mnemonic";
@@ -81,13 +82,15 @@ ipcMain.on('export-key-file', async function (event, id) {
     if (!save.filePath.endsWith('.dgb'))
         save.filePath += ".dgb";
 
-    var original = fs.writeFileSync(save.filePath, JSON.stringify(keys, null, 2));
+    var original = JSON.stringify(keys, null, 2);
+    fs.writeFileSync(save.filePath, original);
+    
     if (!fs.existsSync(save.filePath))
         return event.reply('export-key-file', "The file wasn't saved, please try again");
 
-    var content = fs.readFile(save.filePath);
+    var content = fs.readFileSync(save.filePath);
 
-    if (original != content)
+    if (original != content.toString())
         return event.reply('export-key-file', "There was an error while saving, please try again");
 
 
@@ -138,6 +141,7 @@ ipcMain.on('check-mnemonic', async function (event, mnemonic) {
 });
 ipcMain.on('import-keys', async function (event, type, name, password, secret, passphrase) {
     var keys = {};
+    keys.file = "key";
     keys.id = "";
     keys.name = name;
 
@@ -232,6 +236,7 @@ ipcMain.on('new-address', async function (event, address) {
 });
 ipcMain.on('generate-account', async function (event, name, type, secret, public, purpose, nAccount) {
     var account = {};
+    account.file = "account";
     account.id = SHA256(Math.random().toString());
     account.name = name;
     account.type = type;
@@ -270,6 +275,10 @@ ipcMain.on('check-password', async function (event, id, password) {
 
     var result = DecryptAES256(key.secret, password);
     return event.reply('check-password', result != null);
+});
+ipcMain.on('delete-account', async function (event, id, password) {
+    var result = await storage.DeleteAccount(id);
+    return event.reply('delete-account', result);
 });
 
 /*

@@ -81,9 +81,15 @@ ipcMain.on('export-key-file', async function (event, id) {
     if (!save.filePath.endsWith('.dgb'))
         save.filePath += ".dgb";
 
-    fs.writeFileSync(save.filePath, JSON.stringify(keys, null, 2));
+    var original = fs.writeFileSync(save.filePath, JSON.stringify(keys, null, 2));
     if (!fs.existsSync(save.filePath))
-        return event.reply('export-key-file', "There was an error, please try again");
+        return event.reply('export-key-file', "The file wasn't saved, please try again");
+
+    var content = fs.readFile(save.filePath);
+
+    if (original != content)
+        return event.reply('export-key-file', "There was an error while saving, please try again");
+
 
     return event.reply('export-key-file', true);
 });

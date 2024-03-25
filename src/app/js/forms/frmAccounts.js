@@ -1,6 +1,9 @@
 async function frmAccounts_Load() {
+    accountID = null;
     var key = await ReadKey(keyID);
     if (key == null) return;
+
+    accountsName.innerHTML = key.name;
 
     var accounts = await GetAccounts();
 
@@ -101,6 +104,7 @@ async function addAccount2_Continue() {
         return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";
 
     if (addAccount1Type.value == 'derived' || addAccount1Type.value == 'mobile') {
+        addAccount_Show(addAccount4);
         if (addAccount1Type.value == "derived") {
             var address = "null";
             address = addAccount1TypeLegacy.checked ? "legacy" : address;
@@ -114,7 +118,6 @@ async function addAccount2_Continue() {
         }
 
         addAccount2Password.value = "";
-        addAccount_Show(addAccount4);
 
         var accounts = await GetAccounts();
         var oldXPUBs = [];

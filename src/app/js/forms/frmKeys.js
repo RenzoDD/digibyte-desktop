@@ -1,5 +1,4 @@
 async function frmKeys_Load() {
-    topKeyName.innerHTML = "";
     keyID = null;
     var keys = await GetKeys();
 
@@ -26,55 +25,49 @@ async function frmKeys_Load() {
 
 async function frmKeys_Select(id) {
     keyID = id;
-
-    var key = await ReadKey(keyID);
-    if (key == null) return;
-    topKeyName.innerHTML = icon("key", 18) + ' ' + key.name;
-
     frmAccounts_Load();
 }
 async function frmKeys_Manage() {
+    if (!keyID || accountID) return;
     var key = await ReadKey(keyID);
     if (key == null) return;
-    manageKeys1ID.value = key.id;
-    manageKeys1Name.value = key.name;
-    manageKey_Show(manageKeys1);
-    modalToggle(manageKeys);
+    manageKey1Name.value = key.name;
+    manageKey_Show(manageKey1);
+    modalToggle(manageKey);
 }
 async function manageKey_Show(screen) {
-    manageKeys1.hidden = true;
-    manageKeys2.hidden = true;
-    manageKeys3.hidden = true;
+    manageKey1.hidden = true;
+    manageKey2.hidden = true;
+    manageKey3.hidden = true;
 
     screen.hidden = false;
 }
 async function manageKey_Close() {
-    modalToggle(manageKeys);
-    manageKeys1ID.value = "";
-    manageKeys1Name.value = "";
-    manageKeys3Status.innerHTML = "";
+    modalToggle(manageKey);
+    manageKey1Name.value = "";
+    manageKey3Status.innerHTML = "";
 }
-async function manageKeys1_Export() {
-    var save = await ExportKeyFile(manageKeys1ID.value);
+async function manageKey1_Export() {
+    var save = await ExportKeyFile(keyID);
     if (save === true)
-        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
+        manageKey3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
     else
-        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${save}`;
+        manageKey3Status.innerHTML = `${icon('exclamation-circle')} ${save}`;
 
-    manageKey_Show(manageKeys3);
+    manageKey_Show(manageKey3);
 }
-async function manageKeys1_Delete() {
-    manageKey_Show(manageKeys2);
+async function manageKey1_Delete() {
+    manageKey_Show(manageKey2);
 }
-async function manageKeys2_Delete() {
-    var deleted = await DeleteKey(manageKeys1ID.value);
+async function manageKey2_Delete() {
+    var deleted = await DeleteKey(keyID);
     if (deleted === true)
-        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
+        manageKey3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
     else
-        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
+        manageKey3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
 
     frmKeys_Load();
-    manageKey_Show(manageKeys3);
+    manageKey_Show(manageKey3);
 }
 
 async function frmKeys_Generate() {

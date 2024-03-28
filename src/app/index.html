@@ -30,14 +30,14 @@
 							<use xlink:href="vendor/bootstrap-icons.svg#arrow-repeat" />
 						</svg>
 					</button>
-					<button id="topSettings" class="btn btn-dgb btn-lg" onclick="frmKeys_Manage(); frmAccounts_Manage()">
+					<button id="topSettings" class="btn btn-dgb btn-lg" onclick="frmKeys_Manage(); frmAccount_Manage()">
 						<svg class="bi bi-btn" width="18" height="18">
 							<use xlink:href="vendor/bootstrap-icons.svg#sliders" />
 						</svg>
 					</button>
 					<button id="topKeys" class="btn btn-dgb btn-lg" onclick="frmKeys_Load()">
 						<svg class="bi bi-btn" width="18" height="18">
-		 					<use xlink:href="vendor/bootstrap-icons.svg#wallet" />
+							<use xlink:href="vendor/bootstrap-icons.svg#wallet" />
 						</svg>
 					</button>
 					<button id="topReturnToAccounts" class="btn btn-dgb btn-lg" onclick="frmAccounts_Load()" hidden>
@@ -339,10 +339,10 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
+								<button class="btn btn-secondary btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
-									</svg> Cancel
+									</svg> Close
 								</button>
 							</div>
 						</div>
@@ -416,10 +416,10 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
+								<button class="btn btn-secondary btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
-									</svg> Cancel
+									</svg> Close
 								</button>
 							</div>
 						</div>
@@ -444,10 +444,10 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#arrow-right-circle" />
 									</svg> Continue
 								</button>
-								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
+								<button class="btn btn-secondary btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
-									</svg> Cancel
+									</svg> Close
 								</button>
 							</div>
 						</div>
@@ -468,10 +468,10 @@
 										<use xlink:href="vendor/bootstrap-icons.svg#check-circle" />
 									</svg> Save
 								</button>
-								<button class="btn btn-danger btn-sm" onclick="importKeys_Close()">
+								<button class="btn btn-secondary btn-sm" onclick="importKeys_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
-									</svg> Cancel
+									</svg> Close
 								</button>
 							</div>
 						</div>
@@ -693,11 +693,25 @@
 							</div>
 							<div class="mb-3">
 								<label for="manageAccount1xpub">XPUB:</label>
-								<input type="text" class="form-control" id="manageAccount1xpub" readonly>
+								<div class="input-group">
+									<input type="text" class="form-control" id="manageAccount1xpub" readonly>
+									<button class="btn btn-success" type="button" id="manageAccount1xpubCopy" onclick="manageAccount1xpub_Copy()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
+										</svg>
+									</button>
+								</div>
 							</div>
 							<div class="mb-3">
 								<label for="manageAccount1Path">Derivation Path:</label>
-								<input type="text" class="form-control" id="manageAccount1Path" readonly>
+								<div class="input-group">
+									<input type="text" class="form-control" id="manageAccount1Path" readonly>
+									<button class="btn btn-success" type="button" id="manageAccount1PathCopy" onclick="manageAccount1Path_Copy()">
+										<svg class="bi" width="18" height="18">
+											<use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
+										</svg>
+									</button>
+								</div>
 							</div>
 							<div class="text-center mb-3">
 								<button type="button" class="btn btn-danger btn-sm" onclick="manageAccount1_Delete()">
@@ -1024,7 +1038,7 @@
 						</div>
 					</div>
 				</div>
-			</div>		
+			</div>
 		</div>
 	</div>
 

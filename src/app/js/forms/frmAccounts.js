@@ -36,52 +36,6 @@ async function frmAccounts_Load() {
     topReturnToAccounts.hidden = true;
 }
 
-async function frmAccounts_Manage() {
-    if (!accountID) return;
-    var account = await GetAccount(accountID);
-    if (account == null) return;
-    manageAccount1Name.value = account.name;
-    if (account.type != 'single') {
-        manageAccount1xpub.parentElement.hidden = false;
-        manageAccount1Path.parentElement.hidden = false;
-        manageAccount1xpub.value = account.xpub;
-        manageAccount1Path.value = account.path;
-    } else {
-        manageAccount1xpub.parentElement.hidden = true;
-        manageAccount1Path.parentElement.hidden = true;
-    }
-    manageAccount_Show(manageAccount1);
-    modalToggle(manageAccount);
-}
-async function manageAccount_Show(screen) {
-    manageAccount1.hidden = true;
-    manageAccount2.hidden = true;
-    manageAccount3.hidden = true;
-
-    screen.hidden = false;
-}
-async function manageAccount_Close() {
-    modalToggle(manageAccount);
-    manageAccount1Name.value = "";
-    manageAccount1xpub.value = "";
-    manageAccount1Path.value = "";
-
-    manageAccount3Status.innerHTML = "";
-}
-async function manageAccount1_Delete() {
-    manageAccount_Show(manageAccount2);
-}
-async function manageAccount2_Delete() {
-    var deleted = await DeleteAccount(accountID);
-    if (deleted === true)
-        manageAccount3Status.innerHTML = `${icon('check-circle')} Account file deleted successfully`;
-    else
-        manageAccount3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
-
-    frmAccounts_Load();
-    manageAccount_Show(manageAccount3);
-}
-
 async function frmAccounts_Add() {
     var key = await ReadKey(keyID);
     if (key.type == "mnemonic") {

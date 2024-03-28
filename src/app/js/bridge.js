@@ -288,3 +288,15 @@ function AddToMempool(id, txid) {
         });
     });
 }
+
+/*
+ * LEDGER
+ */
+function LedgerIsReady() {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('ledger-is-ready');
+        ipcRenderer.once('ledger-is-ready', (event, response) => {
+            resolve(response);
+        });
+    });
+}

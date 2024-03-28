@@ -11,10 +11,10 @@ async function frmKeys_Load() {
         var key = await ReadKey(id);
         if (key !== null) {
             keysList.innerHTML += `
-            <div class="option row p-4 mb-3 ${ (keyID == key.id)  ? "active" : "" }" onclick="frmKeys_Select('${id}')">
+            <div class="option row p-4 mb-3 ${(keyID == key.id) ? "active" : ""}" onclick="frmKeys_Select('${id}')">
                 <div class="col-4 my-auto">${key.name}</div>
                 <div class="col-4 text-center my-auto">${key.type}</div>
-                <div class="col-4 text-center my-auto">${key.type == 'mnemonic' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
+                <div class="col-4 text-center my-auto">${key.type == 'mnemonic' ? key.words + " words phrase" : key.type == 'keys' ? key.secret.length + " key(s)" : "device"}</div>
             </div>`;
         }
     }
@@ -167,10 +167,10 @@ async function importKeys_Close() {
     importKeys4Message.innerHTML = "";
 }
 async function importKeys1_Continue() {
-    if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys" && importKeys1Type.value != "file")
+    if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys" && importKeys1Type.value != "file" && importKeys1Type.value != "ledger")
         return importKeys1Message.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
 
-    if (importKeys1Name.value == "" && importKeys1Type.value != "file")
+    if (importKeys1Name.value == "" && importKeys1Type.value != "file" && importKeys1Type.value != "ledger")
         return importKeys1Message.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     if (importKeys1Type.value == "file") {
@@ -189,6 +189,17 @@ async function importKeys1_Continue() {
         importKeys_Show(importKeys2Keys);
     if (importKeys1Type.value == "file")
         importKeys_Show(importKeys4);
+    if (importKeys1Type.value == "ledger") {
+        var done = await ImportKeys("ledger", "Ledger Hardware Wallet", "", "", false);
+
+        if (done === true)
+            importKeys4Message.innerHTML = `${icon('check-circle')} Keys saved`;
+        else
+            importKeys4Message.innerHTML = `${icon('exclamation-circle')} ${done}`;
+
+        importKeys_Show(importKeys4);
+        frmKeys_Load();
+    }
 }
 async function importKeys2Mnemonic_Continue() {
     if (!(await CheckMnemonic(importKeys2MnemonicPhrase.innerHTML.trim())))

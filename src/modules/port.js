@@ -1,4 +1,5 @@
 const DigiByte = require('./digibyte');
+const Ledger = require('./ledger');
 const { SHA256, EncryptAES256, DecryptAES256 } = require('./crypto');
 
 const storage = require('./storage');
@@ -84,7 +85,7 @@ ipcMain.on('export-key-file', async function (event, id) {
 
     var original = JSON.stringify(keys, null, 2);
     fs.writeFileSync(save.filePath, original);
-    
+
     if (!fs.existsSync(save.filePath))
         return event.reply('export-key-file', "The file wasn't saved, please try again");
 
@@ -159,6 +160,8 @@ ipcMain.on('import-keys', async function (event, type, name, password, secret, p
         keys.secret = secret.map(x => EncryptAES256(x, password));
 
         delete secret;
+    } else if (type === "ledger") {
+        keys.type = "ledger";
     }
     keys.id = SHA256(JSON.stringify(keys));
 
@@ -188,12 +191,16 @@ ipcMain.on('get-account', async function (event, id) {
 ipcMain.on('generate-xpub', async function (event, key, password, type) {
     var key = await storage.GetKey(key);
 
-    var seed = DecryptAES256(key.secret, password);
-    if (seed == null)
-        return event.reply('generate-xpub', "Wrong password");
+    if (key.type == 'ledger') {
+        var xpubs = await Ledger.GetXPUBs(10, type);
+    } else {
+        var seed = DecryptAES256(key.secret, password);
+        if (seed == null)
+            return event.reply('generate-xpub', "Wrong password");
 
-    var xpubs = DigiByte.GetXPUBs(seed, type);
-    seed = "";
+        var xpubs = DigiByte.GetXPUBs(seed, type);
+        seed = "";
+    }
 
     return event.reply('generate-xpub', xpubs);
 });
@@ -430,3 +437,12 @@ ipcMain.on('add-to-mempool', async function (event, id, txid) {
     await storage.SetAccountMempool(id, mempool);
     return event.reply('add-to-mempool', result);
 });
+
+/*
+ * LEDGER
+ */
+
+ipcMain.on('ledger-is-ready', async function (event) {
+    var transport = await Ledger.IsReady();
+    return event.reply('ledger-is-ready', transport);
+})

@@ -6,14 +6,9 @@ async function frmAccounts_Load() {
     accountsName.innerHTML = key.name;
 
     var accounts = await GetAccounts();
-
-    accountsList.innerHTML = "";
-
-    if (accounts.length == 0)
-        accountsList.innerHTML = `<div class="text-center">(No Accounts Found)</div>`;
-
     var exchange = await GetPrice();
 
+    accountsList.innerHTML = "";
     for (var id of accounts) {
         var account = await GetAccount(id);
         if (account !== null && account.secret == keyID) {
@@ -31,6 +26,10 @@ async function frmAccounts_Load() {
         }
     }
 
+
+    if (accountsList.innerHTML == "")
+        accountsList.innerHTML = `<div class="text-center">(No Accounts Found)</div>`;
+
     frmOpen(frmAccounts);
     topKeys.hidden = false;
     topReturnToAccounts.hidden = true;
@@ -42,6 +41,8 @@ async function frmAccounts_Add() {
         addAccount1Type.innerHTML += '<option value="derived">Derived Account</option>';
         if (key.words == 12 && key.passphrase == false)
             addAccount1Type.innerHTML += '<option value="mobile">DigiByte Mobile Account</option>';
+    } else if (key.type == "ledger") {
+        addAccount1Type.innerHTML += '<option value="derived">Derived Account</option>';
     } else {
         addAccount1Type.innerHTML += '<option value="single">Single Account</option>';
     }
@@ -56,6 +57,7 @@ async function addAccount_Show(screen) {
     addAccount3.hidden = true;
     addAccount4.hidden = true;
     addAccount5.hidden = true;
+    addAccount6.hidden = true;
 
     screen.hidden = false;
 }
@@ -74,14 +76,16 @@ async function addAccount_Close() {
     addAccount2Password.placeholder = "";
     addAccount2Message.innerHTML = "";
 
-    addAccount3Found.innerHTML = "";
-    addAccount3Spinner.hidden = true;
-    addAccount3Message.innerHTML = "";
+    addAccount3Status.innerHTML = "";
 
     addAccount4Found.innerHTML = "";
     addAccount4Spinner.hidden = true;
+    addAccount4Message.innerHTML = "";
 
-    addAccount5Message.innerHTML = "";
+    addAccount5Found.innerHTML = "";
+    addAccount5Spinner.hidden = true;
+
+    addAccount6Message.innerHTML = "";
 }
 async function addAccount1_Continue() {
     if (addAccount1Name.value == "")
@@ -97,14 +101,35 @@ async function addAccount1_Continue() {
         if (address == "null")
             return addAccount1Message.innerHTML = icon("exclamation-circle") + " Select an address type";
     }
-    addAccount_Show(addAccount2);
+
+    var key = await ReadKey(keyID);
+    if (key.type == "ledger") {
+        addAccount_Show(addAccount3);
+
+        addAccount3Status.innerHTML = icon('usb-symbol') + " Checking device...";
+        while (true) {
+            if (addAccount3Status.innerHTML == "") break;
+
+            var result = await LedgerIsReady();
+            if (result == "LOCKED") addAccount3Status.innerHTML = icon('lock') + " Please, unlock your device";
+            else if (result == "CLOSED") addAccount3Status.innerHTML = icon('app-indicator') + " Please, the DigiByte App";
+            else if (typeof result == 'string') addAccount3Status.innerHTML = "Error: " + result;
+            else if (result === true) {
+                addAccount2_Continue()
+                break;
+            }
+        }
+    } else
+        addAccount_Show(addAccount2);
 }
 async function addAccount2_Continue() {
-    if (await CheckPassword(keyID, addAccount2Password.value) == false)
-        return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";
+    var key = await ReadKey(keyID)
+    if (key == "mnemonic" || key == "keys")
+        if (await CheckPassword(keyID, addAccount2Password.value) == false)
+            return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";
 
     if (addAccount1Type.value == 'derived' || addAccount1Type.value == 'mobile') {
-        addAccount_Show(addAccount4);
+        addAccount_Show(addAccount5);
         if (addAccount1Type.value == "derived") {
             var address = "null";
             address = addAccount1TypeLegacy.checked ? "legacy" : address;
@@ -112,6 +137,10 @@ async function addAccount2_Continue() {
             address = addAccount1TypeSegwit.checked ? "segwit" : address;
 
             var xpubs = await GenerateXPUB(keyID, addAccount2Password.value, address);
+            if (typeof xpubs == 'string') {
+                addAccount6Message.innerHTML = icon("exclamation-circle") + " Error: " + xpubs;
+                return addAccount_Show(addAccount6);
+            }
         } if (addAccount1Type.value == "mobile") {
             var address = "legacy";
             var xpubs = await GenerateXPUB(keyID, addAccount2Password.value, 'mobile');
@@ -127,7 +156,7 @@ async function addAccount2_Continue() {
         }
 
         var unused = false;
-        addAccount4Spinner.hidden = false;
+        addAccount5Spinner.hidden = false;
         for (var n in xpubs) {
             var xpub = xpubs[n];
             if (oldXPUBs.indexOf(xpub) != -1)
@@ -135,42 +164,42 @@ async function addAccount2_Continue() {
 
             var result = await NewXPUB(xpub, address);
 
-            if (addAccount4Spinner.hidden == true)
+            if (addAccount5Spinner.hidden == true)
                 break;
 
             if (result === null)
                 break;
             else if (result == true && unused == false) {
                 unused = true;
-                addAccount4Found.innerHTML += `
-                    <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
+                addAccount5Found.innerHTML += `
+                    <div class="option row mx-1 p-3 mb-2" onclick="addAccount5_Account('${xpub}', ${n})">
                         <div class="col-6 text-start">DigiByte ${n}</div>
                         <div class="col-6 text-end">(Unused)</div>
                     </div>`;
             } else if (typeof result == 'string') {
-                addAccount4Found.innerHTML += `
-                    <div class="option row mx-1 p-3 mb-2" onclick="addAccount4_Account('${xpub}', ${n})">
+                addAccount5Found.innerHTML += `
+                    <div class="option row mx-1 p-3 mb-2" onclick="addAccount5_Account('${xpub}', ${n})">
                         <div class="col-6 text-start">DigiByte ${n}</div>
                         <div class="col-6 text-end">${coin(result, 8)}</div>
                     </div>`;
             }
         }
-        addAccount4Spinner.hidden = true;
+        addAccount5Spinner.hidden = true;
     } else if (addAccount1Type.value == 'single') {
         var addresses = await GenerateAddresses(keyID, addAccount2Password.value, 'livenet');
-        addAccount_Show(addAccount3);
-        addAccount3Spinner.hidden = false;
+        addAccount_Show(addAccount4);
+        addAccount4Spinner.hidden = false;
         for (var n of addresses) {
             for (var type of Object.keys(n)) {
                 var result = await NewAddress(n[type]);
-                if (addAccount3Spinner.hidden == true)
+                if (addAccount4Spinner.hidden == true)
                     break;
                 if (result === null)
                     break;
-                addAccount3Found.innerHTML += `
+                addAccount4Found.innerHTML += `
                     <label class="option row mx-1 py-3 px-1 mb-2">
                         <div class="col-1 my-auto">
-                            <input class="form-check-input" type="checkbox" id="addAccount3Check${n[type]}" value="${n[type]}">
+                            <input class="form-check-input" type="checkbox" id="addAccount4Check${n[type]}" value="${n[type]}">
                         </div>
                         <div class="col">
                                 ${n[type]}
@@ -180,31 +209,31 @@ async function addAccount2_Continue() {
                     </label>`;
             }
         }
-        addAccount3Spinner.hidden = true;
+        addAccount4Spinner.hidden = true;
     }
 }
-async function addAccount3_Create() {
-    addAccount3Spinner.hidden = true;
-    var checks = document.querySelectorAll('[id^="addAccount3Check"]');
+async function addAccount4_Create() {
+    addAccount4Spinner.hidden = true;
+    var checks = document.querySelectorAll('[id^="addAccount4Check"]');
     var addresses = [];
     checks.forEach(check => { if (check.checked) addresses.push(check.value); });
-    if (addresses.length == 0) return addAccount3Message.innerHTML = "Select at least one account";
+    if (addresses.length == 0) return addAccount4Message.innerHTML = "Select at least one account";
 
-    addAccount_Show(addAccount5);
+    addAccount_Show(addAccount6);
     var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID, addresses);
     if (result == true) {
         frmAccounts_Load();
-        addAccount5Message.innerHTML = "Account created";
+        addAccount6Message.innerHTML = "Account created";
     } else {
-        addAccount5Message.innerHTML = icon("exclamation-circle") + " " + result;
+        addAccount6Message.innerHTML = icon("exclamation-circle") + " " + result;
     }
 }
-async function addAccount4_StopLooking() {
-    addAccount4Spinner.hidden = true;
+async function addAccount5_StopLooking() {
+    addAccount5Spinner.hidden = true;
 }
-async function addAccount4_Account(xpub, account) {
-    addAccount_Show(addAccount5);
-    addAccount4Spinner.hidden = true;
+async function addAccount5_Account(xpub, account) {
+    addAccount_Show(addAccount6);
+    addAccount5Spinner.hidden = true;
 
     var purpose = "null";
     if (addAccount1Type.value == 'derived') {
@@ -217,8 +246,8 @@ async function addAccount4_Account(xpub, account) {
 
     if (result == true) {
         frmAccounts_Load();
-        addAccount5Message.innerHTML = "Account created";
+        addAccount6Message.innerHTML = "Account created";
     } else {
-        addAccount5Message.innerHTML = icon("exclamation-circle") + " " + result;
+        addAccount6Message.innerHTML = icon("exclamation-circle") + " " + result;
     }
 }

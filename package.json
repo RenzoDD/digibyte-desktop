@@ -4,7 +4,7 @@
   "description": "A DigiByte Coin standard-compilant light wallet for desktop environment",
   "main": "src/index.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --trace-warnings",
     "pack": "electron-builder build --dir",
     "dist": "electron-builder build",
     "test": "node test.js"

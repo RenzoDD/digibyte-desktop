@@ -111,9 +111,10 @@ async function addAccount1_Continue() {
             if (addAccount3Status.innerHTML == "") break;
 
             var result = await LedgerIsReady();
-            if (result == "LOCKED") addAccount3Status.innerHTML = icon('lock') + " Please, unlock your device";
-            else if (result == "CLOSED") addAccount3Status.innerHTML = icon('app-indicator') + " Please, the DigiByte App";
-            else if (typeof result == 'string') addAccount3Status.innerHTML = "Error: " + result;
+            if (result == "DISCONECTED") addAccount3Status.innerHTML = icon('usb-symbol') + " Connect your device...";
+            else if (result == "LOCKED") addAccount3Status.innerHTML = icon('lock') + " Unlock your device...";
+            else if (result == "IN_MENU" || result == "OTHER_APP") addAccount3Status.innerHTML = icon('app-indicator') + " Open the DigiByte App...";
+            else if (typeof result == 'string') addAccount3Status.innerHTML = icon('exclamation-circle') + " Error: " + result.toLocaleLowerCase() + "...";
             else if (result === true) {
                 addAccount2_Continue()
                 break;

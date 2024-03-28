@@ -444,5 +444,7 @@ ipcMain.on('add-to-mempool', async function (event, id, txid) {
 
 ipcMain.on('ledger-is-ready', async function (event) {
     var transport = await Ledger.IsReady();
+    if (transport == 'IN_MENU') await Ledger.OppenDigiByteApp();
+    if (transport == 'OTHER_APP') await Ledger.CloseApp();
     return event.reply('ledger-is-ready', transport);
 })

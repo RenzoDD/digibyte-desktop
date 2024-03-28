@@ -136,7 +136,6 @@ async function SyncMovementsXPUB(account) {
     var newMovements = [];
     var newMovementsIndicator = false;
     for (var page = 1; true; page++) {
-
         DigiByte.explorer.retry = 10;
         var info = await DigiByte.explorer.xpub(account.xpub, account.address, { details: 'txs', pageSize: 50, page });
         if (info.error)
@@ -148,7 +147,7 @@ async function SyncMovementsXPUB(account) {
 
             var movement = TxToMovement(tx, addresses);
             await storage.SetTransaction(tx.txid, tx);
-            
+
             if (tx.confirmations < CONFIRMATIONS) {
                 await storage.AddTxAccountMempool(account.id, movement);
                 newMovementsIndicator = true;
@@ -159,13 +158,16 @@ async function SyncMovementsXPUB(account) {
             newMovementsIndicator = true;
         }
 
-        movements = newMovements.concat(movements);
-        await storage.SetAccountMovements(account.id, movements);
-        console.log("SyncMovementsXPUB", "SUCCESS", account.id, "txs:" + movements.length, "new:" + newMovements.length);
+        console.log("SyncMovementsXPUB", "ONGOING", account.id, "txs:" + movements.length, "new:" + newMovements.length);
 
         if (page >= info.totalPages)
             break;
     }
+
+    movements = newMovements.concat(movements);
+    await storage.SetAccountMovements(account.id, movements);
+    console.log("SyncMovementsXPUB", "SUCCESS", account.id, "txs:" + movements.length, "new:" + newMovements.length);
+
     return newMovementsIndicator;
 }
 
@@ -189,7 +191,7 @@ async function SyncMovementsAddresses(account) {
             info.transactions = info.transactions ? info.transactions : [];
             for (var tx of info.transactions) {
                 if (last == tx.txid) { page = Number.MAX_SAFE_INTEGER; break; }
-                                
+
                 var movement = TxToMovement(tx, addresses);
                 await storage.SetTransaction(tx.txid, tx);
 
@@ -254,7 +256,7 @@ async function SyncBalance(account) {
         await storage.SetAccountMempool(account.id, mempool);
     }
 
-    
+
     movements = movements.filter(x => x.height > balance.height);
 
     var height = balance.height;

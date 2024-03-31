@@ -4,7 +4,6 @@ const BTC = require("@ledgerhq/hw-app-btc").default;
 const Ledger = {};
 
 Ledger.GetTransport = async function () {
-
     var transportPromise = TransportNodeHid.create();
     var timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
@@ -77,6 +76,27 @@ Ledger.GetXPUBs = async function (n, type) {
     return xpubs;
 }
 
+Ledger.GetAddress = async function (path, type) {
+    var transport = await Ledger.GetTransport();
+    if (!transport) return { error: "The device was disconected" };
+    const btc = new BTC({ transport });
+
+    try {
+        type = type == 'legacy' ? 'legacy' : type;
+        type = type == 'script' ? 'p2sh' : type;
+        type = type == 'segwit' ? 'bech32' : type;
+        
+        var address = await btc.getWalletPublicKey(path, { verify: true, format: type });
+        console.log(address)
+        return address.bitcoinAddress;
+    } catch (e) {
+        if (e.statusCode == 27013) return { error: "Address rejected by the user" }
+        return { error: e.statusText || "Unknown error" }
+    } finally {
+        transport.close();
+    }
+}
+
 Ledger.SignTransaction = async function (options) {
     var transport = await Ledger.GetTransport();
     if (!transport) return { error: "The device was disconected" };
@@ -94,7 +114,7 @@ Ledger.SignTransaction = async function (options) {
         });
         return options;
     } catch (e) {
-        if (e.statusCode == 27013) return {error: "Action canceled by the user"}
+        if (e.statusCode == 27013) return { error: "Action canceled by the user" }
         return { error: e.statusText || "Unknown error" }
     } finally {
         transport.close();

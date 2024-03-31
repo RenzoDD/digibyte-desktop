@@ -622,9 +622,9 @@
 							</div>
 						</div>
 						<div class="m-4" id="addAccount3">
-							<label class="mb-3" id="addAccount3Status">
+							<div class="text-center mb-3" id="addAccount3Status">
 								Checking device...
-							</label>
+							</div>
 							<div class="d-flex justify-content-center mb-3">
 								<div class="spinner-border mx-auto">
 								</div>
@@ -787,14 +787,12 @@
 							<div class="mb-3 text-center">
 								<img id="receiveDGB1QR" class="img-fluid img-thumbnail">
 							</div>
-							<div class="mb-3 text-center" id="receiveDGB1Path">
-
-							</div>
+							<div class="mb-3 text-center" id="receiveDGB1Path"></div>
 							<div class="mb-3">
 								<label>Address:</label>
 								<div class="input-group">
 									<input class="form-control text-center" id="receiveDGB1Address" readonly>
-									<button class="btn btn-success" type="button" id="receiveDGB1Copy" onclick="receiveDGB_Copy()">
+									<button class="btn btn-success" type="button" id="receiveDGB1Copy" onclick="receiveDGB1_Copy()">
 										<svg class="bi" width="18" height="18">
 											<use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
 										</svg>
@@ -802,6 +800,27 @@
 								</div>
 							</div>
 							<div class="text-center">
+								<button class="btn btn-secondary btn-sm" onclick="receiveDGB_Close()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+									</svg> Close
+								</button>
+							</div>
+						</div>
+						<div class="m-4" id="receiveDGB2">
+							<div class="text-center mb-3" id="receiveDGB2Status">
+								Checking device...
+							</div>
+							<div class="d-flex justify-content-center mb-3">
+								<div class="spinner-border mx-auto">
+								</div>
+							</div>
+							<div class="text-center">
+								<button class="btn btn-primary btn-sm" onclick="receiveDGB2_LedgerManual()">
+									<svg class="bi" width="18" height="18">
+										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
+									</svg> I don't have my device
+								</button>
 								<button class="btn btn-secondary btn-sm" onclick="receiveDGB_Close()">
 									<svg class="bi" width="18" height="18">
 										<use xlink:href="vendor/bootstrap-icons.svg#x-circle" />
@@ -1001,6 +1020,7 @@
 						</div>
 						<div class="m-4" id="sendDGB4">
 							<div class="text-center mb-3" id="sendDGB4Status">
+								Checking device...
 							</div>
 							<div class="d-flex justify-content-center mb-3">
 								<div class="spinner-border mx-auto">

@@ -461,6 +461,10 @@ ipcMain.on('ledger-is-ready', async function (event) {
     if (result == 'OTHER_APP') await Ledger.CloseApp();
     return event.reply('ledger-is-ready', result);
 })
+ipcMain.on('ledger-generate-address', async function (event, path, type) {
+    var address = await Ledger.GetAddress(path, type);
+    return event.reply('ledger-generate-address', address);
+})
 ipcMain.on('ledger-sign-transaction', async function (event, options) {
     var options = await Ledger.SignTransaction(options);
     return event.reply('ledger-sign-transaction', options);

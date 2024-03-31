@@ -308,6 +308,14 @@ function LedgerIsReady() {
         });
     });
 }
+function LedgerGenerateAddress(path, type) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('ledger-generate-address', path, type);
+        ipcRenderer.once('ledger-generate-address', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 function LedgerSignTransaction(options) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('ledger-sign-transaction', options);

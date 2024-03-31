@@ -155,18 +155,48 @@ async function manageAccount1Path_Copy() {
 }
 
 async function frmAccount_Receive() {
-    var address = await GenerateLastAddres(accountID);
+    modalToggle(receiveDGB);
+
+    var key = await ReadKey(keyID);
     var account = await GetAccount(accountID);
+
+    if (key.type == "ledger") {
+        receiveDGB_Show(receiveDGB2);
+        receiveDGB2Status.innerHTML = icon('usb-symbol') + " Checking device...";
+        while (true) {
+            if (receiveDGB2Status.innerHTML == "") {
+                var address = { error: "Process canceled" };
+                break;
+            }
+            var result = await LedgerIsReady();
+            if (result == "DISCONECTED") receiveDGB2Status.innerHTML = icon('usb-symbol') + " Connect your device...";
+            else if (result == "LOCKED") receiveDGB2Status.innerHTML = icon('lock') + " Unlock your device...";
+            else if (result == "IN_MENU" || result == "OTHER_APP") receiveDGB2Status.innerHTML = icon('app-indicator') + " Open the DigiByte App...";
+            else if (typeof result == 'string') receiveDGB2Status.innerHTML = icon('exclamation-circle') + " Error: " + result.toLocaleLowerCase() + "...";
+            else if (result === true) {
+                var addressUnsafe = await GenerateLastAddres(accountID);
+                receiveDGB2Status.innerHTML = icon('check-circle') + " Aprove this address on your device...<br>" + addressUnsafe;
+                var address = await LedgerGenerateAddress(account.path + "/0/" + account.external, account.address);
+                break;
+            }
+        }
+        if (address.error) {
+            receiveDGB2Status.innerHTML = icon('exclamation-circle') + " " + address.error;
+            return;
+        }
+    } else {
+        var address = await GenerateLastAddres(accountID);
+    }
 
     receiveDGB1Address.value = address;
     receiveDGB1Path.innerHTML = account.path ? account.path + "/0/" + account.external : "";
     receiveDGB1QR.src = DigiQR.text(address, 200, 2);
 
     receiveDGB_Show(receiveDGB1);
-    modalToggle(receiveDGB);
 }
 async function receiveDGB_Show(screen) {
     receiveDGB1.hidden = true;
+    receiveDGB2.hidden = true;
 
     screen.hidden = false;
 }
@@ -176,12 +206,26 @@ async function receiveDGB_Close() {
     receiveDGB1Path.innerHTML = "";
     receiveDGB1Address.value = "";
     receiveDGB1Copy.innerHTML = icon('clipboard');
+
+    receiveDGB2Status.innerHTML = "";
 }
-async function receiveDGB_Copy() {
+async function receiveDGB1_Copy() {
     var result = await CopyClipboard(receiveDGB1Address.value);
     if (result) receiveDGB1Copy.innerHTML = icon('clipboard-check');
     else receiveDGB1Copy.innerHTML = icon('clipboard-x');
 }
+async function receiveDGB2_LedgerManual() {
+    var account = await GetAccount(accountID);
+    var address = await GenerateLastAddres(accountID);
+
+    receiveDGB2Status.innerHTML = "";
+    receiveDGB1Address.value = address;
+    receiveDGB1Path.innerHTML = account.path ? account.path + "/0/" + account.external : "";
+    receiveDGB1QR.src = DigiQR.text(address, 200, 2);
+
+    receiveDGB_Show(receiveDGB1);
+}
+
 
 async function frmAccount_Send() {
     var account = await GetAccount(accountID);
@@ -225,6 +269,8 @@ async function sendDGB_Close() {
     sendDGB3Password.value = "";
     sendDGB3Password.placeholder = "";
     sendDGB3Message.innerHTML = "";
+
+    sendDGB4Status.innerHTML = "";
 
     sendDGB5Message.innerHTML = "";
 }
@@ -388,7 +434,7 @@ async function sendDGB4_Execute() {
             }
         }
     }
-    
+
     if (options.error) {
         sendDGB5Message.innerHTML = icon("x-circle") + " " + options.error;
         return sendDGB_Show(sendDGB5);

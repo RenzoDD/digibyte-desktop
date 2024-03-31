@@ -332,10 +332,8 @@ ipcMain.on('dgb-to-sats', async function (event, amount) {
     var result = DigiByte.DGBtoSats(amount);
     return event.reply('dgb-to-sats', result);
 });
-ipcMain.on('create-tx', async function (event, id, password, options) {
-    var account = await storage.GetAccount(id);
+ipcMain.on('create-tx', async function (event, options, id, password) {
     var balance = await storage.GetAccountBalance(id);
-    var key = await storage.GetKey(account.secret);
 
     // Parse outputs
     for (var n in options.outputs) {
@@ -365,7 +363,7 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
     } else if (options.advanced.coinControl == 'long-save') { // Less fees on long term
         inputs.sort((a, b) => a.height - b.height);
         inputs.sort((a, b) => a.satoshis - b.satoshis);
-    } else if (options.advanced.coinControl == 'security') { // More security
+    } else if (options.advanced.coinControl == 'privacy') { // More privacy
         inputs.sort((a, b) => a.satoshis - b.satoshis);
         inputs.sort((a, b) => a.script.localeCompare(b.script));
     }
@@ -377,10 +375,17 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
         var inSats = 0;
         options.inputs.forEach(utxo => inSats += utxo.satoshis);
 
-        var outWithFee = outSats + (chargedRecipient ? 0 : DigiByte.CalculateTxFee(options));
+        options.fee = DigiByte.CalculateTxFee(options);
+        var outWithFee = outSats + (chargedRecipient ? 0 : options.fee);
     } while (inSats < outWithFee);
 
-    if (options.advanced.coinControl == 'security') {
+    if (chargedRecipient) {
+        chargedRecipient.satoshis -= options.fee;
+        if (chargedRecipient.satoshis < 600)
+            return event.reply('create-tx', { error: 'Insuficient output balance to substract fee' });
+    }
+
+    if (options.advanced.coinControl == 'privacy') {
         var last = options.inputs[options.inputs.length - 1].script;
 
         while (inputs.length != 0) {
@@ -390,33 +395,41 @@ ipcMain.on('create-tx', async function (event, id, password, options) {
         }
     }
 
-    var keys = {}
-    if (account.type == 'derived') {
-        var xprv = DecryptAES256(key.secret, password);
-        for (var input of options.inputs)
-            if (!keys[input.path])
-                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path);
-    } else if (account.type == 'mobile') {
-        var xprv = DecryptAES256(key.secret, password);
-        for (var input of options.inputs)
-            if (!keys[input.path])
-                keys[input.path] = DigiByte.DeriveHDPrivateKey(xprv, input.path, true);
-    } else if (account.type == 'single') {
-        for (var key of key.secret)
-            keys[key] = DecryptAES256(key, password);
-    }
-
-    options.keys = Object.values(keys);
+    var account = await storage.GetAccount(id);
+    var key = await storage.GetKey(account.secret);
 
     if (!options.advanced.change) {
-        if (account.type == 'derived' || account.type == 'mobile')
-            options.advanced.change = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 1, account.change);
-        else if (account.type == 'single')
+        if (account.type == 'derived' || account.type == 'mobile') {
+            options.advanced.change = {
+                address: DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 1, account.change),
+                path: account.path + `/1/${account.change}`
+            }
+        } else if (account.type == 'single')
             options.advanced.change = account.addresses[0];
     }
 
-    var result = DigiByte.SignTransaction(options);
-    return event.reply('create-tx', result);
+    var options = DigiByte.BuildTransaction(options);
+
+    if (password) {
+        if (account.type == 'derived') {
+            var xprv = DecryptAES256(key.secret, password);
+            var keys = options.paths.map(path => DigiByte.DeriveHDPrivateKey(xprv, path));
+        } else if (account.type == 'mobile') {
+            var xprv = DecryptAES256(key.secret, password);
+            var keys = options.paths.map(path => DigiByte.DeriveHDPrivateKey(xprv, path));
+        } else if (account.type == 'single') {
+            var keys = key.secret.map(key => DecryptAES256(key, password))
+        }
+
+        var options = DigiByte.SignTransaction(options, keys);
+    } else {
+        for (var utxo of options.inputs) {
+            var tx = await storage.GetTransaction(utxo.txid);
+            utxo.tx = tx.hex;
+        }
+    }
+
+    return event.reply('create-tx', options);
 });
 ipcMain.on('broadcast-tx', async function (event, hex) {
     DigiByte.explorer.retry = 10;
@@ -443,8 +456,12 @@ ipcMain.on('add-to-mempool', async function (event, id, txid) {
  */
 
 ipcMain.on('ledger-is-ready', async function (event) {
-    var transport = await Ledger.IsReady();
-    if (transport == 'IN_MENU') await Ledger.OppenDigiByteApp();
-    if (transport == 'OTHER_APP') await Ledger.CloseApp();
-    return event.reply('ledger-is-ready', transport);
+    var result = await Ledger.IsReady();
+    if (result == 'IN_MENU') await Ledger.OppenDigiByteApp();
+    if (result == 'OTHER_APP') await Ledger.CloseApp();
+    return event.reply('ledger-is-ready', result);
+})
+ipcMain.on('ledger-sign-transaction', async function (event, options) {
+    var options = await Ledger.SignTransaction(options);
+    return event.reply('ledger-sign-transaction', options);
 })

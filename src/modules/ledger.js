@@ -25,7 +25,7 @@ Ledger.IsReady = async function () {
     if (!transport) return "DISCONECTED";
 
     try {
-        const response = await transport.send(0xb0, 0x01, 0x00, 0x00);
+        var response = await transport.send(0xb0, 0x01, 0x00, 0x00);
         var menu = response.includes('BOLOS');
         var result = response.includes('Digibyte');
         return menu ? 'IN_MENU' : result ? true : 'OTHER_APP';
@@ -34,7 +34,6 @@ Ledger.IsReady = async function () {
     } finally {
         transport.close();
     }
-
 }
 Ledger.CloseApp = async function () {
     var transport = await Ledger.GetTransport();
@@ -64,7 +63,7 @@ Ledger.GetXPUBs = async function (n, type) {
 
     var transport = await Ledger.GetTransport();
     if (!transport) return "DISCONECTED";
-    const btc = new BTC({ transport });
+    var btc = new BTC({ transport });
 
     var xpubs = [];
     for (var i = 0; i < n; i++) {
@@ -76,6 +75,30 @@ Ledger.GetXPUBs = async function (n, type) {
         }
     }
     return xpubs;
+}
+
+Ledger.SignTransaction = async function (options) {
+    var transport = await Ledger.GetTransport();
+    if (!transport) return { error: "The device was disconected" };
+    const btc = new BTC({ transport });
+
+    var inputs = options.inputs.map(utxo => [btc.splitTransaction(utxo.tx, true), utxo.vout]);
+    var outputScriptHex = btc.serializeTransactionOutputs(btc.splitTransaction(options.hex)).toString('hex');
+
+    try {
+        options.hex = await btc.createPaymentTransaction({
+            inputs,
+            associatedKeysets: options.inputs.map(utxo => utxo.path),
+            changePath: options.advanced.change.path,
+            outputScriptHex
+        });
+        return options;
+    } catch (e) {
+        if (e.statusCode == 27013) return {error: "Action canceled by the user"}
+        return { error: e.statusText || "Unknown error" }
+    } finally {
+        transport.close();
+    }
 }
 
 module.exports = Ledger;

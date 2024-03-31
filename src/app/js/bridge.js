@@ -264,10 +264,18 @@ function DGBtoSats(amount) {
         });
     });
 }
-function CreateTransaction(id, password, options) {
+function CreateTransaction(options, accountID, password) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('create-tx', id, password, options);
+        ipcRenderer.send('create-tx', options, accountID, password);
         ipcRenderer.once('create-tx', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function SignTransaction(hex, password, options, id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('sign-tx', hex, options, id);
+        ipcRenderer.once('sign-tx', (event, response) => {
             resolve(response);
         });
     });
@@ -296,6 +304,14 @@ function LedgerIsReady() {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('ledger-is-ready');
         ipcRenderer.once('ledger-is-ready', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function LedgerSignTransaction(options) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('ledger-sign-transaction', options);
+        ipcRenderer.once('ledger-sign-transaction', (event, response) => {
             resolve(response);
         });
     });

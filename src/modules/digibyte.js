@@ -106,19 +106,20 @@ DigiByte.CalculateTxFee = function (options) {
     return (10 + inputs + (inputs * 180) + (outputs * 34) + data) * 2;
 }
 
-DigiByte.SignTransaction = function (options) {
+DigiByte.BuildTransaction = function (options) {
     var inSats = 0;
     options.inputs.forEach(utxo => inSats += utxo.satoshis);
     var outSats = 0;
     options.outputs.forEach(utxo => outSats += utxo.satoshis);
 
-    if (outSats > inSats) return { error: 'Input amount is less than output amount' };
+    if (outSats + options.fee >= inSats) return { error: 'Input amount is less than output amount' };
+
 
     var tx = new Transaction()
         .from(options.inputs)
         .to(options.outputs)
-        .change(options.advanced.change)
-        .feePerByte(options.advanced.feeperbyte);
+        .change(options.advanced.change.address || options.advanced.change)
+        .fee(options.fee);
 
     if (options.advanced.memo)
         tx.addData(options.advanced.memo);
@@ -131,42 +132,22 @@ DigiByte.SignTransaction = function (options) {
     if (options.advanced.rbf)
         tx.enableRBF();
 
-    var fee = tx._estimateFee();
-    var chargedRecipient = options.outputs.find(x => x.fee);
-    if (chargedRecipient) {
-        chargedRecipient.satoshis -= fee;
-        tx.fee(tx._estimateFee());
-        if (chargedRecipient.satoshis < 600)
-            return { error: 'Insuficient output balance to substract fee' };
-        tx.clearOutputs();
-        tx.to(options.outputs);
-    }
+    var error = tx.getSerializationError({ disableIsFullySigned: true });
+    if (error) return { error: error.toString() };
 
-    tx.sign(options.keys);
+    options.hex = tx.serialize({ disableIsFullySigned: true });
+    return options;
+}
+DigiByte.SignTransaction = function (options, keys) {
+    var tx = new Transaction(options.hex);
+    tx.associateInputs(options.inputs);
+    tx.sign(keys);
 
     var error = tx.getSerializationError();
     if (error) return { error: error.toString() };
 
-    var hex = tx.serialize();
-    var size = hex.length / 2;
-    if (size > fee) {
-        tx.fee(size);
-        if (chargedRecipient) {
-            chargedRecipient.satoshis += fee;
-            chargedRecipient.satoshis -= size;
-            if (chargedRecipient.satoshis < 600)
-                return { error: 'Insuficient output balance to substract fee' };
-            tx.clearOutputs();
-            tx.to(options.outputs);
-        }
-        tx.sign(options.keys);
-        var error = tx.getSerializationError();
-        if (error) return { error: error.toString() };
-
-        var hex = tx.serialize();
-    }
-
-    return { hex }
+    options.hex = tx.serialize();
+    return options;
 }
 
 /*

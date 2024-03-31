@@ -197,6 +197,7 @@ async function sendDGB_Show(screen) {
     sendDGB2.hidden = true;
     sendDGB3.hidden = true;
     sendDGB4.hidden = true;
+    sendDGB5.hidden = true;
 
     screen.hidden = false;
 }
@@ -225,8 +226,7 @@ async function sendDGB_Close() {
     sendDGB3Password.placeholder = "";
     sendDGB3Message.innerHTML = "";
 
-    sendDGB4Spinner.hidden = false;
-    sendDGB4Message.innerHTML = "";
+    sendDGB5Message.innerHTML = "";
 }
 async function sendDGB1_AddOutput() {
     var n = sendDGB1Outputs.amount || 0;
@@ -291,9 +291,15 @@ async function sendDGB1_AdvancedOptions() {
 }
 async function sendDGB1_Continue() {
     if (sendDGB1AdvancedOptions.checked)
-        sendDGB_Show(sendDGB2);
-    else
-        sendDGB_Show(sendDGB3);
+        return sendDGB_Show(sendDGB2);
+
+    var key = await ReadKey(keyID);
+    if (key.type == "ledger") {
+        sendDGB4_Execute();
+        return sendDGB_Show(sendDGB4);
+    }
+
+    sendDGB_Show(sendDGB3);
 }
 async function sendDGB2_Continue() {
     // TODO: Check advanced options
@@ -305,10 +311,16 @@ async function sendDGB3_Sign() {
     sendDGB3Message.innerHTML = "";
 
     sendDGB_Show(sendDGB4);
-
+    sendDGB4_Execute();
+}
+async function sendDGB4_Execute() {
     var options = {
+        inputs: [],
         outputs: [],
-        advanced: {}
+        fee: 0,
+        paths: [],
+        advanced: {},
+        hex: ""
     };
 
     // OUTPUTS
@@ -346,30 +358,60 @@ async function sendDGB3_Sign() {
 
     options.advanced.coinControl = sendDGB2CoinControl.value;
 
-    var hex = await CreateTransaction(accountID, sendDGB3Password.value, options);
-    if (hex.error) {
-        sendDGB4Spinner.hidden = true;
-        return sendDGB4Message.innerHTML = icon("x-circle") + " " + hex.error;
+    var key = await ReadKey(keyID);
+    if (key.type == "ledger") {
+        var options = await CreateTransaction(options, accountID);
+    } else
+        var options = await CreateTransaction(options, accountID, sendDGB3Password.value);
+
+    if (options.error) {
+        sendDGB5Message.innerHTML = icon("x-circle") + " " + options.error;
+        return sendDGB_Show(sendDGB5);
     }
 
-    var data = await BroadcastTransaction(hex.hex);
+    if (key.type == "ledger") {
+        sendDGB4Status.innerHTML = icon('usb-symbol') + " Checking device...";
+        while (true) {
+            if (sendDGB4Status.innerHTML == "") {
+                var options = { error: "Process canceled" };
+                break;
+            }
+            var result = await LedgerIsReady();
+            if (result == "DISCONECTED") sendDGB4Status.innerHTML = icon('usb-symbol') + " Connect your device...";
+            else if (result == "LOCKED") sendDGB4Status.innerHTML = icon('lock') + " Unlock your device...";
+            else if (result == "IN_MENU" || result == "OTHER_APP") sendDGB4Status.innerHTML = icon('app-indicator') + " Open the DigiByte App...";
+            else if (typeof result == 'string') sendDGB4Status.innerHTML = icon('exclamation-circle') + " Error: " + result.toLocaleLowerCase() + "...";
+            else if (result === true) {
+                sendDGB4Status.innerHTML = icon('pen') + " Sign the transaction on your device...";
+                var options = await LedgerSignTransaction(options);
+                break;
+            }
+        }
+    }
+    
+    if (options.error) {
+        sendDGB5Message.innerHTML = icon("x-circle") + " " + options.error;
+        return sendDGB_Show(sendDGB5);
+    }
+
+    var data = await BroadcastTransaction(options.hex);
     if (data.error) {
-        sendDGB4Spinner.hidden = true;
-        return sendDGB4Message.innerHTML = icon("x-circle") + " " + data.error;
+        sendDGB_Show(sendDGB5);
+        return sendDGB5Message.innerHTML = icon("x-circle") + " " + data.error;
     }
 
     await AddToMempool(accountID, data.result);
     await frmAccount_Load(accountID);
 
-    sendDGB4Spinner.hidden = true;
-    return sendDGB4Message.innerHTML = `
+    sendDGB_Show(sendDGB5);
+    return sendDGB5Message.innerHTML = `
         <div class="text-center">${icon('check-circle', 40)}</div>
         <div class="text-center">Transaction Broadcasted</div>
         <div class="text-break">
             <label>TXID:</label>
             <div class="input-group">
                 <input type="text" class="form-control form-control-sm monospace" value="${data.result}" readonly>
-                <button class="btn btn-success" type="button" id="sendDGB3Copy" onclick="sendDGB3_Copy('${data.result}')">
+                <button class="btn btn-success" type="button" id="sendDGB3Copy" onclick="sendDGB5_Copy('${data.result}')">
                     <svg class="bi" width="18" height="18">
                         <use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
                     </svg>
@@ -379,7 +421,7 @@ async function sendDGB3_Sign() {
         </div>
     `;
 }
-async function sendDGB3_Copy(txid) {
+async function sendDGB5_Copy(txid) {
     var result = await CopyClipboard(txid);
     if (result) sendDGB3Copy.innerHTML = icon('clipboard-check');
     else sendDGB3Copy.innerHTML = icon('clipboard-x');

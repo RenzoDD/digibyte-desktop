@@ -364,7 +364,6 @@ async function sendDGB4_Execute() {
         inputs: [],
         outputs: [],
         fee: 0,
-        paths: [],
         advanced: {},
         hex: ""
     };

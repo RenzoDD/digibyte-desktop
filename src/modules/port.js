@@ -411,12 +411,16 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
     var options = DigiByte.BuildTransaction(options);
 
     if (password) {
+        var paths = {};
+        options.inputs.forEach(utxo => paths[utxo.path] = true);
+        paths = Object.keys(paths);
+
         if (account.type == 'derived') {
             var xprv = DecryptAES256(key.secret, password);
-            var keys = options.paths.map(path => DigiByte.DeriveHDPrivateKey(xprv, path));
+            var keys = paths.map(path => DigiByte.DeriveHDPrivateKey(xprv, path));
         } else if (account.type == 'mobile') {
             var xprv = DecryptAES256(key.secret, password);
-            var keys = options.paths.map(path => DigiByte.DeriveHDPrivateKey(xprv, path));
+            var keys = paths.map(path => DigiByte.DeriveHDPrivateKey(xprv, path));
         } else if (account.type == 'single') {
             var keys = key.secret.map(key => DecryptAES256(key, password))
         }

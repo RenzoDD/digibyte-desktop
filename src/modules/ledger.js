@@ -85,9 +85,8 @@ Ledger.GetAddress = async function (path, type) {
         type = type == 'legacy' ? 'legacy' : type;
         type = type == 'script' ? 'p2sh' : type;
         type = type == 'segwit' ? 'bech32' : type;
-        
+
         var address = await btc.getWalletPublicKey(path, { verify: true, format: type });
-        console.log(address)
         return address.bitcoinAddress;
     } catch (e) {
         if (e.statusCode == 27013) return { error: "Address rejected by the user" }
@@ -102,16 +101,36 @@ Ledger.SignTransaction = async function (options) {
     if (!transport) return { error: "The device was disconected" };
     const btc = new BTC({ transport });
 
-    var inputs = options.inputs.map(utxo => [btc.splitTransaction(utxo.tx, true), utxo.vout]);
+    var inputs = [];
+    var segwit = false;
+    var additionals = [];
+    for (var input of options.inputs) {
+        if (input.path.startsWith('m/84') || input.path.startsWith('m/49'))
+            segwit = true;
+        if (input.path.startsWith('m/84') && additionals.length == 0) {
+            additionals.push('bech32');
+            segwit = true;
+        }
+        inputs.push([btc.splitTransaction(input.tx, true), input.vout, null, 0xffffffff]);
+    }
+
+    if (options.advanced.rbf) inputs[0][3] -= 2;
+    else if (options.advanced.locktime) inputs[0][3] -= 1;
+
+    var associatedKeysets = options.inputs.map(utxo => utxo.path);
     var outputScriptHex = btc.serializeTransactionOutputs(btc.splitTransaction(options.hex)).toString('hex');
 
     try {
         options.hex = await btc.createPaymentTransaction({
             inputs,
-            associatedKeysets: options.inputs.map(utxo => utxo.path),
-            changePath: options.advanced.change.path,
-            outputScriptHex
+            associatedKeysets,
+            changePath: options.advanced.change.path || null,
+            outputScriptHex,
+            lockTime: options.advanced.locktime,
+            segwit,
+            additionals
         });
+
         return options;
     } catch (e) {
         if (e.statusCode == 27013) return { error: "Action canceled by the user" }

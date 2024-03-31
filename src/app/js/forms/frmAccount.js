@@ -348,7 +348,12 @@ async function sendDGB1_Continue() {
     sendDGB_Show(sendDGB3);
 }
 async function sendDGB2_Continue() {
-    // TODO: Check advanced options
+    var key = await ReadKey(keyID);
+    if (key.type == "ledger") {
+        sendDGB4_Execute();
+        return sendDGB_Show(sendDGB4);
+    }
+
     sendDGB_Show(sendDGB3);
 }
 async function sendDGB3_Sign() {
@@ -388,9 +393,9 @@ async function sendDGB4_Execute() {
     options.advanced.feeperbyte = parseInt(sendDGB2FeePerByte.value);
 
     if (sendDGB2BlockCheck.checked && sendDGB2Block.value < 500000000)
-        options.advanced.timelock = { block: sendDGB2Block.value };
+        options.advanced.locktime = { block: parseInt(sendDGB2Block.value) || 0 };
     else if (sendDGB2DateTimeCheck.checked && sendDGB2Date.value != '' && sendDGB2Time.value != '')
-        options.advanced.timelock = { time: ((new Date(sendDGB2Date.value + " " + sendDGB2Time.value)).getTime()) / 1000 };
+        options.advanced.locktime = { time: ((new Date(sendDGB2Date.value + " " + sendDGB2Time.value)).getTime()) / 1000 };
 
     if (await CheckAddress(sendDGB2Change.value))
         options.advanced.change = sendDGB2Change.value;
@@ -452,7 +457,7 @@ async function sendDGB4_Execute() {
     return sendDGB5Message.innerHTML = `
         <div class="text-center">${icon('check-circle', 40)}</div>
         <div class="text-center">Transaction Broadcasted</div>
-        <div class="text-break">
+        <div class="text-break text-start">
             <label>TXID:</label>
             <div class="input-group">
                 <input type="text" class="form-control form-control-sm monospace" value="${data.result}" readonly>

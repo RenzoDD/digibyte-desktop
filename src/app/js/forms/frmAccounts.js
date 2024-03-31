@@ -125,7 +125,7 @@ async function addAccount1_Continue() {
 }
 async function addAccount2_Continue() {
     var key = await ReadKey(keyID)
-    if (key == "mnemonic" || key == "keys")
+    if (key.type == "mnemonic" || key.type == "keys")
         if (await CheckPassword(keyID, addAccount2Password.value) == false)
             return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";
 
@@ -224,7 +224,7 @@ async function addAccount4_Create() {
     var result = await GenerateAccount(addAccount1Name.value, addAccount1Type.value, keyID, addresses);
     if (result == true) {
         frmAccounts_Load();
-        addAccount6Message.innerHTML = "Account created";
+        addAccount6Message.innerHTML = icon('check-circle') + " Account created";
     } else {
         addAccount6Message.innerHTML = icon("exclamation-circle") + " " + result;
     }
@@ -247,7 +247,7 @@ async function addAccount5_Account(xpub, account) {
 
     if (result == true) {
         frmAccounts_Load();
-        addAccount6Message.innerHTML = "Account created";
+        addAccount6Message.innerHTML = icon('check-circle') + " Account created";
     } else {
         addAccount6Message.innerHTML = icon("exclamation-circle") + " " + result;
     }

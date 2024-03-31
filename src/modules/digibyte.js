@@ -106,14 +106,13 @@ DigiByte.CalculateTxFee = function (options) {
     return (10 + inputs + (inputs * 180) + (outputs * 34) + data) * 2;
 }
 
-DigiByte.BuildTransaction = function (options) {
+DigiByte.BuildTransaction = function (options, keys) {
     var inSats = 0;
     options.inputs.forEach(utxo => inSats += utxo.satoshis);
     var outSats = 0;
     options.outputs.forEach(utxo => outSats += utxo.satoshis);
 
-    if (outSats + options.fee >= inSats) return { error: 'Input amount is less than output amount' };
-
+    if (outSats + options.fee > inSats) return { error: `Input amount is less than output amount ${outSats + options.fee} < ${inSats}` };
 
     var tx = new Transaction()
         .from(options.inputs)
@@ -123,30 +122,22 @@ DigiByte.BuildTransaction = function (options) {
 
     if (options.advanced.memo)
         tx.addData(options.advanced.memo);
-    if (options.advanced.timelock) {
-        if (options.advanced.timelock.block)
-            tx.lockUntilBlockHeight(options.advanced.timelock.block);
-        if (options.advanced.timelock.time)
-            tx.lockUntilDate(options.advanced.timelock.time);
+    if (options.advanced.locktime) {
+        if (options.advanced.locktime.block)
+            tx.lockUntilBlockHeight(options.advanced.locktime.block);
+        if (options.advanced.locktime.time)
+            tx.lockUntilDate(options.advanced.locktime.time);
     }
+    options.advanced.locktime = tx.nLockTime;
     if (options.advanced.rbf)
         tx.enableRBF();
+    
+    if (keys) tx.sign(keys);
 
     var error = tx.getSerializationError({ disableIsFullySigned: true });
     if (error) return { error: error.toString() };
 
     options.hex = tx.serialize({ disableIsFullySigned: true });
-    return options;
-}
-DigiByte.SignTransaction = function (options, keys) {
-    var tx = new Transaction(options.hex);
-    tx.associateInputs(options.inputs);
-    tx.sign(keys);
-
-    var error = tx.getSerializationError();
-    if (error) return { error: error.toString() };
-
-    options.hex = tx.serialize();
     return options;
 }
 

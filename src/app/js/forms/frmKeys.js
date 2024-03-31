@@ -120,7 +120,7 @@ async function generateKeys2_Generate() {
                         <div class="mt-0"><small>${parseInt(n) + 1}</small></div>
                     </div>`;
 
-        generateKeys3List.innerHTML = `<div class="mb-4">Please take note of this ${list.length} words. Anyone with access to them can move your funds. DO NOT SHARE OR LOSE YOUR RECOVERY PHRASE!!!</div>`
+        generateKeys3List.innerHTML = `<div class="mb-4">Please take note of this ${list.length} words in the order they appear. Anyone with access to them can move your funds. DO NOT SHARE OR LOSE YOUR RECOVERY PHRASE!!!</div>`
         generateKeys3List.innerHTML += `<div class="row">${data}</div>`
         delete list;
         delete data;
@@ -146,7 +146,7 @@ async function importKeys_Show(screen) {
 async function importKeys_Close() {
     modalToggle(importKeys);
     importKeys1Type.value = "null";
-    importKeys1Name.hidden = true;
+    importName.hidden = true;
     importKeys1Name.value = "";
     importKeys1Message.innerHTML = "";
 

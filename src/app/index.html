@@ -251,7 +251,7 @@
 							<div class="mb-3">
 								<label>Key's type:</label>
 								<select class="form-select" id="generateKeys1Type">
-									<option value="null" selected disabled>Select key type</option>
+									<option value="null" selected>Select key type</option>
 									<option value="24-words">24-words Mnemonic</option>
 									<option value="12-words">12-words Mnemonic</option>
 								</select>
@@ -322,11 +322,11 @@
 							<div class="mb-3">
 								<label>Key's type:</label>
 								<select class="form-select" id="importKeys1Type" onchange="importName.hidden = importKeys1Type.value == 'file' || importKeys1Type.value == 'ledger'">
-									<option value="null" selected disabled>Select key type</option>
+									<option value="null" selected>Select key type</option>
 									<option value="mnemonic">Mnemonic Phrase</option>
 									<option value="keys">Private Keys (WIF)</option>
 									<option value="file">Key File (.dgb)</option>
-									<option value="ledger">Ledger HW</option>
+									<option value="ledger">Ledger Hardware Wallet</option>
 								</select>
 							</div>
 							<div class="mb-3" id="importName" hidden>
@@ -568,7 +568,7 @@
 							<div class="mb-3">
 								<label>Account's Type:</label>
 								<select class="form-select" id="addAccount1Type" onchange="addAccount1TypeAddress.hidden = addAccount1Type.value != 'derived'">
-									<option value="null" selected disabled>Select account</option>
+									<option value="null" selected>Select account</option>
 								</select>
 							</div>
 							<div class="mb-3" id="addAccount1TypeAddress" hidden>
@@ -909,11 +909,11 @@
 
 							<div class="row mb-3">
 								<div class="col-3">
-									TimeLock:
+									LockTime:
 								</div>
 								<div class="col-3">
 									<div class="form-check">
-										<input class="form-check-input" type="radio" name="sendDGB2TimeLock" id="sendDGB2NoneCheck" onchange="sendDGB2BlockOption.hidden = sendDGB2DateOption.hidden = this.checked" checked>
+										<input class="form-check-input" type="radio" name="sendDGB2LockTime" id="sendDGB2NoneCheck" onchange="sendDGB2BlockOption.hidden = sendDGB2DateOption.hidden = this.checked" checked>
 										<label class="form-check-label" for="sendDGB2NoneCheck">
 											None
 										</label>
@@ -921,7 +921,7 @@
 								</div>
 								<div class="col-3">
 									<div class="form-check">
-										<input class="form-check-input" type="radio" name="sendDGB2TimeLock" id="sendDGB2BlockCheck" onchange="sendDGB2BlockOption.hidden = !this.checked; sendDGB2DateOption.hidden = this.checked">
+										<input class="form-check-input" type="radio" name="sendDGB2LockTime" id="sendDGB2BlockCheck" onchange="sendDGB2BlockOption.hidden = !this.checked; sendDGB2DateOption.hidden = this.checked">
 										<label class="form-check-label" for="sendDGB2BlockCheck">
 											Height
 										</label>
@@ -929,7 +929,7 @@
 								</div>
 								<div class="col-3">
 									<div class="form-check">
-										<input class="form-check-input" type="radio" name="sendDGB2TimeLock" id="sendDGB2DateTimeCheck" onchange="sendDGB2DateOption.hidden = !this.checked; sendDGB2BlockOption.hidden = this.checked">
+										<input class="form-check-input" type="radio" name="sendDGB2LockTime" id="sendDGB2DateTimeCheck" onchange="sendDGB2DateOption.hidden = !this.checked; sendDGB2BlockOption.hidden = this.checked">
 										<label class="form-check-label" for="sendDGB2DateTimeCheck">
 											DateTime
 										</label>
@@ -1029,7 +1029,7 @@
 							</div>
 						</div>
 						<div class="m-4" id="sendDGB5" hidden>
-							<div class="mb-3 text-break" id="sendDGB5Message"></div>
+							<div class="text-center mb-3 text-break" id="sendDGB5Message"></div>
 							<div class="text-center">
 								<button class="btn btn-secondary btn-sm" onclick="sendDGB_Close()">
 									<svg class="bi" width="18" height="18">

@@ -408,8 +408,6 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
             options.advanced.change = account.addresses[0];
     }
 
-    var options = DigiByte.BuildTransaction(options);
-
     if (password) {
         var paths = {};
         options.inputs.forEach(utxo => paths[utxo.path] = true);
@@ -424,13 +422,13 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
         } else if (account.type == 'single') {
             var keys = key.secret.map(key => DecryptAES256(key, password))
         }
-
-        var options = DigiByte.SignTransaction(options, keys);
+        var options = DigiByte.BuildTransaction(options, keys);
     } else {
         for (var utxo of options.inputs) {
             var tx = await storage.GetTransaction(utxo.txid);
             utxo.tx = tx.hex;
         }
+        var options = DigiByte.BuildTransaction(options);
     }
 
     return event.reply('create-tx', options);

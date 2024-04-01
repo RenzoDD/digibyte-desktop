@@ -13,14 +13,13 @@ async function frmAccounts_Load() {
         var account = await GetAccount(id);
         if (account !== null && account.secret == keyID) {
             var balance = await GetAccountBalance(id);
-            balance = coin(balance.satoshis, 8, false);
-            var usd = (exchange.price * balance).toFixed(2);
+            var usd = coin((100 * exchange.price * coin(balance.satoshis, 8)).toFixed(0).toString(), 2, false, true);
 
             accountsList.innerHTML += `
             <div class="option row p-4 mb-3" onclick="frmAccount_Load('${account.id}')">
                 <div class="col-3">${account.name}</div>
                 <div class="col-3">${account.type == 'derived' ? account.address : account.type}</div>
-                <div class="col-3">${balance} DGB</div>
+                <div class="col-3">${coin(balance.satoshis, 8, true, true)} DGB</div>
                 <div class="col-3">${usd} USD</div>
             </div>`;
         }
@@ -31,6 +30,7 @@ async function frmAccounts_Load() {
         accountsList.innerHTML = `<div class="text-center">(No Accounts Found)</div>`;
 
     frmOpen(frmAccounts);
+    topSettings.hidden = false;
     topKeys.hidden = false;
     topReturnToAccounts.hidden = true;
 }
@@ -181,7 +181,7 @@ async function addAccount2_Continue() {
                 addAccount5Found.innerHTML += `
                     <div class="option row mx-1 p-3 mb-2" onclick="addAccount5_Account('${xpub}', ${n})">
                         <div class="col-6 text-start">DigiByte ${n}</div>
-                        <div class="col-6 text-end">${coin(result, 8)}</div>
+                        <div class="col-6 text-end">${coin(result, 8, true, true)}</div>
                     </div>`;
             }
         }
@@ -205,7 +205,7 @@ async function addAccount2_Continue() {
                         <div class="col">
                                 ${n[type]}
                                 <br>
-                                ${result === true ? 'Unused' : 'DGB ' + coin(result, 8)}
+                                ${result === true ? 'Unused' : 'DGB ' + coin(result, 8, true, true)}
                         </div>
                     </label>`;
             }

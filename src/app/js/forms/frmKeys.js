@@ -19,6 +19,8 @@ async function frmKeys_Load() {
         }
     }
 
+    topSettings.hidden = true;
+    topKeys.hidden = true;
     frmOpen(frmKeys);
 }
 

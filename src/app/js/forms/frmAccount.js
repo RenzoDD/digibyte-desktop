@@ -28,7 +28,7 @@ async function transactionList_Fill(start, instance = null) {
 				</div>
 				<div class="col-5">${movement.type == 'received' ? movement.from[0] : movement.type == 'sent' ? movement.to[0] : movement.to[0]}</div>
 				<div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
-                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8))}
+                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8, true, true))}
                 </div >
 			</div>`;
 
@@ -80,14 +80,14 @@ async function frmAccount_Load(id) {
                 </div>
                 <div class="col-5">${movement.type == 'received' ? movement.from[0] : movement.type == 'sent' ? movement.to[0] : movement.to[0]}</div>
                 <div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
-                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8))}
+                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8, false, true))}
                 </div >
             </div>`;
     }
 
     transactionList_Fill(0);
 
-    var balance = coin(balance.satoshis, 8, false);
+    var balance = coin(balance.satoshis, 8, false, true);
     accountBalance.innerHTML = balance + " DGB";
 
     var exchange = await GetPrice();
@@ -104,13 +104,13 @@ async function frmAccount_Manage() {
     if (account == null) return;
     manageAccount1Name.value = account.name;
     if (account.type != 'single') {
-        manageAccount1xpub.parentElement.hidden = false;
-        manageAccount1Path.parentElement.hidden = false;
+        manageAccount1xpub.parentElement.parentElement.hidden = false;
+        manageAccount1Path.parentElement.parentElement.hidden = false;
         manageAccount1xpub.value = account.xpub;
         manageAccount1Path.value = account.path;
     } else {
-        manageAccount1xpub.parentElement.hidden = true;
-        manageAccount1Path.parentElement.hidden = true;
+        manageAccount1xpub.parentElement.parentElement.hidden = true;
+        manageAccount1Path.parentElement.parentElement.hidden = true;
     }
     manageAccount_Show(manageAccount1);
     modalToggle(manageAccount);
@@ -496,7 +496,7 @@ async function frmAccount_TX(type, position) {
         lookupMovement1Icon.innerHTML = icon('dash-square', 28);
     }
 
-    lookupMovement1Amount.innerHTML = (movement.change > 0 ? ' +' : ' ') + coin(movement.change, 8);
+    lookupMovement1Amount.innerHTML = (movement.change > 0 ? ' +' : ' ') + coin(movement.change, 8, true, true) + " DGB";
 
     var date = new Date(movement.unix * 1000).toDateString().substring(4, 15);
     var time = new Date(movement.unix * 1000).toTimeString().substring(0, 8);

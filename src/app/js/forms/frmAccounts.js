@@ -1,6 +1,6 @@
 async function frmAccounts_Load() {
     accountID = null;
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key == null) return;
 
     accountsName.innerHTML = key.name;
@@ -36,7 +36,7 @@ async function frmAccounts_Load() {
 }
 
 async function frmAccounts_Add() {
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key.type == "mnemonic") {
         addAccount1Type.innerHTML += '<option value="derived">Derived Account</option>';
         if (key.words == 12 && key.passphrase == false)
@@ -103,7 +103,7 @@ async function addAccount1_Continue() {
             return addAccount1Message.innerHTML = icon("exclamation-circle") + " Select an address type";
     }
 
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key.type == "ledger") {
         addAccount_Show(addAccount3);
 
@@ -125,7 +125,7 @@ async function addAccount1_Continue() {
         addAccount_Show(addAccount2);
 }
 async function addAccount2_Continue() {
-    var key = await ReadKey(keyID)
+    var key = await GetKey(keyID)
     if (key.type == "mnemonic" || key.type == "keys")
         if (await CheckPassword(keyID, addAccount2Password.value) == false)
             return addAccount2Message.innerHTML = icon('exclamation-circle') + " Incorrect password";

@@ -8,7 +8,7 @@ async function frmKeys_Load() {
         keysList.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
 
     for (var id of keys) {
-        var key = await ReadKey(id);
+        var key = await GetKey(id);
         if (key !== null) {
             keysList.innerHTML += `
             <div class="option row p-4 mb-3 ${(keyID == key.id) ? "active" : ""}" onclick="frmKeys_Select('${id}')">
@@ -31,7 +31,7 @@ async function frmKeys_Select(id) {
 }
 async function frmKeys_Manage() {
     if (!keyID || accountID) return;
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key == null) return;
     manageKey1Name.value = key.name;
     manageKey_Show(manageKey1);

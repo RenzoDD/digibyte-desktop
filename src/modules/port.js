@@ -29,15 +29,18 @@ ipcMain.on('get-keys', async function (event) {
     var keys = await storage.GetKeys();
     return event.reply('get-keys', keys);
 });
-ipcMain.on('read-key', async function (event, id) {
+ipcMain.on('get-key', async function (event, id) {
     var key = await storage.GetKey(id);
-    return event.reply('read-key', key);
+    return event.reply('get-key', key);
 });
 ipcMain.on('generate-key', async function (event, name, type, password) {
+    console.log("generate-key", "STARTED");
     var words = { "24-words": 24, "12-words": 12 }[type] || 0;
 
-    if (words == 0)
+    if (words == 0) {
+        console.log("generate-key", "ERROR", "incorrect word number");
         return event.reply('generate-key', "Invalid word type");
+    }
 
     var mnemonic = DigiByte.GenerateSeed(words);
 
@@ -57,15 +60,20 @@ ipcMain.on('generate-key', async function (event, name, type, password) {
     if (result === true) {
         var { list } = mnemonic;
         delete mnemonic;
+        console.log("generate-key", "SUCCESS", "generated mnemonic key");
         return event.reply('generate-key', list);
     }
 
+    console.log("generate-key", "ERROR", result);
     return event.reply('generate-key', result);
 });
 ipcMain.on('export-key-file', async function (event, id) {
+    console.log("export-key-file", "STARTED");
     var keys = await storage.GetKey(id);
-    if (keys === null)
+    if (keys === null) {
+        console.log("export-key-file", "ERROR", "key not found");
         return event.reply('export-key-file', "This keys doesn't exist");
+    }
 
     var save = await dialog.showSaveDialog({
         title: 'Export Key File',
@@ -73,12 +81,15 @@ ipcMain.on('export-key-file', async function (event, id) {
         buttonLabel: 'Export'
     });
 
-    if (save.canceled == true)
+    if (save.canceled == true) {
+        console.log("export-key-file", "ERROR", "canceled");
         return event.reply('export-key-file', "Operation canceled");
+    }
 
-    if (fs.existsSync(save.filePath) == true)
+    if (fs.existsSync(save.filePath) == true) {
+        console.log("export-key-file", "ERROR", "canceled");
         return event.reply('export-key-file', "This file already exist");
-
+    }
 
     if (!save.filePath.endsWith('.dgb'))
         save.filePath += ".dgb";
@@ -86,18 +97,23 @@ ipcMain.on('export-key-file', async function (event, id) {
     var original = JSON.stringify(keys, null, 2);
     fs.writeFileSync(save.filePath, original);
 
-    if (!fs.existsSync(save.filePath))
+    if (!fs.existsSync(save.filePath)) {
+        console.log("export-key-file", "ERROR", "file not saved");
         return event.reply('export-key-file', "The file wasn't saved, please try again");
+    }
 
     var content = fs.readFileSync(save.filePath);
 
-    if (original != content.toString())
+    if (original != content.toString()) {
+        console.log("export-key-file", "ERROR", "file content mismatch");
         return event.reply('export-key-file', "There was an error while saving, please try again");
+    }
 
-
+    console.log("export-key-file", "FINISHED", "file created");
     return event.reply('export-key-file', true);
 });
 ipcMain.on('import-key-file', async function (event) {
+    console.log("import-key-file", "STARTED");
     var selected = await dialog.showOpenDialog({
         title: 'Import Key File',
         buttonLabel: 'Import',
@@ -105,8 +121,10 @@ ipcMain.on('import-key-file', async function (event) {
         properties: ['openFile']
     });
 
-    if (selected.canceled == true || selected.filePaths.length != 1)
+    if (selected.canceled == true || selected.filePaths.length != 1) {
+        console.log("import-key-file", "ERROR", "canceled");
         return event.reply('import-key-file', "Operation canceled");
+    }
 
     try {
         var key = JSON.parse(fs.readFileSync(selected.filePaths[0]));
@@ -115,32 +133,40 @@ ipcMain.on('import-key-file', async function (event) {
         key.id = "";
 
         var integrity = SHA256(JSON.stringify(key));
-        if (integrity !== id)
+        if (integrity !== id) {
+            console.log("import-key-file", "ERROR", "checksum mismatch");
             return event.reply('import-key-file', "The integrity check failed");
+        }
 
         key.id = id;
-    } catch (e) {
+    } catch {
+        console.log("import-key-file", "ERROR", "corrupted");
         return event.reply('import-key-file', "The file is corrupted");
     }
 
     var result = await storage.AddKey(key.id, key)
+    console.log("import-key-file", "FINISHED", result);
     return event.reply('import-key-file', result);
 });
 ipcMain.on('delete-key', async function (event, id) {
+    console.log("delete-key", "STARTED");
     var result = await storage.DeleteKey(id);
+    console.log("delete-key", "FINISHED", result);
     return event.reply('delete-key', result);
 });
 ipcMain.on('guess-word', async function (event, guess) {
+    console.log("guess-word", "CALLED");
     var word = DigiByte.GetMnemonicWord(guess.toLowerCase());
-
     return event.reply('guess-word', word || "");
 });
 ipcMain.on('check-mnemonic', async function (event, mnemonic) {
+    console.log("check-mnemonic", "STARTED");
     var valid = DigiByte.CheckMnemonic(mnemonic);
-
+    console.log("check-mnemonic", "FINISHED", valid);
     return event.reply('check-mnemonic', valid);
 });
 ipcMain.on('import-keys', async function (event, type, name, password, secret, passphrase) {
+    console.log("import-keys", "STARTED");
     var keys = {};
     keys.file = "key";
     keys.id = "";
@@ -168,11 +194,12 @@ ipcMain.on('import-keys', async function (event, type, name, password, secret, p
     var result = await storage.AddKey(keys.id, keys);
     delete keys;
 
+    console.log("import-keys", "FINISHED", result);
     return event.reply('import-keys', result);
 });
 ipcMain.on('check-wif', async function (event, WIF) {
+    console.log("check-wif", "CALLED");
     var valid = DigiByte.CheckWIF(WIF);
-
     return event.reply('check-wif', valid);
 });
 
@@ -189,32 +216,41 @@ ipcMain.on('get-account', async function (event, id) {
     return event.reply('get-account', account);
 });
 ipcMain.on('generate-xpub', async function (event, key, password, type) {
+    console.log("generate-xpub", "STARTED");
     var key = await storage.GetKey(key);
 
     if (key.type == 'ledger') {
         var xpubs = await Ledger.GetXPUBs(10, type);
     } else {
         var seed = DecryptAES256(key.secret, password);
-        if (seed == null)
+        if (seed == null) {
+            console.log("generate-xpub", "ERROR", "bad password");
             return event.reply('generate-xpub', "Wrong password");
+        }
 
         var xpubs = DigiByte.GetXPUBs(seed, type);
         seed = "";
     }
 
+    console.log("generate-xpub", "FINISHED", "xpubs:" + xpubs.length);
     return event.reply('generate-xpub', xpubs);
 });
 ipcMain.on('generate-addresses', async function (event, key, password, network) {
+    console.log("generate-addresses", "STARTED");
     var key = await storage.GetKey(key);
 
     var wifs = key.secret.map(wif => { return DecryptAES256(wif, password); });
-    if (wifs.indexOf(x => x == null) != -1)
+    if (wifs.indexOf(x => x == null) != -1) {
+        console.log("generate-addresses", "ERROR", "bad password");
         return event.reply('generate-addresses', "Wrong password");
+    }
 
     var addresses = wifs.map(wif => { return DigiByte.WifToAddress(wif, network) });
+    console.log("generate-addresses", "FINISHED", "addr:" + addresses.length);
     return event.reply('generate-addresses', addresses);
 });
 ipcMain.on('new-xpub', async function (event, xpub, type) {
+    console.log("new-xpub", "STARTED");
     DigiByte.explorer.retry = 3;
     var data = await DigiByte.explorer.xpub(xpub, type, { details: 'basic' });
 
@@ -225,10 +261,12 @@ ipcMain.on('new-xpub', async function (event, xpub, type) {
     else if (data.txs == 0)
         var result = true;
 
+    console.log("new-xpub", "FINISHED", result);
     return event.reply('new-xpub', result);
 });
 
 ipcMain.on('new-address', async function (event, address) {
+    console.log("new-address", "STARTED");
     DigiByte.explorer.retry = 3;
     var data = await DigiByte.explorer.address(address, { details: 'basic' });
 
@@ -239,9 +277,11 @@ ipcMain.on('new-address', async function (event, address) {
     else if (data.txs == 0)
         var result = true;
 
+    console.log("new-address", "FINISHED", result);
     return event.reply('new-address', result);
 });
 ipcMain.on('generate-account', async function (event, name, type, secret, public, purpose, nAccount) {
+    console.log("generate-account", "STARTED");
     var account = {};
     account.file = "account";
     account.id = SHA256(Math.random().toString());
@@ -271,20 +311,25 @@ ipcMain.on('generate-account', async function (event, name, type, secret, public
 
     var result = await storage.AddAccount(account.id, account);
 
+    console.log("generate-account", "FINISHED", result);
     return event.reply('generate-account', result);
 });
 ipcMain.on('check-password', async function (event, id, password) {
+    console.log("check-password", "STARTED");
     var account = await storage.GetAccount(id);
     var key = await storage.GetKey(account !== null ? account.secret : id);
 
     if (typeof key.secret != 'string')
         key.secret = key.secret[0];
 
-    var result = DecryptAES256(key.secret, password);
-    return event.reply('check-password', result != null);
+    var result = DecryptAES256(key.secret, password) != null;
+    console.log("check-password", "FINISHED", result);
+    return event.reply('check-password', result);
 });
 ipcMain.on('delete-account', async function (event, id, password) {
+    console.log("delete-account", "STARTED");
     var result = await storage.DeleteAccount(id);
+    console.log("delete-account", "FINISHED", result);
     return event.reply('delete-account', result);
 });
 
@@ -309,6 +354,7 @@ ipcMain.on('get-price', async function (event, id) {
     return event.reply('get-price', data);
 });
 ipcMain.on('generate-last-address', async function (event, id) {
+    console.log("generate-last-address", "CALLED");
     var account = await storage.GetAccount(id);
     if (account.type == 'derived' || account.type == 'mobile')
         var address = DigiByte.DeriveOneHDPublicKey(account.xpub, account.network, account.address, 0, account.external);
@@ -325,6 +371,7 @@ ipcMain.on('copy-clipboard', async function (event, text) {
     return event.reply('copy-clipboard', true);
 });
 ipcMain.on('check-address', async function (event, address) {
+    console.log("check-address", "CALLED");
     var result = DigiByte.CheckAddress(address);
     return event.reply('check-address', result);
 });
@@ -333,6 +380,7 @@ ipcMain.on('dgb-to-sats', async function (event, amount) {
     return event.reply('dgb-to-sats', result);
 });
 ipcMain.on('create-tx', async function (event, options, id, password) {
+    console.log("create-tx", "STARTED");
     var balance = await storage.GetAccountBalance(id);
 
     // Parse outputs
@@ -341,6 +389,7 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
         output.satoshis = DigiByte.DGBtoSats(output.amount);
         delete output.amount;
 
+        console.log("create-tx", "ONGOING", "output:" + n, "sats:" + output.satoshis);
         if (isNaN(output.satoshis)) return event.reply('create-tx', { error: `Invalid satoshis on output ${n}` });
         if (output.satoshis < 0) return event.reply('create-tx', { error: `Negative satoshis on output ${n}` });
         if (output.satoshis < 600) return event.reply('create-tx', { error: `Dust satoshis on output ${n}` });
@@ -349,6 +398,7 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
     var outSats = 0;
     options.outputs.forEach(utxo => outSats += utxo.satoshis);
     var chargedRecipient = options.outputs.find(x => x.fee);
+    console.log("create-tx", "ONGOING", "chargedrecipient:" + chargedRecipient ? true : false);
 
     // Parse inputs
     var inputs = Object.values(balance.DigiByteUTXO);
@@ -378,12 +428,7 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
         options.fee = DigiByte.CalculateTxFee(options);
         var outWithFee = outSats + (chargedRecipient ? 0 : options.fee);
     } while (inSats < outWithFee);
-
-    if (chargedRecipient) {
-        chargedRecipient.satoshis -= options.fee;
-        if (chargedRecipient.satoshis < 600)
-            return event.reply('create-tx', { error: 'Insuficient output balance to substract fee' });
-    }
+    console.log("create-tx", "ONGOING", "fee:" + options.fee);
 
     if (options.advanced.coinControl == 'privacy') {
         var last = options.inputs[options.inputs.length - 1].script;
@@ -394,7 +439,16 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
             else break;
         }
     }
+    console.log("create-tx", "ONGOING", "inputs:" + options.inputs.length);
 
+    if (chargedRecipient) {
+        chargedRecipient.satoshis -= options.fee;
+        if (chargedRecipient.satoshis < 600) {
+            console.log("create-tx", "ONGOING", "charged recipient cant handle fee");
+            return event.reply('create-tx', { error: 'Insuficient output balance to substract fee' });
+        }
+    }
+    
     var account = await storage.GetAccount(id);
     var key = await storage.GetKey(account.secret);
 
@@ -423,6 +477,7 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
             var keys = key.secret.map(key => DecryptAES256(key, password))
         }
         var options = DigiByte.BuildTransaction(options, keys);
+        console.log("create-tx", "ONGOING", "keys:" + keys.length);
     } else {
         for (var utxo of options.inputs) {
             var tx = await storage.GetTransaction(utxo.txid);
@@ -431,17 +486,20 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
         var options = DigiByte.BuildTransaction(options);
     }
 
+    console.log("create-tx", "FINISHED");
     return event.reply('create-tx', options);
 });
 ipcMain.on('broadcast-tx', async function (event, hex) {
+    console.log("broadcast-tx", "STARTED");
     DigiByte.explorer.retry = 10;
     var result = await DigiByte.explorer.sendtx(hex);
+    console.log("broadcast-tx", "FINISHED", result);
     return event.reply('broadcast-tx', result);
 });
 ipcMain.on('add-to-mempool', async function (event, id, txid) {
-    do {
-        var result = await DigiByte.explorer.transaction(txid);
-    } while (result.error);
+    console.log("add-to-mempool", "STARTED");
+    do { var result = await DigiByte.explorer.transaction(txid); }
+    while (result.error);
 
     var account = await storage.GetAccount(id);
     var addresses = GetAddresses(account);
@@ -450,7 +508,8 @@ ipcMain.on('add-to-mempool', async function (event, id, txid) {
     var mempool = await storage.GetAccountMempool(id);
     mempool.push(movement);
     await storage.SetAccountMempool(id, mempool);
-    return event.reply('add-to-mempool', result);
+    console.log("add-to-mempool", "FINISHED");
+    return event.reply('add-to-mempool', true);
 });
 
 /*
@@ -458,16 +517,21 @@ ipcMain.on('add-to-mempool', async function (event, id, txid) {
  */
 
 ipcMain.on('ledger-is-ready', async function (event) {
+    console.log("ledger-is-ready", "CALLED");
     var result = await Ledger.IsReady();
     if (result == 'IN_MENU') await Ledger.OppenDigiByteApp();
     if (result == 'OTHER_APP') await Ledger.CloseApp();
     return event.reply('ledger-is-ready', result);
 })
 ipcMain.on('ledger-generate-address', async function (event, path, type) {
+    console.log("ledger-generate-address", "STARTED");
     var address = await Ledger.GetAddress(path, type);
+    console.log("ledger-generate-address", "FINISHED", address.error || "");
     return event.reply('ledger-generate-address', address);
 })
 ipcMain.on('ledger-sign-transaction', async function (event, options) {
+    console.log("ledger-sign-transaction", "STARTED");
     var options = await Ledger.SignTransaction(options);
+    console.log("ledger-sign-transaction", "FINISHED", options.error || "");
     return event.reply('ledger-sign-transaction', options);
 })

@@ -17,8 +17,6 @@ DigiByte.GenerateSeed = function (words, passphrase) {
     var phrase = mnemonic.toString();
     var list = phrase.split(" ");
 
-    delete mnemonic;
-
     return { phrase, list, seed };
 }
 
@@ -27,10 +25,7 @@ DigiByte.GetMnemonicWord = function (guess) {
 }
 
 DigiByte.CheckMnemonic = function (mnemonic) {
-    var valid = false;
-    try { valid = Mnemonic.isValid(mnemonic) }
-    catch { }
-    return valid;
+    return Mnemonic.isValid(mnemonic);
 }
 
 DigiByte.CheckWIF = function (WIF) {

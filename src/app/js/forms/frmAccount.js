@@ -157,7 +157,7 @@ async function manageAccount1Path_Copy() {
 async function frmAccount_Receive() {
     modalToggle(receiveDGB);
 
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     var account = await GetAccount(accountID);
 
     if (key.type == "ledger") {
@@ -228,7 +228,7 @@ async function receiveDGB2_LedgerManual() {
 
 async function frmAccount_Send() {
     var account = await GetAccount(accountID);
-    var keys = await ReadKey(account.secret);
+    var keys = await GetKey(account.secret);
     sendDGB3Password.placeholder = keys.name;
 
     sendDGB1_AddOutput();
@@ -342,7 +342,7 @@ async function sendDGB1_Continue() {
     if (sendDGB1AdvancedOptions.checked)
         return sendDGB_Show(sendDGB2);
 
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key.type == "ledger") {
         sendDGB4_Execute();
         return sendDGB_Show(sendDGB4);
@@ -351,7 +351,7 @@ async function sendDGB1_Continue() {
     sendDGB_Show(sendDGB3);
 }
 async function sendDGB2_Continue() {
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key.type == "ledger") {
         sendDGB4_Execute();
         return sendDGB_Show(sendDGB4);
@@ -411,7 +411,7 @@ async function sendDGB4_Execute() {
 
     options.advanced.coinControl = sendDGB2CoinControl.value;
 
-    var key = await ReadKey(keyID);
+    var key = await GetKey(keyID);
     if (key.type == "ledger") {
         var options = await CreateTransaction(options, accountID);
     } else
@@ -448,7 +448,6 @@ async function sendDGB4_Execute() {
         return sendDGB_Show(sendDGB5);
     }
 
-    console.log(options.advanced.locktime)
     if (options.advanced.locktime) {
         sendDGB_Show(sendDGB5);
         return sendDGB5Message.innerHTML = `

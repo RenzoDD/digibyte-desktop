@@ -1,3 +1,4 @@
+require('./modules/logging');
 require('./modules/port');
 
 const { app, BrowserWindow, shell } = require('electron');

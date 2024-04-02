@@ -46,10 +46,10 @@ function GetKeys() {
         });
     });
 }
-function ReadKey(id) {
+function GetKey(id) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('read-key', id);
-        ipcRenderer.once('read-key', (event, response) => {
+        ipcRenderer.send('get-key', id);
+        ipcRenderer.once('get-key', (event, response) => {
             resolve(response);
         });
     });

@@ -9,13 +9,13 @@ let CONFIRMATIONS = 1;
  */
 
 async function SyncPrice() {
-    var exchange = await DigiByte.GetPrice();
-    if (exchange != null) {
-        storage.SetPrice(exchange);
+    do { var exchange = await DigiByte.GetPrice(); } 
+    while (exchange == null);
 
-        global.ExecuteOnRenderer('sync-price');
-        console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);
-    }
+    storage.SetPrice(exchange);
+
+    global.ExecuteOnRenderer('sync-price');
+    console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);
 }
 
 function GetAddresses(account) {

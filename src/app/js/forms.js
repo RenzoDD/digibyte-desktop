@@ -1,5 +1,6 @@
 let keyID = null;
 let accountID = null;
+let ledgerOFF = false;
 let lastForm = null;
 
 function frmOpen(frmOpen) {

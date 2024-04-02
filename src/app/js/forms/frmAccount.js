@@ -87,11 +87,11 @@ async function frmAccount_Load(id) {
 
     transactionList_Fill(0);
 
-    var balance = coin(balance.satoshis, 8, false, true);
-    accountBalance.innerHTML = balance + " DGB";
+    accountBalance.innerHTML = coin(balance.satoshis, 8, false, true) + " DGB";
 
     var exchange = await GetPrice();
-    accountPrice.innerHTML = "$ " + (exchange.price * balance).toFixed(2);
+    var usd = coin((100 * exchange.price * coin(balance.satoshis, 8)).toFixed(0).toString(), 2, true, true);
+    accountPrice.innerHTML = "$ " + usd;
 
     frmOpen(frmAccount);
     topKeys.hidden = true;
@@ -162,11 +162,12 @@ async function frmAccount_Receive() {
 
     if (key.type == "ledger") {
         receiveDGB_Show(receiveDGB2);
+        ledgerOFF = false;
         receiveDGB2Status.innerHTML = icon('usb-symbol') + " Checking device...";
         while (true) {
-            if (receiveDGB2Status.innerHTML == "") {
-                var address = { error: "Process canceled" };
-                break;
+            if (ledgerOFF) {
+                receiveDGB2Status.innerHTML = icon('exclamation-circle') + " " + address.error;
+                return;
             }
             var result = await LedgerIsReady();
             if (result == "DISCONECTED") receiveDGB2Status.innerHTML = icon('usb-symbol') + " Connect your device...";
@@ -179,10 +180,6 @@ async function frmAccount_Receive() {
                 var address = await LedgerGenerateAddress(account.path + "/0/" + account.external, account.address);
                 break;
             }
-        }
-        if (address.error) {
-            receiveDGB2Status.innerHTML = icon('exclamation-circle') + " " + address.error;
-            return;
         }
     } else {
         var address = await GenerateLastAddres(accountID);
@@ -207,6 +204,7 @@ async function receiveDGB_Close() {
     receiveDGB1Address.value = "";
     receiveDGB1Copy.innerHTML = icon('clipboard');
 
+    ledgerOFF = true;
     receiveDGB2Status.innerHTML = "";
 }
 async function receiveDGB1_Copy() {
@@ -218,6 +216,7 @@ async function receiveDGB2_LedgerManual() {
     var account = await GetAccount(accountID);
     var address = await GenerateLastAddres(accountID);
 
+    ledgerOFF = true;
     receiveDGB2Status.innerHTML = "";
     receiveDGB1Address.value = address;
     receiveDGB1Path.innerHTML = account.path ? account.path + "/0/" + account.external : "";
@@ -250,6 +249,7 @@ async function sendDGB_Close() {
     sendDGB1Outputs.amount = 0;
     sendDGB1Outputs.innerHTML = "";
     sendDGB1AdvancedOptions.checked = false;
+    sendDGB1Continue.disabled = true;
 
     sendDGB2Memo.value = "";
     sendDGB2FeeIndicator.innerHTML = 'Low';
@@ -258,7 +258,9 @@ async function sendDGB_Close() {
     sendDGB2NoneCheck.checked = true;
     sendDGB2BlockCheck.checked = false;
     sendDGB2DateTimeCheck.checked = false;
+    sendDGB2BlockOption.hidden = true;
     sendDGB2Block.value = null;
+    sendDGB2DateOption.hidden = true;
     sendDGB2Date.value = null;
     sendDGB2Time.value = null;
     sendDGB2Change.value = "";
@@ -270,6 +272,7 @@ async function sendDGB_Close() {
     sendDGB3Password.placeholder = "";
     sendDGB3Message.innerHTML = "";
 
+    ledgerOFF = true;
     sendDGB4Status.innerHTML = "";
 
     sendDGB5Message.innerHTML = "";
@@ -420,9 +423,10 @@ async function sendDGB4_Execute() {
     }
 
     if (key.type == "ledger") {
+        ledgerOFF = false;
         sendDGB4Status.innerHTML = icon('usb-symbol') + " Checking device...";
         while (true) {
-            if (sendDGB4Status.innerHTML == "") {
+            if (ledgerOFF) {
                 var options = { error: "Process canceled" };
                 break;
             }
@@ -442,6 +446,26 @@ async function sendDGB4_Execute() {
     if (options.error) {
         sendDGB5Message.innerHTML = icon("x-circle") + " " + options.error;
         return sendDGB_Show(sendDGB5);
+    }
+
+    console.log(options.advanced.locktime)
+    if (options.advanced.locktime) {
+        sendDGB_Show(sendDGB5);
+        return sendDGB5Message.innerHTML = `
+            <div class="text-center">${icon('check-circle', 40)}</div>
+            <div class="text-center">Transaction Created</div>
+            <div class="text-break text-start">
+                <label>Serialized Transaction:</label>
+                <div class="input-group">
+                    <input type="text" class="form-control form-control-sm font-monospace" value="${options.hex}" readonly>
+                    <button class="btn btn-success" type="button" id="sendDGB3Copy" onclick="sendDGB5_Copy('${options.hex}')">
+                        <svg class="bi" width="18" height="18">
+                            <use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <small>This transaction have a timelock, broadcast it when its reached</small>`;
     }
 
     var data = await BroadcastTransaction(options.hex);
@@ -468,8 +492,7 @@ async function sendDGB4_Execute() {
                 </button>
             </div>
             
-        </div>
-    `;
+        </div>`;
 }
 async function sendDGB5_Copy(txid) {
     var result = await CopyClipboard(txid);

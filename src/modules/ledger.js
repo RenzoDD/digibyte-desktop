@@ -4,7 +4,7 @@ const BTC = require("@ledgerhq/hw-app-btc").default;
 const Ledger = {};
 
 Ledger.GetTransport = async function () {
-    var transportPromise = TransportNodeHid.create();
+    var transportPromise = TransportNodeHid.create(1500, 1500);
     var timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => {
             reject(new Error('Transport creation timed out'));

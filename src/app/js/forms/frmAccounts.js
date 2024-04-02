@@ -76,6 +76,7 @@ async function addAccount_Close() {
     addAccount2Password.placeholder = "";
     addAccount2Message.innerHTML = "";
 
+    ledgerOFF = true;
     addAccount3Status.innerHTML = "";
 
     addAccount4Found.innerHTML = "";
@@ -108,7 +109,7 @@ async function addAccount1_Continue() {
 
         addAccount3Status.innerHTML = icon('usb-symbol') + " Checking device...";
         while (true) {
-            if (addAccount3Status.innerHTML == "") break;
+            if (ledgerOFF) break;
 
             var result = await LedgerIsReady();
             if (result == "DISCONECTED") addAccount3Status.innerHTML = icon('usb-symbol') + " Connect your device...";

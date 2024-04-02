@@ -9,7 +9,7 @@ let CONFIRMATIONS = 1;
  */
 
 async function SyncPrice() {
-    do { var exchange = await DigiByte.GetPrice(); } 
+    do { var exchange = await DigiByte.GetPrice(); }
     while (exchange == null);
 
     storage.SetPrice(exchange);
@@ -353,6 +353,10 @@ async function Sync() {
     var accounts = await storage.GetAccounts();
     for (var id in accounts) {
         var account = await storage.GetAccount(accounts[id]);
+        if (account == null) {
+            global.ExecuteOnRenderer('sync-percentage', ((parseInt(id) + 1) / accounts.length * 100).toFixed())
+            continue;
+        }
 
         if (account.type == 'derived' || account.type == 'mobile') {
             await SyncLastAddressUTXO(account);

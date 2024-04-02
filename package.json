@@ -58,7 +58,7 @@
           "path": "/Applications"
         }
       ],
-      "icon": "build/icons/icon.icns"
+      "icon": "src/app/img/icons/icon.icns"
     },
     "linux": {
       "target": [
@@ -67,11 +67,11 @@
         "rpm"
       ],
       "category": "Utility",
-      "icon": "build/icons/icon.icns"
+      "icon": "src/app/img/icons/icon.icns"
     },
     "win": {
       "target": "NSIS",
-      "icon": "build/icons/icon.ico"
+      "icon": "src/app/img/icons/icon.ico"
     }
   }
 }

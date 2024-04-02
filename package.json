@@ -1,10 +1,10 @@
 {
   "name": "digibyte-desktop",
-  "version": "0.2.0",
+  "version": "0.5.0",
   "description": "A DigiByte Coin standard-compilant light wallet for desktop environment",
   "main": "src/index.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --trace-warnings",
     "pack": "electron-builder build --dir",
     "dist": "electron-builder build",
     "test": "node test.js"
@@ -28,7 +28,9 @@
   },
   "homepage": "https://github.com/RenzoDD/digibyte-desktop#readme",
   "dependencies": {
-    "digibyte-js": "^2.2.5",
+    "@ledgerhq/hw-app-btc": "^10.2.3",
+    "@ledgerhq/hw-transport-node-hid": "^6.28.5",
+    "digibyte-js": "^2.3.1",
     "level": "^8.0.0"
   },
   "devDependencies": {

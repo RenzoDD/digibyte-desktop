@@ -1,4 +1,5 @@
 async function frmKeys_Load() {
+    keyID = null;
     var keys = await GetKeys();
 
     keysList.innerHTML = "";
@@ -7,64 +8,73 @@ async function frmKeys_Load() {
         keysList.innerHTML = `<div class="text-center">(No Keys Found)</div>`;
 
     for (var id of keys) {
-        var key = await ReadKey(id);
+        var key = await GetKey(id);
         if (key !== null) {
             keysList.innerHTML += `
-            <div class="option row p-4 mb-3" data-bs-toggle="modal" data-bs-target="#manageKeys" onclick="frmKeys_Manage('${id}')">
-                <div class="col-4">${key.name}</div>
-                <div class="col-4">${key.type}</div>
-                <div class="col-4">${key.type == 'mnemonic' ? key.words + " words phrase" : key.secret.length + " key(s)" }</div>
+            <div class="option row p-4 mb-3 ${(keyID == key.id) ? "active" : ""}" onclick="frmKeys_Select('${id}')">
+                <div class="col-4 my-auto">${key.name}</div>
+                <div class="col-4 text-center my-auto">${key.type}</div>
+                <div class="col-4 text-center my-auto">${key.type == 'mnemonic' ? key.words + " words phrase" : key.type == 'keys' ? key.secret.length + " key(s)" : "device"}</div>
             </div>`;
         }
     }
 
+    topSettings.hidden = true;
+    topKeys.hidden = true;
     frmOpen(frmKeys);
 }
 
-async function frmKeys_Manage(id) {
-    var key = await ReadKey(id);
-    manageKeys1ID.value = key.id;
-    manageKeys1Name.value = key.name;
-    manageKey_Show(manageKeys1);
+
+async function frmKeys_Select(id) {
+    keyID = id;
+    frmAccounts_Load();
+}
+async function frmKeys_Manage() {
+    if (!keyID || accountID) return;
+    var key = await GetKey(keyID);
+    if (key == null) return;
+    manageKey1Name.value = key.name;
+    manageKey_Show(manageKey1);
+    modalToggle(manageKey);
 }
 async function manageKey_Show(screen) {
-    manageKeys1.hidden = true;
-    manageKeys2.hidden = true;
-    manageKeys3.hidden = true;
+    manageKey1.hidden = true;
+    manageKey2.hidden = true;
+    manageKey3.hidden = true;
 
     screen.hidden = false;
 }
-async function manageKey_Clear() {
-    manageKeys1ID.value = "";
-    manageKeys1Name.value = "";
-    manageKeys3Status.innerHTML = "";
+async function manageKey_Close() {
+    modalToggle(manageKey);
+    manageKey1Name.value = "";
+    manageKey3Status.innerHTML = "";
 }
-async function manageKeys1_Export() {
-    var save = await ExportKeyFile(manageKeys1ID.value);
+async function manageKey1_Export() {
+    var save = await ExportKeyFile(keyID);
     if (save === true)
-        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
+        manageKey3Status.innerHTML = `${icon('check-circle')} Key file exported successfully`;
     else
-        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${save}`;
+        manageKey3Status.innerHTML = `${icon('exclamation-circle')} ${save}`;
 
-    manageKey_Show(manageKeys3);
+    manageKey_Show(manageKey3);
 }
-async function manageKeys1_Delete() {
-    manageKey_Show(manageKeys2);
+async function manageKey1_Delete() {
+    manageKey_Show(manageKey2);
 }
-async function manageKeys2_Delete() {
-    var deleted = await DeleteKey(manageKeys1ID.value);
+async function manageKey2_Delete() {
+    var deleted = await DeleteKey(keyID);
     if (deleted === true)
-        manageKeys3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
+        manageKey3Status.innerHTML = `${icon('check-circle')} Key file deleted successfully`;
     else
-        manageKeys3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
+        manageKey3Status.innerHTML = `${icon('exclamation-circle')} ${deleted}`;
 
     frmKeys_Load();
-    manageKey_Show(manageKeys3);
+    manageKey_Show(manageKey3);
 }
 
 async function frmKeys_Generate() {
     generateKeys_Show(generateKeys1);
-    generateKeys_Clear();
+    modalToggle(generateKeys)
 }
 async function generateKeys_Show(screen) {
     generateKeys1.hidden = true;
@@ -73,29 +83,30 @@ async function generateKeys_Show(screen) {
 
     screen.hidden = false;
 }
-async function generateKeys_Clear() {
+async function generateKeys_Close() {
+    modalToggle(generateKeys);
     generateKeys1Type.value = "null";
     generateKeys1Name.value = "";
-    generateKeys1Error.innerHTML = "";
+    generateKeys1Message.innerHTML = "";
 
     generateKeys2Password1.value = "";
     generateKeys2Password2.value = "";
-    generateKeys2Error.innerHTML = "";
+    generateKeys2Message.innerHTML = "";
 
     generateKeys3List.innerHTML = "";
 }
 async function generateKeys1_Continue() {
     if (generateKeys1Type.value != "24-words" && generateKeys1Type.value != "12-words")
-        return generateKeys1Error.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
+        return generateKeys1Message.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
 
     if (generateKeys1Name.value == "")
-        return generateKeys1Error.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
+        return generateKeys1Message.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     generateKeys_Show(generateKeys2);
 }
 async function generateKeys2_Generate() {
     if (generateKeys2Password1.value !== generateKeys2Password2.value)
-        return generateKeys2Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
+        return generateKeys2Message.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
 
     var list = await GenerateKey(generateKeys1Name.value, generateKeys1Type.value, generateKeys2Password1.value);
@@ -111,7 +122,7 @@ async function generateKeys2_Generate() {
                         <div class="mt-0"><small>${parseInt(n) + 1}</small></div>
                     </div>`;
 
-        generateKeys3List.innerHTML = `<div class="mb-4">Please take note of this ${list.length} words. Anyone with access to them can move your funds. DO NOT SHARE OR LOSE YOUR RECOVERY PHRASE!!!</div>`
+        generateKeys3List.innerHTML = `<div class="mb-4">Please take note of this ${list.length} words in the order they appear. Anyone with access to them can move your funds. DO NOT SHARE OR LOSE YOUR RECOVERY PHRASE!!!</div>`
         generateKeys3List.innerHTML += `<div class="row">${data}</div>`
         delete list;
         delete data;
@@ -123,7 +134,7 @@ async function generateKeys2_Generate() {
 
 async function frmKeys_Import() {
     importKeys_Show(importKeys1);
-    importKeys_Clear();
+    modalToggle(importKeys);
 }
 async function importKeys_Show(screen) {
     importKeys1.hidden = true;
@@ -134,33 +145,35 @@ async function importKeys_Show(screen) {
 
     screen.hidden = false;
 }
-async function importKeys_Clear() {
+async function importKeys_Close() {
+    modalToggle(importKeys);
     importKeys1Type.value = "null";
+    importName.hidden = true;
     importKeys1Name.value = "";
-    importKeys1Error.innerHTML = "";
+    importKeys1Message.innerHTML = "";
 
     importKeys2MnemonicPhrase.innerHTML = "";
     importKeys2MnemonicGuess.innerHTML = "";
     importKeys2MnemonicWord.value = "";
     importKeys2MnemonicBIP39Passphrase.value = "";
-    importKeys2MnemonicError.innerHTML = "";
+    importKeys2MnemonicMessage.innerHTML = "";
 
     importKeys2KeysKey.value = "";
     importKeys2KeysList.innerHTML = "";
-    importKeys2KeysError.innerHTML = "";
+    importKeys2KeysMessage.innerHTML = "";
 
     importKeys3Password1.value = "";
     importKeys3Password2.value = "";
-    importKeys3Error.innerHTML = "";
+    importKeys3Message.innerHTML = "";
 
     importKeys4Message.innerHTML = "";
 }
 async function importKeys1_Continue() {
-    if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys" && importKeys1Type.value != "file")
-        return importKeys1Error.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
+    if (importKeys1Type.value != "mnemonic" && importKeys1Type.value != "keys" && importKeys1Type.value != "file" && importKeys1Type.value != "ledger")
+        return importKeys1Message.innerHTML = `${icon('exclamation-circle')} Select Key's type`;
 
-    if (importKeys1Name.value == "" && importKeys1Type.value != "file")
-        return importKeys1Error.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
+    if (importKeys1Name.value == "" && importKeys1Type.value != "file" && importKeys1Type.value != "ledger")
+        return importKeys1Message.innerHTML = `${icon('exclamation-circle')} Enter Key's name`;
 
     if (importKeys1Type.value == "file") {
         var save = await ImportKeyFile();
@@ -178,10 +191,21 @@ async function importKeys1_Continue() {
         importKeys_Show(importKeys2Keys);
     if (importKeys1Type.value == "file")
         importKeys_Show(importKeys4);
+    if (importKeys1Type.value == "ledger") {
+        var done = await ImportKeys("ledger", "Ledger Hardware Wallet", "", "", false);
+
+        if (done === true)
+            importKeys4Message.innerHTML = `${icon('check-circle')} Keys saved`;
+        else
+            importKeys4Message.innerHTML = `${icon('exclamation-circle')} ${done}`;
+
+        importKeys_Show(importKeys4);
+        frmKeys_Load();
+    }
 }
 async function importKeys2Mnemonic_Continue() {
     if (!(await CheckMnemonic(importKeys2MnemonicPhrase.innerHTML.trim())))
-        return importKeys2MnemonicError.innerHTML = `${icon('exclamation-circle')} Invalid mnemonic phrase`;
+        return importKeys2MnemonicMessage.innerHTML = `${icon('exclamation-circle')} Invalid mnemonic phrase`;
 
     importKeys_Show(importKeys3);
 }
@@ -201,22 +225,22 @@ async function importKeys2Mnemonic_keyboardClick(btn) {
 }
 async function importKeys2Keys_Continue() {
     if (importKeys2KeysList.children.length == 0)
-        return importKeys2KeysError.innerHTML = `${icon('exclamation-circle')} Missing private key`;
+        return importKeys2KeysMessage.innerHTML = `${icon('exclamation-circle')} Missing private key`;
 
     importKeys_Show(importKeys3);
 }
 async function importKeys2Keys_AddPrivateKey() {
-    importKeys2KeysError.innerHTML = "";
+    importKeys2KeysMessage.innerHTML = "";
     if (await CheckWIF(importKeys2KeysKey.value)) {
         importKeys2KeysList.innerHTML += `<li>${importKeys2KeysKey.value}</li>`;
         importKeys2KeysKey.value = "";
     } else {
-        return importKeys2KeysError.innerHTML = `${icon('exclamation-circle')} Invalid WIF`;
+        return importKeys2KeysMessage.innerHTML = `${icon('exclamation-circle')} Invalid WIF`;
     }
 }
 async function importKeys3_Save() {
     if (importKeys3Password1.value !== importKeys3Password2.value)
-        return importKeys3Error.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
+        return importKeys3Message.innerHTML = `${icon('exclamation-circle')} The passwords doesn't match`;
 
     if (importKeys1Type.value == "mnemonic") {
         var done = await ImportKeys("mnemonic", importKeys1Name.value, importKeys3Password1.value, importKeys2MnemonicPhrase.innerHTML.trim(), importKeys2MnemonicBIP39Passphrase.value);

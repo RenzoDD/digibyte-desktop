@@ -12,6 +12,28 @@ function Sync() {
     });
 }
 
+ipcRenderer.on('sync-price', async (event) => {
+    var exchange = await GetPrice();
+    topPrice.innerHTML = icon('cash-coin', 18) + " " + exchange.price + " USD";
+
+    if (exchange.change > 0)
+        topRate.innerHTML = icon('graph-up-arrow', 18) + " +" + exchange.change + " %";
+    else if (exchange.change < 0)
+        topRate.innerHTML = icon('graph-down-arrow', 18) + " " + exchange.change + " %";
+    else
+        topRate.innerHTML = icon('radar', 18) + " " + exchange.change + " %";
+});
+ipcRenderer.on('sync-account', async (event, id) => {
+    if (lastForm == 'frmAccounts')
+        frmAccounts_Load()
+    else if (lastForm == 'frmAccount' && id == accountID)
+        frmAccount_Load(id);
+});
+ipcRenderer.on('sync-percentage', async (event, percentage) => {
+    if (percentage == 100) topSync.innerHTML = icon('arrow-repeat', 18, true);
+    else topSync.innerHTML = percentage + " %";
+});
+
 /*
  * KEY MANAGEMENT
  */
@@ -24,10 +46,10 @@ function GetKeys() {
         });
     });
 }
-function ReadKey(id) {
+function GetKey(id) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('read-key', id);
-        ipcRenderer.once('read-key', (event, response) => {
+        ipcRenderer.send('get-key', id);
+        ipcRenderer.once('get-key', (event, response) => {
             resolve(response);
         });
     });
@@ -117,7 +139,7 @@ function GetAccount(id) {
         });
     });
 }
-function GeneateXPUB(key, password, type) {
+function GenerateXPUB(key, password, type) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('generate-xpub', key, password, type);
         ipcRenderer.once('generate-xpub', (event, response) => {
@@ -125,10 +147,26 @@ function GeneateXPUB(key, password, type) {
         });
     });
 }
-function NewXPUB(xpub) {
+function GenerateAddresses(key, password, network) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('new-xpub', xpub);
+        ipcRenderer.send('generate-addresses', key, password, network);
+        ipcRenderer.once('generate-addresses', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function NewXPUB(xpub, type) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('new-xpub', xpub, type);
         ipcRenderer.once('new-xpub', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function NewAddress(address) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('new-address', address);
+        ipcRenderer.once('new-address', (event, response) => {
             resolve(response);
         });
     });
@@ -149,11 +187,27 @@ function CheckPassword(id, password) {
         });
     });
 }
+function DeleteAccount(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('delete-account', id);
+        ipcRenderer.once('delete-account', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 
 /*
  * ACCOUNT MANAGEMENT
  */
 
+function GetAccountMempool(id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('get-account-mempool', id);
+        ipcRenderer.once('get-account-mempool', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 function GetAccountMovements(id) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('get-account-movements', id);
@@ -186,10 +240,10 @@ function GenerateLastAddres(id) {
         });
     });
 }
-function CopyAddressClipboard(text) {
+function CopyClipboard(text) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('copy-address-clipboard', text);
-        ipcRenderer.once('copy-address-clipboard', (event, response) => {
+        ipcRenderer.send('copy-clipboard', text);
+        ipcRenderer.once('copy-clipboard', (event, response) => {
             resolve(response);
         });
     });
@@ -210,10 +264,18 @@ function DGBtoSats(amount) {
         });
     });
 }
-function CreateTransaction(id, password, options) {
+function CreateTransaction(options, accountID, password) {
     return new Promise((resolve, reject) => {
-        ipcRenderer.send('create-tx', id, password, options);
+        ipcRenderer.send('create-tx', options, accountID, password);
         ipcRenderer.once('create-tx', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function SignTransaction(hex, password, options, id) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('sign-tx', hex, options, id);
+        ipcRenderer.once('sign-tx', (event, response) => {
             resolve(response);
         });
     });
@@ -222,6 +284,42 @@ function BroadcastTransaction(hex) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('broadcast-tx', hex);
         ipcRenderer.once('broadcast-tx', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function AddToMempool(id, txid) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('add-to-mempool', id, txid);
+        ipcRenderer.once('add-to-mempool', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+
+/*
+ * LEDGER
+ */
+function LedgerIsReady() {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('ledger-is-ready');
+        ipcRenderer.once('ledger-is-ready', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function LedgerGenerateAddress(path, type) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('ledger-generate-address', path, type);
+        ipcRenderer.once('ledger-generate-address', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function LedgerSignTransaction(options) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('ledger-sign-transaction', options);
+        ipcRenderer.once('ledger-sign-transaction', (event, response) => {
             resolve(response);
         });
     });

@@ -4,7 +4,8 @@ Each DigiByte Desktop Key File contain four fields
 
 | Field     | Description                                           |
 |-----------|-------------------------------------------------------|
-| id        | Key's unique random hex string                        |
+| file      | Object type (`key`, `account`, `transaction`)         |
+| id        | Key's unique checksum hex string                      |
 | name      | Key's name                                            |
 | type      | Private Key's type (`mnemonic`, `keys`)               |
 | words?    | If required, represents the mnemonic phrase length    |
@@ -26,7 +27,8 @@ Password: `""`
 
 ```json
 {
-  "id": "d7ae4ba909ae85d67f367f0050e19d031501a09084fe4aa8be3626a6e28d7c7f",
+  "file": "key",
+  "id": "e270d311b49033f31dc0333c9ef57c625c6e468e06d478d5d87af21883825061",
   "name": "DigiByte Mobile",
   "type": "mnemonic",
   "words": 12,
@@ -47,7 +49,8 @@ Password: `"Ka9wj%"`
 
 ```json
 {
-  "id": "3d583842dc567ae27ad5e2c1ba58b9d8e6723d8d79b27187e0d5cb5b9e5c76f2",
+  "file": "key",
+  "id": "843b8e535e788bf3025c53c67153ac70af2c7554b5b537c0b2e4d5aff2716b25",
   "name": "Test Key",
   "type": "mnemonic",
   "words": 3,
@@ -67,7 +70,8 @@ Password: `"Ka$i2k6"`
 
 ```json
 {
-  "id": "c1281f1392bb0a19302ee82493b762a0754db64e5e7ce8f24388cc5cf89fc9f3",
+  "file": "key",
+  "id": "43a8fcba10553b68fa62d0f2a962aa57b026b05701fee4c8c1ecd9525a0d8dd9",
   "name": "digiassetX",
   "type": "keys",
   "secret": [

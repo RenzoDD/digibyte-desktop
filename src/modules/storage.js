@@ -1,5 +1,5 @@
 const { app } = require('electron');
-var user = app.getPath('userData');
+const user = app.getPath('userData');
 
 const path = require('path');
 
@@ -61,6 +61,12 @@ storage.DeleteKey = async function (id) {
     keys = keys.filter(x => x !== id);
     await Set("keys", keys);
 
+    var accounts = await storage.GetAccounts();
+    for (var account of accounts) {
+        var account = await storage.GetAccount(account);
+        if (account.secret !== id) continue;
+        await storage.DeleteAccount(account.id);
+    }
     return true;
 }
 
@@ -107,7 +113,8 @@ storage.UpdateAccount = async function (object) {
     return true;
 }
 storage.DeleteAccount = async function (id) {
-    if (await Get(id + "@accounts") === null)
+    var account = await Get(id + "@accounts");
+    if (account === null)
         return "They account doesn't exist";
 
     await Del(id + "@accounts");
@@ -117,6 +124,16 @@ storage.DeleteAccount = async function (id) {
     var accounts = await Get("accounts");
     accounts = accounts.filter(x => x !== id);
     await Set("accounts", accounts);
+
+    await storage.DeleteAccount(id);
+    await storage.DeleteAccountMovements(id);
+    await storage.DeleteAccountMempool(id);
+    await storage.DeleteAccountBalance(id)
+    if (account.addresses)
+        for (var address of account.addresses) {
+            await storage.DeleteAccountMovements(account.id + "-" + address);
+            await storage.DeleteAccountMempool(account.id + "-" + address);
+        }
 
     return true;
 }
@@ -130,6 +147,43 @@ storage.GetAccountMovements = async function (id) {
 storage.SetAccountMovements = async function (id, object) {
     await Set(id + "@account-movements", object);
     if (await Get(id + "@account-movements") === null)
+        return "There was a storage error";
+    return true;
+}
+storage.DeleteAccountMovements = async function (id) {
+    await Del(id + "@account-movements");
+    if (await Get(id + "@account-movements") !== null)
+        return "There was a storage error";
+    return true;
+}
+
+storage.GetAccountMempool = async function (id) {
+    var movements = await Get(id + "@account-mempool");
+    if (movements == null)
+        movements = [];
+    return movements;
+}
+storage.SetAccountMempool = async function (id, object) {
+    await Set(id + "@account-mempool", object);
+    if (await Get(id + "@account-mempool") === null)
+        return "There was a storage error";
+    return true;
+}
+storage.AddTxAccountMempool = async function (id, object) {
+    var movements = await Get(id + "@account-mempool");
+    movements.push(object);
+    await Set(id + "@account-mempool", movements);
+    return true;
+}
+storage.ClearAccountMempool = async function (id) {
+    await Set(id + "@account-mempool", []);
+    if (await Get(id + "@account-mempool") === null)
+        return "There was a storage error";
+    return true;
+}
+storage.DeleteAccountMempool = async function (id) {
+    await Del(id + "@account-mempool");
+    if (await Get(id + "@account-mempool") !== null)
         return "There was a storage error";
     return true;
 }
@@ -151,6 +205,12 @@ storage.SetAccountBalance = async function (id, object) {
         return "There was a storage error";
     return true;
 }
+storage.DeleteAccountBalance = async function (id) {
+    await Del(id + "@account-balance");
+    if (await Get(id + "@account-balance") !== null)
+        return "There was a storage error";
+    return true;
+}
 
 storage.GetTransaction = async function (id) {
     return await Get(id + "@tx-data");
@@ -163,13 +223,13 @@ storage.SetTransaction = async function (id, object) {
 }
 
 storage.GetPrice = async function () {
-    var exchange = await Get("@usd-exchange");
+    var exchange = await Get("exchange");
     if (exchange == null)
         exchange = { change: 0, price: 0 };
     return exchange;
 }
 storage.SetPrice = async function (value) {
-    await Set("@usd-exchange", value);
+    await Set("exchange", value);
 }
 
 module.exports = storage;

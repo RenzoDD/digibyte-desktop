@@ -1,7 +1,12 @@
+require('./modules/logging');
 require('./modules/port');
 
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, shell } = require('electron');
 let myWindow = null;
+
+global.ExecuteOnRenderer = async function (event, ...args) {
+	myWindow.webContents.send(event, ...args);
+}
 
 // Only one instance
 if (!app.requestSingleInstanceLock()) {
@@ -41,5 +46,10 @@ app.whenReady().then(() => {
 	myWindow.webContents.once('did-finish-load', function () {
 		myWindow.show();
 		myWindow.maximize();
+	});
+
+	myWindow.webContents.on('will-navigate', function (event, url) {
+		event.preventDefault();
+		shell.openExternal(url);
 	});
 });

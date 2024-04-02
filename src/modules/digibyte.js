@@ -17,8 +17,6 @@ DigiByte.GenerateSeed = function (words, passphrase) {
     var phrase = mnemonic.toString();
     var list = phrase.split(" ");
 
-    delete mnemonic;
-
     return { phrase, list, seed };
 }
 
@@ -27,10 +25,7 @@ DigiByte.GetMnemonicWord = function (guess) {
 }
 
 DigiByte.CheckMnemonic = function (mnemonic) {
-    var valid = false;
-    try { valid = Mnemonic.isValid(mnemonic) }
-    catch { }
-    return valid;
+    return Mnemonic.isValid(mnemonic);
 }
 
 DigiByte.CheckWIF = function (WIF) {
@@ -39,7 +34,7 @@ DigiByte.CheckWIF = function (WIF) {
 
 DigiByte.GetXPUBs = function (seed, type) {
     var hdprivatekey = HDPrivateKey.fromSeed(Buffer.from(seed, 'hex'), null, type == 'mobile');
-    var purpose = { 'legacy': 44, 'compatibility': 49, 'segwit': 84 }[type];
+    var purpose = { 'legacy': 44, 'script': 49, 'segwit': 84 }[type];
 
     if (type == 'mobile') {
         var xpub = hdprivatekey.deriveChild("m/0'").hdPublicKey.toString();
@@ -47,7 +42,7 @@ DigiByte.GetXPUBs = function (seed, type) {
     }
 
     var xpubs = [];
-    for (var i = 0; i < 100; i++) {
+    for (var i = 0; i < 300; i++) {
         var xpub = hdprivatekey.deriveChild(`m/${purpose}'/20'/${i}'`).hdPublicKey.toString();
         xpubs.push(xpub);
     }
@@ -75,6 +70,16 @@ DigiByte.DeriveHDPrivateKey = function (xprv, path, mobile) {
     return hdprivatekey.deriveChild(path).privateKey.toWIF();
 }
 
+DigiByte.WifToAddress = function (wif, network) {
+    var privateKey = new PrivateKey(wif);
+    var legacy = privateKey.toAddress(network, 'legacy').toString();
+    if (privateKey.compressed == false)
+        return { legacy };
+    var script = privateKey.toAddress(network, 'script').toString();
+    var segwit = privateKey.toAddress(network, 'segwit').toString();
+    return { legacy, script, segwit };
+}
+
 DigiByte.CheckAddress = function (address) {
     return Address.isValid(address);
 }
@@ -87,67 +92,48 @@ DigiByte.ParseTransaction = function (hex) {
     return new Transaction(hex);
 }
 
-DigiByte.SignTransaction = function (options) {
+DigiByte.CalculateTxFee = function (options) {
+    var inputs = options.inputs.length;
+    var outputs = options.outputs.length;
+    var data = (options.advanced.memo || "").length;
+
+    if (data != 0) outputs++;
+    return (10 + inputs + (inputs * 180) + (outputs * 34) + data) * 2;
+}
+
+DigiByte.BuildTransaction = function (options, keys) {
     var inSats = 0;
     options.inputs.forEach(utxo => inSats += utxo.satoshis);
     var outSats = 0;
     options.outputs.forEach(utxo => outSats += utxo.satoshis);
 
-    if (outSats > inSats) return { error: 'Input amount is less than output amount' };
+    if (outSats + options.fee > inSats) return { error: `Input amount is less than output amount ${outSats + options.fee} < ${inSats}` };
 
     var tx = new Transaction()
         .from(options.inputs)
         .to(options.outputs)
-        .change(options.advanced.change)
-        .feePerByte(options.advanced.feeperbyte);
+        .change(options.advanced.change.address || options.advanced.change)
+        .fee(options.fee);
 
     if (options.advanced.memo)
         tx.addData(options.advanced.memo);
-    if (options.advanced.timelock) {
-        if (options.advanced.timelock.block)
-            tx.lockUntilBlockHeight(options.advanced.timelock.block);
-        if (options.advanced.timelock.time)
-            tx.lockUntilDate(options.advanced.timelock.time);
+    if (options.advanced.locktime) {
+        if (options.advanced.locktime.block)
+            tx.lockUntilBlockHeight(options.advanced.locktime.block);
+        if (options.advanced.locktime.time)
+            tx.lockUntilDate(options.advanced.locktime.time);
     }
+    options.advanced.locktime = tx.nLockTime;
     if (options.advanced.rbf)
         tx.enableRBF();
+    
+    if (keys) tx.sign(keys);
 
-    var fee = tx._estimateFee();
-    var chargedRecipient = options.outputs.find(x => x.fee);
-    if (chargedRecipient) {
-        chargedRecipient.satoshis -= fee;
-        tx.fee(tx._estimateFee());
-        if (chargedRecipient.satoshis < 600)
-            return { error: 'Insuficient output balance to substract fee' };
-        tx.clearOutputs();
-        tx.to(options.outputs);
-    }
-
-    tx.sign(options.keys);
-
-    var error = tx.getSerializationError();
+    var error = tx.getSerializationError({ disableIsFullySigned: true });
     if (error) return { error: error.toString() };
 
-    var hex = tx.serialize();
-    var size = hex.length / 2;
-    if (size > fee) {
-        tx.fee(size);
-        if (chargedRecipient) {
-            chargedRecipient.satoshis += fee;
-            chargedRecipient.satoshis -= size;
-            if (chargedRecipient.satoshis < 600)
-                return { error: 'Insuficient output balance to substract fee' };
-            tx.clearOutputs();
-            tx.to(options.outputs);
-        }
-        
-        var error = tx.getSerializationError();
-        if (error) return { error: error.toString() };
-
-        var hex = tx.serialize();
-    }
-
-    return { hex }
+    options.hex = tx.serialize({ disableIsFullySigned: true });
+    return options;
 }
 
 /*
@@ -155,10 +141,9 @@ DigiByte.SignTransaction = function (options) {
  */
 
 DigiByte.GetPrice = async function () {
-    return (await Price.Binance());
+    return (await Price.GetBinanceUSD());
 }
 
 DigiByte.explorer = new Blockbook();
-DigiByte.explorerV1 = new Blockbook(null, 'v1');
 
 module.exports = DigiByte;

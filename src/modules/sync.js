@@ -12,7 +12,7 @@ async function SyncPrice() {
     do { var exchange = await DigiByte.GetPrice(); }
     while (exchange == null);
 
-    storage.SetPrice(exchange);
+    await storage.SetPrice(exchange);
 
     global.ExecuteOnRenderer('sync-price');
     console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);

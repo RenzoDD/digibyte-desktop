@@ -375,6 +375,12 @@ ipcMain.on('check-address', async function (event, address) {
     var result = DigiByte.CheckAddress(address);
     return event.reply('check-address', result);
 });
+ipcMain.on('domain-to-address', async function (event, domain) {
+    console.log("domain-to-address", "CALLED");
+    var result = await DigiByte.DomainToAddress(domain);
+    console.log(domain, result);
+    return event.reply('domain-to-address', result);
+});
 ipcMain.on('dgb-to-sats', async function (event, amount) {
     var result = DigiByte.DGBtoSats(amount);
     return event.reply('dgb-to-sats', result);

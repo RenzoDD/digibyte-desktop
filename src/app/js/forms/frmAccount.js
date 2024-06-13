@@ -306,6 +306,12 @@ async function sendDGB1_AddOutput() {
     </div>`;
 
     sendDGB1Outputs.amount = n + 1;
+
+    for (var n = 0; n < sendDGB1Outputs.amount; n++) {
+        var sendDGB1Message = document.getElementById(`sendDGB1Message${n}`);
+        sendDGB1Message.innerHTML = "";
+    }
+    sendDGB1Continue.disabled = true;
 }
 async function sendDGB1_CheckAddress() {
     var valid = true;
@@ -315,7 +321,8 @@ async function sendDGB1_CheckAddress() {
         var sendDGB1Message = document.getElementById(`sendDGB1Message${n}`);
         var sendDGB1SubstractFee = document.getElementById(`sendDGB1SubstractFee${n}`);
 
-        if (await CheckAddress(sendDGB1Address.value)) {
+        var address = sendDGB1Address.value;
+        if (address.toLocaleLowerCase().endsWith('.dgb') || await CheckAddress(address)) {
             sendDGB1Message.innerHTML = "";
             sendDGB1Amount.disabled = false;
             sendDGB1SubstractFee.disabled = false;
@@ -382,8 +389,18 @@ async function sendDGB4_Execute() {
         var sendDGB1Amount = document.getElementById(`sendDGB1Amount${n}`);
         var sendDGB1SubstractFee = document.getElementById(`sendDGB1SubstractFee${n}`);
 
+        var address = sendDGB1Address.value;
+        if (address.toLocaleLowerCase().endsWith('.dgb')) {
+            var result = await DomainToAddress(address);
+            if (result.address) address = result.address;
+            else {
+                sendDGB5Message.innerHTML = icon("x-circle") + ` ${(result.error || "Unknown domain error")} (${address})`;
+                return sendDGB_Show(sendDGB5);
+            }
+        }
+
         options.outputs.push({
-            address: sendDGB1Address.value,
+            address,
             amount: sendDGB1Amount.value,
             fee: sendDGB1SubstractFee.checked
         });

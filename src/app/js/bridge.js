@@ -256,6 +256,14 @@ function CheckAddress(address) {
         });
     });
 }
+function DomainToAddress(domain) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('domain-to-address', domain);
+        ipcRenderer.once('domain-to-address', (event, response) => {
+            resolve(response);
+        });
+    });
+}
 function DGBtoSats(amount) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('dgb-to-sats', amount);

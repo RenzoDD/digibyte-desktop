@@ -375,6 +375,7 @@ async function sendDGB3_Sign() {
     sendDGB4_Execute();
 }
 async function sendDGB4_Execute() {
+    sendDGB4Status.innerHTML = icon('info-circle') + " Building transaction...";
     var options = {
         inputs: [],
         outputs: [],
@@ -384,6 +385,7 @@ async function sendDGB4_Execute() {
     };
 
     // OUTPUTS
+    sendDGB4Status.innerHTML = icon('info-circle') + " Creating outputs...";
     for (var n = 0; n < sendDGB1Outputs.amount; n++) {
         var sendDGB1Address = document.getElementById(`sendDGB1Address${n}`);
         var sendDGB1Amount = document.getElementById(`sendDGB1Amount${n}`);
@@ -391,6 +393,7 @@ async function sendDGB4_Execute() {
 
         var address = sendDGB1Address.value;
         if (address.toLocaleLowerCase().endsWith('.dgb')) {
+            sendDGB4Status.innerHTML = icon('info-circle') + ` Fetching domain (${address})...`;
             var result = await DomainToAddress(address);
             if (result.address) address = result.address;
             else {
@@ -407,6 +410,7 @@ async function sendDGB4_Execute() {
     }
 
     // ADVANCED
+    sendDGB4Status.innerHTML = icon('info-circle') + " Adding advance options...";
     if (sendDGB2Memo.value != "")
         options.advanced.memo = sendDGB2Memo.value;
 
@@ -428,6 +432,7 @@ async function sendDGB4_Execute() {
 
     options.advanced.coinControl = sendDGB2CoinControl.value;
 
+    sendDGB4Status.innerHTML = icon('info-circle') + " Building transaction...";
     var key = await GetKey(keyID);
     if (key.type == "ledger") {
         var options = await CreateTransaction(options, accountID);
@@ -484,6 +489,7 @@ async function sendDGB4_Execute() {
             <small>This transaction have a timelock, broadcast it when its reached</small>`;
     }
 
+    sendDGB4Status.innerHTML = icon('info-circle') + " Broadcasting transaction...";
     var data = await BroadcastTransaction(options.hex);
     if (data.error) {
         sendDGB_Show(sendDGB5);

@@ -9,10 +9,8 @@ let CONFIRMATIONS = 1;
  */
 
 async function SyncPrice() {
-    do { var exchange = await DigiByte.GetPrice(); }
-    while (exchange == null);
-
-    storage.SetPrice(exchange);
+    var exchange = await DigiByte.GetPrice();
+    await storage.SetPrice(exchange);
 
     global.ExecuteOnRenderer('sync-price');
     console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);

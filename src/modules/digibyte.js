@@ -141,7 +141,7 @@ DigiByte.BuildTransaction = function (options, keys) {
  */
 
 DigiByte.GetPrice = async function () {
-    return (await Price.GetBinanceUSD());
+    return (await Price.GetFromBinance('us'));
 }
 
 DigiByte.explorer = new Blockbook();

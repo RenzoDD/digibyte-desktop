@@ -29,7 +29,7 @@ app.on('window-all-closed', () => {
 app.whenReady().then(() => {
 	myWindow = new BrowserWindow({
 		webPreferences: {
-			devTools: true,
+			devTools: false,
 			nodeIntegration: true,
 			contextIsolation: false
 		},
@@ -37,7 +37,6 @@ app.whenReady().then(() => {
 		autoHideMenuBar: true,
 		maximizable: true,
 		resizable: true,
-		show: false,
 		minWidth: 1080,
 		minHeight: 720
 	})

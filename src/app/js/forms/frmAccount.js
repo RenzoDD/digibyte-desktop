@@ -80,7 +80,7 @@ async function frmAccount_Load(id) {
                 </div>
                 <div class="col-5">${movement.type == 'received' ? movement.from[0] : movement.type == 'sent' ? movement.to[0] : movement.to[0]}</div>
                 <div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
-                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8, false, true))}
+                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8, true, true))}
                 </div >
             </div>`;
     }

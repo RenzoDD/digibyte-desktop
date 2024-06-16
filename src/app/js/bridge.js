@@ -23,6 +23,11 @@ ipcRenderer.on('sync-price', async (event) => {
     else
         topRate.innerHTML = icon('radar', 18) + " " + exchange.change + " %";
 });
+ipcRenderer.on('sync-version', async (event, current, remote) => {
+    title.innerHTML = `DigiByte Desktop v${current}`;
+    btnUdate.innerHTML = icon("cloud-arrow-down") + ` Update to v${remote}`;
+    btnUdate.hidden = (current === remote);
+});
 ipcRenderer.on('sync-account', async (event, id) => {
     if (lastForm == 'frmAccounts')
         frmAccounts_Load()

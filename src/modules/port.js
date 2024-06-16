@@ -468,7 +468,7 @@ ipcMain.on('create-tx', async function (event, options, id, password) {
             options.advanced.change = account.addresses[0];
     }
 
-    if (password) {
+    if (typeof password === "string") {
         var paths = {};
         options.inputs.forEach(utxo => paths[utxo.path] = true);
         paths = Object.keys(paths);

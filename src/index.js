@@ -1,5 +1,12 @@
-const { app, BrowserWindow } = require('electron');
+require('./modules/logging');
+require('./modules/port');
+
+const { app, BrowserWindow, shell } = require('electron');
 let myWindow = null;
+
+global.ExecuteOnRenderer = async function (event, ...args) {
+	myWindow.webContents.send(event, ...args);
+}
 
 // Only one instance
 if (!app.requestSingleInstanceLock()) {
@@ -30,12 +37,18 @@ app.whenReady().then(() => {
 		autoHideMenuBar: true,
 		maximizable: true,
 		resizable: true,
-		show: false
+		minWidth: 1080,
+		minHeight: 720
 	})
+
 	myWindow.loadFile(__dirname + '/app/index.html');
 	myWindow.webContents.once('did-finish-load', function () {
 		myWindow.show();
 		myWindow.maximize();
 	});
 
+	myWindow.webContents.on('will-navigate', function (event, url) {
+		event.preventDefault();
+		shell.openExternal(url);
+	});
 });

@@ -1,10 +1,10 @@
 {
   "name": "digibyte-desktop",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "A DigiByte Coin standard-compilant light wallet for desktop environment",
   "main": "src/index.js",
   "scripts": {
-    "start": "electron .",
+    "start": "electron . --trace-warnings",
     "pack": "electron-builder build --dir",
     "dist": "electron-builder build",
     "test": "node test.js"
@@ -28,7 +28,10 @@
   },
   "homepage": "https://github.com/RenzoDD/digibyte-desktop#readme",
   "dependencies": {
-    "digibyte-js": "^2.0.4"
+    "@ledgerhq/hw-app-btc": "^10.2.3",
+    "@ledgerhq/hw-transport-node-hid": "^6.28.5",
+    "digibyte-js": "^2.5.3",
+    "level": "^8.0.0"
   },
   "devDependencies": {
     "electron": "^25.4.0",
@@ -55,7 +58,7 @@
           "path": "/Applications"
         }
       ],
-      "icon": "build/icons/icon.icns"
+      "icon": "src/app/img/icons/icon.icns"
     },
     "linux": {
       "target": [
@@ -64,11 +67,11 @@
         "rpm"
       ],
       "category": "Utility",
-      "icon": "build/icons/icon.icns"
+      "icon": "src/app/img/icons/icon.icns"
     },
     "win": {
       "target": "NSIS",
-      "icon": "build/icons/icon.ico"
+      "icon": "src/app/img/icons/icon.ico"
     }
   }
 }

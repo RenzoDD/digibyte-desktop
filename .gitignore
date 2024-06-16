@@ -3,3 +3,4 @@ out/
 dist/
 *.dgb
 package-lock.json
+test.js

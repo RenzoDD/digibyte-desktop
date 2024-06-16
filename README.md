@@ -1,6 +1,6 @@
 # DigiByte Desktop Wallet
 
-![NodeJS Version](https://img.shields.io/badge/nodejs--blue)
+![NodeJS Version](https://img.shields.io/badge/nodejs-18.20.3-blue)
 ![Platform](https://img.shields.io/badge/platform-linux%20%7C%20win--64%20%7C%20mac--os-lightgrey)
 ![Licence](https://img.shields.io/badge/licence-MIT-green)
 

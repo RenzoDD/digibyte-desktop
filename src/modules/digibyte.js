@@ -7,6 +7,7 @@ const HDPublicKey = require('digibyte-js/lib/hdpublickey');
 const Address = require('digibyte-js/lib/address');
 const Price = require('digibyte-js/lib/price');
 const Unit = require('digibyte-js/lib/unit');
+const DigiByteDomain = require('digibyte-js/lib/domain');
 const Transaction = require('digibyte-js/lib/transaction/transaction');
 
 const DigiByte = {}
@@ -82,6 +83,10 @@ DigiByte.WifToAddress = function (wif, network) {
 
 DigiByte.CheckAddress = function (address) {
     return Address.isValid(address);
+}
+
+DigiByte.DomainToAddress = async function (domain) {
+    return await DigiByteDomain.DomainToAddress(domain);
 }
 
 DigiByte.DGBtoSats = function (amount) {

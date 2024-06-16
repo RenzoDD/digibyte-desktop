@@ -23,6 +23,11 @@ ipcRenderer.on('sync-price', async (event) => {
     else
         topRate.innerHTML = icon('radar', 18) + " " + exchange.change + " %";
 });
+ipcRenderer.on('sync-version', async (event, current, remote) => {
+    title.innerHTML = `DigiByte Desktop v${current}`;
+    btnUdate.innerHTML = icon("cloud-arrow-down") + ` Update to v${remote}`;
+    btnUdate.hidden = (current === remote);
+});
 ipcRenderer.on('sync-account', async (event, id) => {
     if (lastForm == 'frmAccounts')
         frmAccounts_Load()
@@ -252,6 +257,14 @@ function CheckAddress(address) {
     return new Promise((resolve, reject) => {
         ipcRenderer.send('check-address', address);
         ipcRenderer.once('check-address', (event, response) => {
+            resolve(response);
+        });
+    });
+}
+function DomainToAddress(domain) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send('domain-to-address', domain);
+        ipcRenderer.once('domain-to-address', (event, response) => {
             resolve(response);
         });
     });

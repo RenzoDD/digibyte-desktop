@@ -80,7 +80,7 @@ async function frmAccount_Load(id) {
                 </div>
                 <div class="col-5">${movement.type == 'received' ? movement.from[0] : movement.type == 'sent' ? movement.to[0] : movement.to[0]}</div>
                 <div class="col-5 text-end fw-bold" style="color: ${movement.isAsset || movement.change == 0 ? 'white' : (movement.change > 0 ? 'green' : 'red')}">
-                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8, false, true))}
+                    ${movement.isAsset ? icon('digiasset') + " DigiAsset" : ((movement.change > 0 ? '+' : '') + coin(movement.change, 8, true, true))}
                 </div >
             </div>`;
     }
@@ -306,6 +306,12 @@ async function sendDGB1_AddOutput() {
     </div>`;
 
     sendDGB1Outputs.amount = n + 1;
+
+    for (var n = 0; n < sendDGB1Outputs.amount; n++) {
+        var sendDGB1Message = document.getElementById(`sendDGB1Message${n}`);
+        sendDGB1Message.innerHTML = "";
+    }
+    sendDGB1Continue.disabled = true;
 }
 async function sendDGB1_CheckAddress() {
     var valid = true;
@@ -315,7 +321,8 @@ async function sendDGB1_CheckAddress() {
         var sendDGB1Message = document.getElementById(`sendDGB1Message${n}`);
         var sendDGB1SubstractFee = document.getElementById(`sendDGB1SubstractFee${n}`);
 
-        if (await CheckAddress(sendDGB1Address.value)) {
+        var address = sendDGB1Address.value;
+        if (address.toLocaleLowerCase().endsWith('.dgb') || await CheckAddress(address)) {
             sendDGB1Message.innerHTML = "";
             sendDGB1Amount.disabled = false;
             sendDGB1SubstractFee.disabled = false;
@@ -368,6 +375,7 @@ async function sendDGB3_Sign() {
     sendDGB4_Execute();
 }
 async function sendDGB4_Execute() {
+    sendDGB4Status.innerHTML = icon('info-circle') + " Building transaction...";
     var options = {
         inputs: [],
         outputs: [],
@@ -377,19 +385,32 @@ async function sendDGB4_Execute() {
     };
 
     // OUTPUTS
+    sendDGB4Status.innerHTML = icon('info-circle') + " Creating outputs...";
     for (var n = 0; n < sendDGB1Outputs.amount; n++) {
         var sendDGB1Address = document.getElementById(`sendDGB1Address${n}`);
         var sendDGB1Amount = document.getElementById(`sendDGB1Amount${n}`);
         var sendDGB1SubstractFee = document.getElementById(`sendDGB1SubstractFee${n}`);
 
+        var address = sendDGB1Address.value;
+        if (address.toLocaleLowerCase().endsWith('.dgb')) {
+            sendDGB4Status.innerHTML = icon('info-circle') + ` Fetching domain (${address})...`;
+            var result = await DomainToAddress(address);
+            if (result.address) address = result.address;
+            else {
+                sendDGB5Message.innerHTML = icon("x-circle") + ` ${(result.error || "Unknown domain error")} (${address})`;
+                return sendDGB_Show(sendDGB5);
+            }
+        }
+
         options.outputs.push({
-            address: sendDGB1Address.value,
+            address,
             amount: sendDGB1Amount.value,
             fee: sendDGB1SubstractFee.checked
         });
     }
 
     // ADVANCED
+    sendDGB4Status.innerHTML = icon('info-circle') + " Adding advance options...";
     if (sendDGB2Memo.value != "")
         options.advanced.memo = sendDGB2Memo.value;
 
@@ -411,6 +432,7 @@ async function sendDGB4_Execute() {
 
     options.advanced.coinControl = sendDGB2CoinControl.value;
 
+    sendDGB4Status.innerHTML = icon('info-circle') + " Building transaction...";
     var key = await GetKey(keyID);
     if (key.type == "ledger") {
         var options = await CreateTransaction(options, accountID);
@@ -467,6 +489,7 @@ async function sendDGB4_Execute() {
             <small>This transaction have a timelock, broadcast it when its reached</small>`;
     }
 
+    sendDGB4Status.innerHTML = icon('info-circle') + " Broadcasting transaction...";
     var data = await BroadcastTransaction(options.hex);
     if (data.error) {
         sendDGB_Show(sendDGB5);

@@ -1,3 +1,4 @@
+const { app } = require('electron');
 const DigiByte = require('./digibyte');
 const storage = require('./storage');
 
@@ -14,6 +15,24 @@ async function SyncPrice() {
 
     global.ExecuteOnRenderer('sync-price');
     console.log("SyncPrice", "SUCCESS", "price:" + exchange.price, "change:" + exchange.change);
+}
+
+async function SyncVersion() {
+    try {
+        var response = await fetch("https://raw.githubusercontent.com/RenzoDD/digibyte-desktop/master/package.json");
+        var data = await response.json();
+    } catch (e) {
+        return console.log("SyncVersion", "ERROR");
+    }
+    
+    var current = app.getVersion();
+    var remote = data.version;
+
+    if (typeof current !== 'string' || typeof remote !== 'string')
+        return console.log("SyncVersion", "ERROR");
+
+    global.ExecuteOnRenderer('sync-version', current, remote);
+    console.log("SyncVersion", "SUCCESS", current, remote);
 }
 
 function GetAddresses(account) {
@@ -346,6 +365,7 @@ async function SyncBalance(account) {
 
 async function Sync() {
     await SyncPrice();
+    await SyncVersion();
     global.ExecuteOnRenderer('sync-percentage', 0)
 
     var accounts = await storage.GetAccounts();

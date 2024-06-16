@@ -1,6 +1,6 @@
 {
   "name": "digibyte-desktop",
-  "version": "0.5.2",
+  "version": "1.0.0",
   "description": "A DigiByte Coin standard-compilant light wallet for desktop environment",
   "main": "src/index.js",
   "scripts": {
@@ -30,7 +30,7 @@
   "dependencies": {
     "@ledgerhq/hw-app-btc": "^10.2.3",
     "@ledgerhq/hw-transport-node-hid": "^6.28.5",
-    "digibyte-js": "^2.5.1",
+    "digibyte-js": "^2.5.3",
     "level": "^8.0.0"
   },
   "devDependencies": {

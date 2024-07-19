@@ -145,13 +145,13 @@ async function manageAccount2_Delete() {
 }
 async function manageAccount1xpub_Copy() {
     var result = await CopyClipboard(manageAccount1xpub.value);
-    if (result) manageAccount1xpubCopy.innerHTML = icon('clipboard-check');
-    else manageAccount1xpubCopy.innerHTML = icon('clipboard-x');
+    if (result) manageAccount1xpubCopy.innerHTML = icon('clipboard-check', 15);
+    else manageAccount1xpubCopy.innerHTML = icon('clipboard-x', 15);
 }
 async function manageAccount1Path_Copy() {
     var result = await CopyClipboard(manageAccount1Path.value);
-    if (result) manageAccount1PathCopy.innerHTML = icon('clipboard-check');
-    else manageAccount1PathCopy.innerHTML = icon('clipboard-x');
+    if (result) manageAccount1PathCopy.innerHTML = icon('clipboard-check', 15);
+    else manageAccount1PathCopy.innerHTML = icon('clipboard-x', 15);
 }
 
 async function frmAccount_Receive() {
@@ -209,7 +209,7 @@ async function receiveDGB_Close() {
 }
 async function receiveDGB1_Copy() {
     var result = await CopyClipboard(receiveDGB1Address.value);
-    if (result) receiveDGB1Copy.innerHTML = icon('clipboard-check');
+    if (result) receiveDGB1Copy.innerHTML = icon('clipboard-check', 15);
     else receiveDGB1Copy.innerHTML = icon('clipboard-x');
 }
 async function receiveDGB2_LedgerManual() {
@@ -476,15 +476,15 @@ async function sendDGB4_Execute() {
             <div class="text-center">${icon('check-circle', 40)}</div>
             <div class="text-center">Transaction Created</div>
             <div class="text-break text-start">
-                <label>Serialized Transaction:</label>
-                <div class="input-group">
-                    <input type="text" class="form-control form-control-sm font-monospace" value="${options.hex}" readonly>
-                    <button class="btn btn-success" type="button" id="sendDGB3Copy" onclick="sendDGB5_Copy('${options.hex}')">
-                        <svg class="bi" width="18" height="18">
+                <label>
+                    Serialized Transaction: 
+                    <button class="btn btn-sm" type="button" id="sendDGB3Copy" onclick="sendDGB5_Copy('${options.hex}')">
+                        <svg class="bi" width="15" height="15">
                             <use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
                         </svg>
                     </button>
-                </div>
+                </label>
+                <textarea class="form-control form-control-sm font-monospace" rows="8" readonly>${options.hex}</textarea>
             </div>
             <small>This transaction have a timelock, broadcast it when its reached</small>`;
     }
@@ -504,21 +504,20 @@ async function sendDGB4_Execute() {
         <div class="text-center">${icon('check-circle', 40)}</div>
         <div class="text-center">Transaction Broadcasted</div>
         <div class="text-break text-start">
-            <label>TXID:</label>
-            <div class="input-group">
-                <input type="text" class="form-control form-control-sm monospace" value="${data.result}" readonly>
-                <button class="btn btn-success" type="button" id="sendDGB3Copy" onclick="sendDGB5_Copy('${data.result}')">
-                    <svg class="bi" width="18" height="18">
+            <label>
+                TXID:
+                <button class="btn btn-sm" type="button" id="sendDGB3Copy" onclick="sendDGB5_Copy('${data.result}')">
+                    <svg class="bi" width="15" height="15">
                         <use xlink:href="vendor/bootstrap-icons.svg#clipboard" />
                     </svg>
                 </button>
-            </div>
-            
+            </label>
+            <input type="text" class="form-control form-control-sm monospace" value="${data.result}" readonly>           
         </div>`;
 }
 async function sendDGB5_Copy(txid) {
     var result = await CopyClipboard(txid);
-    if (result) sendDGB3Copy.innerHTML = icon('clipboard-check');
+    if (result) sendDGB3Copy.innerHTML = icon('clipboard-check', 15);
     else sendDGB3Copy.innerHTML = icon('clipboard-x');
 }
 
